@@ -208,7 +208,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
     .roi-seg button{padding:9px 0;font-size:12px;flex:1}
     table{font-size:12px}
   }
-  </style>
+  </style>
 </head>
 <body>
 <div id="__page_veil" style="position:fixed;inset:0;background:#0f172a;z-index:9999"></div>
@@ -235,7 +235,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
       <li><a class="nav-link" onclick="showPage('activities',this)"><i class="bi bi-journal-text"></i>활동일지</a></li>
       <li><a class="nav-link" onclick="showPage('schedule',this)"><i class="bi bi-calendar-week"></i>일정</a></li>
       <li><a class="nav-link" onclick="showPage('quotes',this)"><i class="bi bi-file-earmark-text"></i>견적서</a></li>
-      <li><a class="nav-link" onclick="showPage('speech',this)"><i class="bi bi-chat-quote"></i>Sales Speech</a></li>
+      <li><a class="nav-link" onclick="showPage('speech',this)"><i class="bi bi-chat-quote"></i>Sales Speech</a></li>
       <li id="nav-byrep" style="display:none;border-top:1px solid #1e293b;margin-top:6px;padding-top:6px"><a class="nav-link" onclick="showPage('by-rep',this)"><i class="bi bi-person-badge"></i>담당자별 분석 <span style="font-size:9px;color:#64748b;font-weight:700">팀장</span></a></li>
     </ul>
   </div>
@@ -423,7 +423,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
       <div id="speech-detail-content"></div>
     </div>
   </div>
-
+
 <div id="page-quotes" class="page">
   <div class="page-header"><h5><i class="bi bi-file-earmark-text" style="color:#0891b2"></i>견적서 <span style="font-size:12px;font-weight:400;color:#9ca3af">USD 견적 · 인쇄/공유</span></h5>
     <button class="btn btn-sm" style="background:#0d9488;color:#fff" onclick="openQuote()"><i class="bi bi-plus-lg me-1"></i>새 견적</button></div>
@@ -672,12 +672,14 @@ function toggleNav(force){
   sb.classList.toggle('open', open);
   if(bd) bd.classList.toggle('open', open);
 }
-function showPage(n,el){
+function showPage(n,el,noPush){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-link').forEach(a=>a.classList.remove('active'));
   document.getElementById('page-'+n).classList.add('active');
   if(el) el.classList.add('active');
   sessionStorage.setItem('intl_page', n);
+  // WT_NAV[1] 페이지 전환 히스토리 적재 — 같은 키 중복 push 금지
+  if(noPush!==true){ try{ if(!(history.state&&history.state.p===n)) history.pushState({p:n},'','#'+n); }catch(_e){} }
   var _mt=document.getElementById('m-title'); if(_mt&&el) _mt.textContent=el.textContent.trim();
   if(window.innerWidth<=820) toggleNav(false);
   ({overview:renderOverview,'by-country':renderByCountry,'by-product':renderByProduct,'by-cons':renderByCons,'by-rep':renderByRep,pending:renderPending,sales:renderSales,'crm-dash':renderCrmDash,dealers:renderDealers,activities:renderActivities,schedule:renderSchedule,quotes:renderQuotes,speech:function(){if(!window._speechInit){buildSpeechGrid();window._speechInit=1;}var _sd=document.getElementById('speech-detail-view'),_sg=document.getElementById('speech-grid-view');if(_sd&&_sg){_sd.style.display='none';_sg.style.display='';}}})[n]?.();
@@ -1142,12 +1144,15 @@ async function _afterLogin(user) {
     if(_off) _off.value=1;
     if(_oft) _oft.value=_lastMo;
   }catch(e){}
-  var _sameDoc=false; try{ _sameDoc = !!document.referrer && new URL(document.referrer).pathname===location.pathname; }catch(e){ _sameDoc=false; }
-  // 다른 사이트/페이지에서 진입(또는 토큰 해시)하면 종합현황, intl 자체 새로고침이면 마지막 페이지 유지
-  var _nav=(performance.getEntriesByType('navigation')[0]||{}).type;   // reload=새로고침 / navigate=신규진입
+  // WT_NAV[2] 초기 페이지 결정: 딥링크 해시 > 새로고침/뒤로가기 복원 > 기본 첫 메뉴
+  var _nav=(performance.getEntriesByType('navigation')[0]||{}).type;   // reload=새로고침 / back_forward=뒤로가기 / navigate=신규진입
   var _sv=sessionStorage.getItem('intl_page');
-  var _saved=(_nav==='reload' && _sv && document.getElementById('page-'+_sv)) ? _sv : 'overview';   // 새로고침=머문 페이지, 신규=첫 메뉴
-  showPage(_saved);
+  var _hk=(location.hash||'').replace(/^#/,'');
+  var _saved='overview';
+  if(_hk && _wtPageOk(_hk)) _saved=_hk;                                                             // 유효 딥링크 우선
+  else if((_nav==='reload'||_nav==='back_forward') && _sv && _wtPageOk(_sv)) _saved=_sv;            // 새로고침·뒤로가기=머문 페이지
+  showPage(_saved, _wtNavEl(_saved), true);
+  try{ history.replaceState({p:_saved},'','#'+_saved); }catch(_e){}                                 // 첫 렌더는 replaceState로 seed(여분 엔트리 금지)
   try{ _wtRenderSwitcher(); }catch(_e){}
   var veil = document.getElementById('__page_veil');
   if(veil) veil.style.display = 'none';
@@ -1221,6 +1226,7 @@ async function _wtRenderSwitcher(){
 })();
 async function doLogout() {
   try{ await _sb.auth.signOut(); }catch(e){}
+  try{ sessionStorage.removeItem('intl_page'); }catch(e){}   // WT_NAV[5] 다음 계정에 이전 페이지 복원 방지
   location.href='https://wt-management.github.io/wontech/';
 }
 
@@ -1406,9 +1412,36 @@ async function _markPend(id,status){
   if(session){
     await _afterLogin(session.user);
   } else {
-    location.href='https://wt-management.github.io/wontech/';
+    location.replace('https://wt-management.github.io/wontech/');   // WT_NAV[5] 게이트 실패는 replace(히스토리 오염 방지)
   }
 })();
+
+/* ── WT_NAV[3][4]: popstate(뒤로가기=모달 닫기/페이지 복원) + pageshow(bfcache 세션체크) ── */
+var _WT_OVERLAYS=['is-modal','ac-modal','dl-modal','q-modal','ovm-modal','d-modal','prod-modal','pw-modal','sp-pdf-modal','pendModal'];
+function _wtNavEl(n){ try{ return document.querySelector('.nav-link[onclick*="\''+n+'\'"]'); }catch(e){ return null; } }
+function _wtPageOk(n){
+  if(!n||!document.getElementById('page-'+n)) return false;
+  if(n==='by-rep'){ try{ return _isLeaderIntl(); }catch(e){ return false; } }   // 팀장 전용 게이트
+  return true;
+}
+function _wtOpenOverlay(){
+  for(var i=0;i<_WT_OVERLAYS.length;i++){ var el=document.getElementById(_WT_OVERLAYS[i]); if(el&&el.style.display&&el.style.display!=='none') return el; }
+  return null;
+}
+window.addEventListener('popstate', function(e){
+  var _cur=sessionStorage.getItem('intl_page')||'overview';
+  var ov=_wtOpenOverlay();
+  if(ov){ ov.style.display='none'; try{ history.pushState({p:_cur},'','#'+_cur); }catch(_e){} return; }   // 뒤로가기=모달 닫기(소모 엔트리 복구)
+  var sb=document.querySelector('.sidebar');
+  if(window.innerWidth<=820 && sb && sb.classList.contains('open')){ toggleNav(false); try{ history.pushState({p:_cur},'','#'+_cur); }catch(_e){} return; }   // 뒤로가기=모바일 드로어 닫기
+  var st=e.state;
+  if(st && st.page==='speech'){ return; }                            // speech 상세 엔트리는 전용 popstate 핸들러가 처리
+  if(st && st.p && _wtPageOk(st.p)) showPage(st.p, _wtNavEl(st.p), true);
+  // state 없음 → 아무것도 하지 않음(절대 pushState로 되밀지 않음)
+});
+window.addEventListener('pageshow', function(e){
+  if(e.persisted){ _sb.auth.getSession().then(function(r){ if(!(r&&r.data&&r.data.session)) location.reload(); }); }
+});
 
 
 
@@ -3939,7 +3972,7 @@ renderByRep=function(){
       +'</div>'
       +'<div class="spdt-close" style="background:#fff7ed;border:1px solid #fed7aa"><div class="q" style="line-height:1.85">'+paras+'</div></div>'
       +'<div class="row g-3">'+points+'</div>';
-  }
+  }
   // 뒤로가기 연동(국내와 동일 동작): 상세 → 목록 복귀
   window.addEventListener('popstate', function(e){
     var sd=document.getElementById('speech-detail-view'); if(!sd||sd.style.display==='none')return;
