@@ -97,6 +97,118 @@ document.getElementById('wt-fb-send').onclick=function(){var t=document.getEleme
 }
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',wtFb);}else{wtFb();}
 })();</script>
+  <!-- ROI / Sales Speech 공용 디자인 -->
+  <style>
+  /* ── ROI: 미니멀 부티크(피부과 럭셔리) ── */
+  #page-roi{--ink:#221f1c;--mut:#8c837a;--line:#efeae3;--clay:#bf6a45;--cardbd:#ece7e1}
+  #page-roi .roi-top{display:flex;justify-content:center;margin-bottom:24px}
+  .roi-seg{display:inline-flex;background:#f2ede7;border-radius:999px;padding:4px;gap:2px}
+  .roi-seg button{border:0;background:transparent;font-size:13px;font-weight:600;color:#9a9089;padding:9px 32px;border-radius:999px;cursor:pointer;transition:.2s;letter-spacing:.01em}
+  .roi-seg button.active{background:#fff;color:#221f1c;box-shadow:0 1px 4px rgba(60,45,30,.10)}
+  .roi-split{display:grid;grid-template-columns:minmax(290px,.9fr) 1.1fr;gap:22px;align-items:start}
+  @media(max-width:860px){.roi-split{grid-template-columns:1fr}}
+  /* 입력 폼 */
+  .roi-form{background:#fff;border:1px solid var(--cardbd);border-radius:22px;padding:28px 30px;box-shadow:0 1px 2px rgba(60,50,40,.03)}
+  .roi-form .rf-hd{font-size:11.5px;font-weight:700;color:#221f1c;letter-spacing:.13em;text-transform:uppercase;margin-bottom:22px;display:flex;align-items:center;gap:9px}
+  .roi-form .rf-hd .dot{width:6px;height:6px;border-radius:50%;background:var(--clay);flex-shrink:0}
+  .roi-form .rf-lbl{font-size:11px;color:#a49a90;font-weight:600;margin-bottom:6px;display:block}
+  .roi-form .form-control,.roi-form .form-select{border-radius:11px;border:1px solid #ebe5dd;font-size:14px;padding:10px 13px;background:#faf8f5;color:#221f1c;font-weight:600}
+  .roi-form .form-control:focus,.roi-form .form-select:focus{border-color:var(--clay);box-shadow:0 0 0 3px rgba(191,106,69,.12);background:#fff}
+  .roi-form .form-control[readonly]{background:#f5f1ec;color:#a49a90}
+  .roi-form .row{--bs-gutter-y:1.05rem}
+  /* 결과 */
+  .lux-res{background:#fff;border:1px solid var(--cardbd);border-radius:22px;overflow:hidden;box-shadow:0 1px 2px rgba(60,50,40,.03)}
+  .lux-head{text-align:center;padding:36px 30px 30px;background:linear-gradient(180deg,#fbf9f6,#fff)}
+  .lux-cap{font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#b0a69b}
+  .lux-num{font-size:68px;font-weight:800;letter-spacing:-.035em;color:#221f1c;line-height:1;margin-top:16px}
+  .lux-num span{font-size:23px;font-weight:600;color:var(--clay);margin-left:5px;letter-spacing:0}
+  .lux-note{font-size:12.5px;color:#8c837a;margin-top:15px;line-height:1.5}
+  .lux-list{padding:6px 30px 26px}
+  .lux-item{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid var(--line)}
+  .lux-item:last-child{border-bottom:0}
+  .lux-item .li-l{font-size:12.5px;color:#8c837a;font-weight:500;line-height:1.35}
+  .lux-item .li-l small{display:block;font-size:10.5px;color:#b7ada2;margin-top:2px;font-weight:400}
+  .lux-item .li-v{font-size:17px;font-weight:800;color:#221f1c;letter-spacing:-.01em;text-align:right;white-space:nowrap}
+  .lux-item.hi .li-v{color:var(--clay)}
+  .lux-err{background:#fff;border:1px solid #f0dcd2;border-radius:18px;padding:24px;color:#a1543a;font-size:13px;text-align:center}
+  /* ── Sales Speech ── */
+  .spd-hero{border-radius:16px;padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:15px;background:linear-gradient(120deg,#eef2ff,#f5f3ff);border:1px solid #c7d2fe}
+  .spd-hero .rs-ic{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;flex-shrink:0;background:linear-gradient(135deg,#6366f1,#4f46e5)}
+  .spd-hero h4{margin:0;font-size:17px;font-weight:800;color:#0f172a}
+  .spd-hero p{margin:2px 0 0;font-size:12px;color:#64748b}
+  .spd-card{cursor:pointer;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:15px 16px 15px 20px;height:100%;transition:.15s;position:relative;overflow:hidden}
+  .spd-card:hover{box-shadow:0 8px 22px rgba(15,23,42,.10);transform:translateY(-3px)}
+  .spd-card .spd-bar{position:absolute;left:0;top:0;bottom:0;width:5px}
+  .spd-card .spd-badge{width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;margin-bottom:9px}
+  .spd-card .spd-name{font-size:14px;font-weight:800;color:#0f172a;letter-spacing:.3px}
+  .spd-card .spd-tag{font-size:12px;color:#64748b;line-height:1.45;margin-top:3px}
+  .spd-card .spd-go{position:absolute;right:14px;top:16px;color:#cbd5e1;font-size:13px;transition:.15s}
+  .spd-card:hover .spd-go{color:#6366f1;transform:translateX(2px)}
+  /* ── Sales Speech 상세 ── */
+  .spdt-hero{border-radius:18px;padding:22px 24px;color:#fff;margin-bottom:6px;position:relative;overflow:hidden;box-shadow:0 6px 20px rgba(15,23,42,.10)}
+  .spdt-hero:after{content:'';position:absolute;right:-30px;top:-30px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.10)}
+  .spdt-hero .sh-name{font-size:25px;font-weight:900;letter-spacing:-.01em;position:relative}
+  .spdt-hero .sh-tag{font-size:13px;opacity:.95;margin-top:5px;line-height:1.5;position:relative;max-width:90%}
+  .spdt-hero .sh-rivals{margin-top:13px;display:flex;flex-wrap:wrap;gap:6px;position:relative}
+  .spdt-hero .sh-rival{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;font-size:11px;font-weight:600;padding:4px 11px;border-radius:999px}
+  .spdt-sec{font-size:12px;font-weight:800;color:#334155;letter-spacing:.02em;margin:22px 0 10px;display:flex;align-items:center;gap:6px}
+  .cmp{border:1px solid #eef2f6;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,.05)}
+  .cmp table{width:100%;border-collapse:collapse;font-size:13px}
+  .cmp th{padding:12px 10px;font-weight:800;text-align:center}
+  .cmp td{padding:11px 10px;text-align:center;border-top:1px solid #f1f5f9}
+  .cmp .c-item{text-align:center;color:#64748b;font-weight:700;background:#fbfcfe;white-space:nowrap}
+  .cmp .c-won{font-weight:800}
+  .cmp .c-riv{color:#94a3b8;font-weight:500}
+  .spdt-close{border-radius:16px;padding:18px 20px;margin-bottom:14px}
+  .spdt-close .clbl{font-size:11px;font-weight:800;margin-bottom:7px;display:flex;align-items:center;gap:5px}
+  .spdt-close .q{font-size:15px;font-weight:700;line-height:1.65;color:#0f172a}
+  .spdt-para{font-size:13.5px;color:#3f4b5b;line-height:1.75;margin-bottom:13px;padding-left:18px;position:relative}
+  .spdt-para:before{content:'';position:absolute;left:2px;top:8px;width:7px;height:7px;border-radius:50%;background:var(--dot,#cbd5e1)}
+  .spdt-para strong{color:#0f172a}
+
+  /* ═══ 모바일 콘텐츠 최적화 (컴포넌트 정의 뒤 → 소스순서상 우선) ═══ */
+  @media(max-width:768px){
+    .main{padding:54px 10px 26px}
+    .page-header{margin-bottom:16px;flex-wrap:wrap;gap:8px}
+    .page-header h5{font-size:15px;line-height:1.35}
+    .page-header .btn,.btn-sm{font-size:12px;padding:6px 11px}
+    .card{border-radius:12px}
+    .card-body,.table-responsive{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .modal-dialog,.modal-dialog.modal-lg,.modal-dialog.modal-xl{max-width:calc(100vw - 14px)!important;margin:9px auto}
+    .modal-body{padding:14px}
+    .modal-header{padding:12px 14px}
+    .modal-header .modal-title,.modal-header h5,.modal-header h6{font-size:15px}
+    canvas{max-height:240px!important}
+    .sidebar{width:82vw;max-width:300px}
+    .sidebar .nav-link{padding:11px 18px;font-size:14px}
+    .kpi-value{font-size:1.25rem!important}
+    .pp-chip,.pipe-chip,.dash-period-btn{font-size:11px;padding:6px 11px}
+    .d-flex.justify-content-between{flex-wrap:wrap;gap:8px}
+    .btn-group{flex-wrap:wrap}
+    .form-control,.form-select{font-size:14px;min-height:40px}
+    .roi-split{gap:16px}
+    .lux-num{font-size:52px}
+    .lux-head{padding:28px 20px 24px}
+    .lux-list{padding:4px 20px 22px}
+    .roi-form{padding:20px}
+    .spdt-hero{padding:18px}
+    .spdt-hero .sh-name{font-size:21px}
+    .cmp table{font-size:12px}
+    .cmp th,.cmp td{padding:9px 7px}
+  }
+  @media(max-width:480px){
+    .main{padding:52px 8px 24px}
+    .page-header h5{font-size:14px}
+    .page-header h5 .text-muted{display:none}
+    .kpi-value{font-size:1.1rem!important}
+    .card.p-3,.card .p-3{padding:12px!important}
+    .lux-num{font-size:44px}
+    .lux-cap{font-size:10px}
+    .roi-seg{width:100%;justify-content:center}
+    .roi-seg button{padding:9px 0;font-size:12px;flex:1}
+    table{font-size:12px}
+  }
+  </style>
 </head>
 <body>
 <div id="__page_veil" style="position:fixed;inset:0;background:#0f172a;z-index:9999"></div>
@@ -123,6 +235,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
       <li><a class="nav-link" onclick="showPage('activities',this)"><i class="bi bi-journal-text"></i>활동일지</a></li>
       <li><a class="nav-link" onclick="showPage('schedule',this)"><i class="bi bi-calendar-week"></i>일정</a></li>
       <li><a class="nav-link" onclick="showPage('quotes',this)"><i class="bi bi-file-earmark-text"></i>견적서</a></li>
+      <li><a class="nav-link" onclick="showPage('speech',this)"><i class="bi bi-chat-quote"></i>Sales Speech</a></li>
       <li id="nav-byrep" style="display:none;border-top:1px solid #1e293b;margin-top:6px;padding-top:6px"><a class="nav-link" onclick="showPage('by-rep',this)"><i class="bi bi-person-badge"></i>담당자별 분석 <span style="font-size:9px;color:#64748b;font-weight:700">팀장</span></a></li>
     </ul>
   </div>
@@ -296,6 +409,21 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
   <div class="card p-3"><div class="fw-bold mb-2" style="font-size:13px">담당자별 순위 <span style="font-size:11px;font-weight:400;color:#9ca3af">클릭 시 상세</span></div><div id="rp-rank"></div></div>
 </div>
 
+  <!-- Sales Speech (네이티브 재구현) -->
+  <div id="page-speech" class="page">
+    <div id="speech-grid-view">
+      <div class="rs-hero spd-hero">
+        <div class="rs-ic"><i class="bi bi-chat-quote"></i></div>
+        <div><h4>Sales Speech</h4><p>장비를 선택하면 경쟁사 비교표와 세일즈 멘트를 확인할 수 있습니다.</p></div>
+      </div>
+      <div id="speech-grid" class="row g-3"></div>
+    </div>
+    <div id="speech-detail-view" style="display:none">
+      <button class="btn btn-outline-secondary btn-sm mb-3" onclick="speechBack()"><i class="bi bi-arrow-left me-1"></i>장비 목록</button>
+      <div id="speech-detail-content"></div>
+    </div>
+  </div>
+
 <div id="page-quotes" class="page">
   <div class="page-header"><h5><i class="bi bi-file-earmark-text" style="color:#0891b2"></i>견적서 <span style="font-size:12px;font-weight:400;color:#9ca3af">USD 견적 · 인쇄/공유</span></h5>
     <button class="btn btn-sm" style="background:#0d9488;color:#fff" onclick="openQuote()"><i class="bi bi-plus-lg me-1"></i>새 견적</button></div>
@@ -552,7 +680,7 @@ function showPage(n,el){
   sessionStorage.setItem('intl_page', n);
   var _mt=document.getElementById('m-title'); if(_mt&&el) _mt.textContent=el.textContent.trim();
   if(window.innerWidth<=820) toggleNav(false);
-  ({overview:renderOverview,'by-country':renderByCountry,'by-product':renderByProduct,'by-cons':renderByCons,'by-rep':renderByRep,pending:renderPending,sales:renderSales,'crm-dash':renderCrmDash,dealers:renderDealers,activities:renderActivities,schedule:renderSchedule,quotes:renderQuotes})[n]?.();
+  ({overview:renderOverview,'by-country':renderByCountry,'by-product':renderByProduct,'by-cons':renderByCons,'by-rep':renderByRep,pending:renderPending,sales:renderSales,'crm-dash':renderCrmDash,dealers:renderDealers,activities:renderActivities,schedule:renderSchedule,quotes:renderQuotes,speech:function(){if(!window._speechInit){buildSpeechGrid();window._speechInit=1;}var _sd=document.getElementById('speech-detail-view'),_sg=document.getElementById('speech-grid-view');if(_sd&&_sg){_sd.style.display='none';_sg.style.display='';}}})[n]?.();
 }
 
 function _ovPC(){ const f=+document.getElementById('ov-from').value,t=document.getElementById('ov-to'); if(+t.value<f)t.value=f; renderOverview(); }
@@ -3668,6 +3796,164 @@ renderByRep=function(){
     el.insertAdjacentHTML('afterbegin','<div style="font-size:12px;font-weight:700;color:#64748b;margin:2px 2px 8px"><i class="bi bi-diagram-3 me-1"></i>파트별 실적 <span style="font-weight:400;color:#cbd5e1">회계 매출 기준 · 미주·아시아 / 중화 / 유럽·중아</span></div><div class="row g-2 mb-3">'+cards+'</div>');
   }catch(e){}
 };
+</script>
+<script>
+/* ── Sales Speech (국내영업 index.html에서 이식, 동일) ── */
+(function(){
+  // ===== Sales Speech 데이터(한국어) =====
+  const SPEECH_DATA = [
+    {id:'v-laser',name:'V LASER',color:'#e8472a',tagline:'엑셀브이급 적응증, 혁신적인 ROI의 혈관레이저',competitors:['Excel V','Vbeam','Cynergy'],table:{competitor:'Excel V',rows:[
+      {label:'가격',wontech:'약 6,000만원',rival:'1.5~2억'},{label:'소모품',wontech:'없음',rival:'있음'},{label:'A/S',wontech:'국내 즉시 대응',rival:'수입 지연'},{label:'ROI',wontech:'매우 우수',rival:'투자금 부담'}]},speech:[
+      {text:'V LASER는 **핸드피스 교체 없이 532nm와 1064nm 두 파장을 즉시 전환**해 사용할 수 있어, 시술 흐름을 끊지 않고 연속 진료가 가능합니다.'},
+      {text:'4단계 접촉식 쿨링 시스템으로 피부 타입과 병변 종류에 따라 시술자가 세밀하게 파라미터를 조절할 수 있으며, **화상 위험을 최소화**합니다.'},
+      {text:'**소모품이 없어 유지비가 거의 발생하지 않고**, 혈관 병변부터 리쥬브·색소·여드름까지 폭넓은 적응증을 하나의 장비로 커버합니다.'},
+      {closing:true,text:"소모품 비용 '0', 넓은 적응증 — Excel V 효과를 6,000만원으로. ROI가 가장 빠른 혈관·색소 플랫폼입니다."}]},
+    {id:'pastelle-pro',name:'PASTELLE PRO',color:'#8b5cf6',tagline:'기존 Q-Switch가 못 지우는 문신색상까지 커버',competitors:['Spectra XT','Revlite SI','Medlite C6'],table:{competitor:'기존 Q-Switched',rows:[
+      {label:'파장',wontech:'1064/532/595/660',rival:'1064/532'},{label:'문신 색상',wontech:'거의 전색상',rival:'제한적'},{label:'MLA',wontech:'가능',rival:'제한'},{label:'활용성',wontech:'매우 높음',rival:'색소 위주'}]},speech:[
+      {text:'기존 Q-Switched 장비가 1064/532nm에 한정된 것과 달리, **PASTELLE PRO는 595nm(홍조·파란 문신)와 660nm(초록 문신·고멜라닌)까지 총 4파장을 지원**합니다.'},
+      {text:'덕분에 기존에 거절할 수밖에 없었던 다양한 색상의 문신도 효과적으로 치료할 수 있습니다.'},
+      {text:'**HEXA MLA와 멀티 PTP 모드**는 광기계적 파괴력을 극대화해 기존 Q-Switched 대비 더 적은 횟수로 뚜렷한 개선 효과를 냅니다.'},
+      {closing:true,text:'4가지 파장으로 모든 문신 색상까지 전부 수용하세요. 시술 메뉴 확장과 수익성이 동시에 해결됩니다.'}]},
+    {id:'picocare-majesty',name:'PICOCARE MAJESTY',color:'#f59e0b',tagline:'250ps 초단파 펄스로 프리미엄 피코 시장 공략',competitors:['피코웨이','PicoPlus','디스커버리 피코'],table:{competitor:'PicoPlus',rows:[
+      {label:'펄스폭',wontech:'250ps',rival:'300ps급'},{label:'피크파워',wontech:'2GW',rival:'상대적 낮음'},{label:'유지비',wontech:'국산 저렴',rival:'수입 고가'},{label:'가격',wontech:'경쟁력 우수',rival:'고가'}]},speech:[
+      {text:'PICOCARE MAJESTY는 **전 세계 최초로 250ps 펄스듀레이션을 구현한 피코레이저** 장비입니다. 기존 Q스위치보다 1,000배 빠르고, 멜라노좀의 SRT인 300ps보다 짧은 펄스로 **멜라노좀만 선택적으로 파괴**합니다.'},
+      {text:'**2GW 피크 파워**는 나노 레이저로 치료가 어려웠던 완고한 색소 병변과 복잡한 문신 색상에서도 탁월한 효과를 발휘합니다.'},
+      {text:'국산 장비이므로 수입 피코 대비 **유지비가 저렴하고, A/S 대응이 신속**합니다.'},
+      {closing:true,text:'세계 최초 250ps · 2GW — 피코플러스보다 빠르고 강하면서 가격은 더 낮습니다. 프리미엄 시술 단가를 기술로 정당화하는 유일한 국산 플래그십입니다.'}]},
+    {id:'picoalex',name:'PICOALEX',color:'#10b981',tagline:'755nm 피코 시장 공략용 플랫폼',competitors:['PicoSure','Discovery Pico'],table:{competitor:'PicoSure',rows:[
+      {label:'출력',wontech:'310mJ',rival:'상대적 낮음'},{label:'캘리브레이션',wontech:'초기 1회',rival:'스팟 변경마다'},{label:'운용편의성',wontech:'우수',rival:'보통'},{label:'가격',wontech:'경쟁력 우수',rival:'고가'}]},speech:[
+      {text:'PICOALEX는 **755nm 알렉산드라이트 파장 특유의 높은 멜라닌 선택성**을 600ps 피코초 기술과 결합한 장비입니다.'},
+      {text:'피코슈어(PicoSure) 대비 **최대 출력(310mJ)이 높고**, 스팟 사이즈 변경 시 매번 캘리브레이션을 진행해야 하는 번거로움 없이 **시술 시작 시 한 번만** 진행하면 되어 시술 흐름이 훨씬 효율적입니다.'},
+      {text:'Zoom과 MLA 핸드피스로 문신 제거·토닝에서 리쥬브네이션·흉터 치료까지 폭넓게 대응하며, 동급 수입 장비 대비 **합리적인 가격으로 도입 문턱을 낮춥니다.**'},
+      {closing:true,text:'피코슈어 대비 출력은 높고, 캘리브레이션은 1회로 끝나고, 가격은 낮습니다. 동일 결과를 더 빠르고 효율적으로 낼 수 있습니다.'}]},
+    {id:'picoandy',name:'PICOANDY',color:'#3b82f6',tagline:'개원가에서 가장 무난하게 수익 내는 피코 장비',competitors:['PicoPlus','PicoLO','Enlighten'],table:{competitor:'피코플러스',rows:[
+      {label:'출력',wontech:'600mJ',rival:'500mJ'},{label:'펄스폭',wontech:'450~550ps',rival:'유사'},{label:'가격',wontech:'우수',rival:'상대적 고가'},{label:'범용성',wontech:'매우 높음',rival:'높음'}]},speech:[
+      {text:'PICOANDY는 **450ps의 피코초 펄스**로 기존 나노 레이저 대비 색소 파괴력을 높이면서도 주변 조직 손상을 최소화합니다.'},
+      {text:'**1064nm 기준 최대 600mJ의 출력**은 깊은 진피 색소부터 표피 잡티, 문신 제거까지 넓은 적응증을 한 번의 도입으로 커버합니다.'},
+      {text:'낮은 통증과 부작용 프로파일 덕분에 **환자 만족도가 높고**, 유연한 패키지 구성으로 시술 단가와 재방문율 향상에 직접 기여합니다.'},
+      {closing:true,text:'나노 레이저를 쓰고 계신다면, 동일 환자에게 피코 옵션을 추가해 시술 단가를 높일 수 있는 가장 합리적인 업그레이드입니다.'}]},
+    {id:'oligio',name:'OLIGIO',color:'#f97316',tagline:'써마지급 효과 + 국내 A/S + 낮은 소모품 비용',competitors:['써마지 FLX','볼뉴머'],table:{competitor:'써마지 FLX',rows:[
+      {label:'원리',wontech:'Monopolar RF',rival:'Monopolar RF'},{label:'가격',wontech:'약 5,500만원',rival:'1.5억 이상'},{label:'A/S',wontech:'국내 즉시 대응',rival:'수입 지연'},{label:'소모품',wontech:'저렴',rival:'고가'}]},speech:[
+      {text:'OLIGIO는 **한국 최초 모노폴라 RF 장비**로, 진피 콜라겐에 열에너지를 직접 전달해 콜라겐 수축과 섬유아세포 자극을 통해 신생 콜라겐을 생성합니다.'},
+      {text:'**4중 안전장치와 GAS Cooling 시스템**이 시술 중 실시간으로 작동하여 열 손상 위험을 최소화하면서도 충분한 치료 심도를 확보합니다.'},
+      {text:'싱글·듀얼·오토 모드와 자유로운 쿨링 조절 기능으로 시술자의 임상 판단에 따른 맞춤 프로토콜이 가능하며, 울세라·써마지 대비 **합리적인 도입 비용과 우수한 국내 A/S 체계**를 갖추고 있습니다.'},
+      {closing:true,text:'써마지와 동일한 모노폴라 RF, 동등한 최대출력 400W — 도입 비용은 5분의 1 이하에 국내 즉시 A/S까지. 효과는 같고 운영 효율은 훨씬 높습니다.'}]},
+    {id:'oligio-xm',name:'OLIGIO XM',color:'#f97316',tagline:'RF + HIFU 복합 전층 리프팅 — 두 장비가 하나로',competitors:['써마지 FLX','울쎄라','볼뉴머'],table:{competitor:'써마지 FLX',rows:[
+      {label:'RF',wontech:'O',rival:'O'},{label:'HIFU',wontech:'O',rival:'X'},{label:'복합시술',wontech:'O',rival:'X'},{label:'쿨링',wontech:'강화',rival:'기본'}]},speech:[
+      {text:'OLIGIO XM은 **HIFU와 RF를 하나의 플랫폼에 통합한 세계 최초 복합 리프팅 장비**입니다.'},
+      {text:'HIFU로 SMAS층부터 끌어올리고, RF G모드로 진피 상부를 부드럽게 가열하고, RF X모드로 심부까지 강력하게 히팅하는 **3에너지 교차 시술**이 가능합니다.'},
+      {text:'울세라는 HIFU만, 써마지는 RF만 제공하는 데 반해, **OLIGIO XM은 두 장비의 적응증을 단일 플랫폼으로 커버**합니다. XM Pack 소모품 패키지로 1인 1팩 프리미엄 시술 구조를 설계할 수 있습니다.'},
+      {closing:true,text:'울세라와 써마지를 따로 살 이유가 없습니다. OLIGIO XM 하나로 HIFU+RF 전층 리프팅을 완성하고, XM Pack으로 반복 매출 구조까지 만드세요.'}]},
+    {id:'tightan',name:'TIGHTAN',color:'#22c55e',tagline:'HIFU 시장 진입용 — 최고의 투자 효율',competitors:['울쎄라','울트라포머 MPT','슈링크 유니버스'],table:{competitor:'울쎄라',rows:[
+      {label:'가격',wontech:'1천만원대',rival:'1억 이상'},{label:'시술속도',wontech:'300샷 6분',rival:'상대적 느림'},{label:'도입부담',wontech:'매우 낮음',rival:'높음'},{label:'A/S',wontech:'국내',rival:'수입'}]},speech:[
+      {text:'TIGHTAN은 HIFU 기반 비침습 리프팅 장비로, 타겟층에만 에너지를 정밀 집속해 **주변 조직 손상 없이 즉각적인 리프팅 효과**를 제공합니다.'},
+      {text:'**1회 시술로 6개월~1년까지 효과가 지속**되며, 300샷을 6분 이내에 완료하는 빠른 시술 속도로 회전율 높은 시술 환경에 최적화되어 있습니다.'},
+      {text:'합리적인 도입 가격으로 **HIFU 시술 메뉴를 처음 추가하려는 클리닉에도 진입 장벽이 낮고**, 얼굴 부위별 카트리지 선택으로 개인화 시술이 가능합니다.'},
+      {closing:true,text:'울세라 대비 10분의 1 가격에 HIFU 리프팅 메뉴 추가, 300샷을 6분에 완료. 시술 단가는 유지하면서 도입 부담은 최소화됩니다.'}]},
+    {id:'avvio',name:'AVVIO',color:'#14b8a6',tagline:'CO2 대비 짧은 다운타임 — 같은 효과, 더 빠른 회복',competitors:['액션2','루트로닉 eCO2','CO2 레이저'],table:{competitor:'CO2 레이저',rows:[
+      {label:'열손상',wontech:'적음',rival:'많음'},{label:'회복속도',wontech:'빠름',rival:'느림'},{label:'PIH',wontech:'적음',rival:'상대적 높음'},{label:'A/S',wontech:'국내',rival:'수입'}]},speech:[
+      {text:'AVVIO는 **수분 흡수율이 CO2 레이저보다 16배 높은 Er:YAG 2940nm 레이저**로, 표피 손상과 열 확산이 최소화되어 회복 기간이 훨씬 짧습니다.'},
+      {text:'다운타임에 민감한 환자가 늘어나는 추세에서, AVVIO는 **CO2 대비 환자 만족도를 높이면서 동등한 치료 효과**를 제공합니다.'},
+      {text:'Short/Long 모드 선택으로 Ablation과 Coagulation 효과를 병변에 따라 적용하고, **Fractional 핸드피스로 적응증 범위를 더욱 확장**할 수 있습니다.'},
+      {closing:true,text:'CO2보다 16배 높은 수분 흡수율로 열 확산과 피부 손상을 최소화 — 다운타임이 짧아 CO2를 꺼려하던 환자도 설득되는 더 안전한 선택입니다.'}]},
+    {id:'lavieen',name:'LAVIEEN',color:'#a855f7',tagline:'BB레이저로 알려진 패키지 매출 창출 장비',competitors:['모자이크','Halo','Fraxel Dual'],table:{competitor:'프락셀',rows:[
+      {label:'다운타임',wontech:'짧음',rival:'상대적 김'},{label:'소모품',wontech:'없음',rival:'있음'},{label:'드럭딜리버리',wontech:'강점',rival:'보통'},{label:'환자인지도',wontech:'BB레이저',rival:'프락셀'}]},speech:[
+      {text:'LAVIEEN은 **1927nm Thulium 파장이 수분에 선택적으로 반응하는 BB레이저**입니다. 각질층을 보존한 채로 표피와 진피 상부에만 열에너지를 전달하기 때문에 CO2 대비 다운타임이 짧고 피부 장벽 손상이 최소화됩니다.'},
+      {text:"'**비비크림 필요 없는 올인원 레이저**'라는 컨셉으로 환자 인지도가 높아 상담 전환율이 좋은 장비입니다."},
+      {text:'핵심 강점은 **시술 후 드럭 딜리버리 효과**입니다. MTZ 형성 후 EGF·FGF·PDRN·트라넥삼산 등 앰플을 도포하면 흡수율이 현저히 높아져 **앰플 판매로 추가 수익 구조**를 만들 수 있습니다.'},
+      {closing:true,text:'경쟁 프랙셔널 장비들의 소모품 비용 없이 BB레이저 고객 유입 · 앰플 수익 · 복합 패키지 단가 극대화를 동시에 실현하세요.'}]},
+    {id:'sandro-dual',name:'SANDRO DUAL',color:'#06b6d4',tagline:'제모·색소·혈관을 모두 커버하는 수익형 레이저 플랫폼',competitors:['젠틀맥스 프로','아포지 플러스','클라리티2'],table:{competitor:'젠틀맥스',rows:[
+      {label:'파장',wontech:'755+1064 동시조사',rival:'개별조사'},{label:'냉각',wontech:'파장별 독립냉각',rival:'DCD 냉각'},{label:'활용도',wontech:'제모+색소+혈관',rival:'제모 중심'},{label:'A/S',wontech:'국내 즉시 대응',rival:'수입 지연'}]},speech:[
+      {text:'SANDRO DUAL은 **755nm Alexandrite와 1064nm Nd:YAG 파장을 단일 플랫폼에 통합**한 멀티 레이저 장비입니다.'},
+      {text:'경쟁사 대부분의 듀얼 장비가 두 파장을 순차적으로만 사용하는 데 반해, **SANDRO DUAL은 하이브리드 모드를 통해 두 파장을 동시에 조사**할 수 있어 시술 시간을 단축하고 치료 효율을 극대화합니다.'},
+      {text:'각 파장별 독립 냉각 시스템(SCS)으로 출력 안정성이 뛰어나며, **제모는 물론 색소·혈관 병변과 리쥬브네이션까지 한 장비로 커버**할 수 있어 원내 장비 투자 효율이 높습니다.'},
+      {closing:true,text:'젠틀맥스 프로는 두 파장을 순차 조사하지만, SANDRO DUAL은 755nm + 1064nm을 동시 조사 — 시술 시간은 줄고 치료 효율은 올라갑니다. 파장별 독립 냉각으로 출력 안정성까지 갖췄으니, 젠틀맥스 프로 가격의 절반 이하로 더 넓은 적응증을 커버하는 장비입니다.'}]}
+  ];
+  const CLOSING_SPEECH = {
+    quote:"원텍 장비의 가장 큰 장점은\n단순히 효과가 아니라 **투자금 회수**입니다.\n\n수입장비 대비 초기 투자금은 낮고,\n유지비는 적으며, 시술 메뉴는 더 많이 만들 수 있습니다.\n\n결국 장비는 스펙이 아니라\n**병원 매출을 만드는 도구**인데,\n원텍 장비는 그 부분에 가장 최적화되어 있습니다.",
+    points:[{icon:'💰',title:'낮은 초기 투자금',desc:'수입장비 대비 대폭 절감'},{icon:'🔧',title:'적은 유지비',desc:'국내 A/S · 소모품 절약'},{icon:'📈',title:'넓은 시술 메뉴',desc:'투자 대비 수익 극대화'}]
+  };
+  const _bold = t => String(t).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  const _esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  window.buildSpeechGrid = function(){
+    const grid=document.getElementById('speech-grid'); if(!grid) return;
+    const _ini=n=>{const s=String(n).replace(/[^A-Za-z가-힣]/g,'');return s.slice(0,2).toUpperCase();};
+    grid.innerHTML = SPEECH_DATA.map(d=>
+      '<div class="col-lg-4 col-md-6"><div class="spd-card" onclick="showSpeechDetail(\''+d.id+'\')">'
+        +'<span class="spd-bar" style="background:'+d.color+'"></span>'
+        +'<i class="bi bi-arrow-right spd-go"></i>'
+        +'<span class="spd-badge" style="background:'+d.color+'">'+_ini(d.name)+'</span>'
+        +'<div class="spd-name">'+_esc(d.name)+'</div>'
+        +'<div class="spd-tag">'+_esc(d.tagline)+'</div>'
+      +'</div></div>'
+    ).join('') +
+      '<div class="col-lg-4 col-md-6"><div class="spd-card" onclick="showSpeechDetail(\'closing\')" style="background:linear-gradient(135deg,#fff7ed,#fff)">'
+        +'<span class="spd-bar" style="background:#ff5a0a"></span>'
+        +'<i class="bi bi-arrow-right spd-go"></i>'
+        +'<span class="spd-badge" style="background:linear-gradient(135deg,#fb923c,#ff5a0a)"><i class="bi bi-stars"></i></span>'
+        +'<div class="spd-name" style="color:#c2410c">원장님 클로징</div>'
+        +'<div class="spd-tag" style="color:#9a3412">전 장비 공통 · 마무리 세일즈 멘트</div>'
+      +'</div></div>';
+  };
+  window.showSpeechDetail = function(id, noPush){
+    const c=document.getElementById('speech-detail-content');
+    c.innerHTML = id==='closing' ? _renderClosing() : _renderSpeechDetail(SPEECH_DATA.find(x=>x.id===id));
+    document.getElementById('speech-grid-view').style.display='none';
+    document.getElementById('speech-detail-view').style.display='';
+    // 상세를 히스토리에 편입 → 뒤로가기 시 목록으로 복귀
+    if(!noPush){ try{ history.pushState({page:'speech', sd:id}, '', location.href.split('#')[0]+'#speech'); }catch(e){} }
+    try{ document.querySelector('.main-scroll, .content, main')?.scrollTo(0,0); }catch(e){} window.scrollTo(0,0);
+  };
+  window.speechBack = function(){
+    // 상세 상태가 히스토리에 있으면 뒤로가기로 목록 복귀(브라우저 뒤로가기와 동일 동작)
+    if(history.state && history.state.sd){ history.back(); return; }
+    document.getElementById('speech-detail-view').style.display='none';
+    document.getElementById('speech-grid-view').style.display='';
+    window.scrollTo(0,0);
+  };
+  const _dk=hex=>{ const n=parseInt(String(hex).slice(1),16); let r=(n>>16)&255,g=(n>>8)&255,b=n&255; r=Math.round(r*.68);g=Math.round(g*.68);b=Math.round(b*.68); return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1); };
+  function _renderSpeechDetail(d){
+    if(!d) return '';
+    const rows=d.table.rows.map(r=>
+      '<tr><td class="c-item">'+_esc(r.label)+'</td>'
+      +'<td class="c-won" style="background:'+d.color+'12;color:'+d.color+'"><i class="bi bi-check-lg" style="opacity:.55;margin-right:2px"></i>'+_esc(r.wontech)+'</td>'
+      +'<td class="c-riv">'+_esc(r.rival)+'</td></tr>').join('');
+    const rivals=d.competitors.map(x=>'<span class="sh-rival">vs '+_esc(x)+'</span>').join('');
+    const closing=d.speech.find(b=>b.closing), details=d.speech.filter(b=>!b.closing);
+    const closeBlock=closing?'<div class="spdt-close" style="background:'+d.color+'0e;border:1px solid '+d.color+'33"><div class="clbl" style="color:'+d.color+'"><i class="bi bi-megaphone-fill"></i>클로징 한마디</div><div class="q">'+_bold(_esc(closing.text))+'</div></div>':'';
+    const paras=details.map(b=>'<p class="spdt-para" style="--dot:'+d.color+'">'+_bold(_esc(b.text))+'</p>').join('');
+    return '<div class="spdt-hero" style="background:linear-gradient(135deg,'+d.color+','+_dk(d.color)+')">'
+        +'<div class="sh-name">'+_esc(d.name)+'</div>'
+        +'<div class="sh-tag">'+_esc(d.tagline)+'</div>'
+        +'<div class="sh-rivals">'+rivals+'</div>'
+      +'</div>'
+      +'<div class="spdt-sec"><i class="bi bi-bar-chart-steps"></i>경쟁사 비교 <span style="color:#cbd5e1;font-weight:600">· '+_esc(d.table.competitor)+'</span></div>'
+      +'<div class="cmp"><table><thead><tr>'
+        +'<th class="c-item">항목</th>'
+        +'<th style="background:'+d.color+';color:#fff">'+_esc(d.name)+' <span style="font-size:9.5px;opacity:.85;font-weight:700">원텍</span></th>'
+        +'<th style="color:#94a3b8;background:#f8fafc">'+_esc(d.table.competitor)+'</th>'
+      +'</tr></thead><tbody>'+rows+'</tbody></table></div>'
+      +'<div class="spdt-sec"><i class="bi bi-chat-quote-fill"></i>세일즈 멘트</div>'
+      +closeBlock+paras;
+  }
+  function _renderClosing(){
+    const paras=CLOSING_SPEECH.quote.split('\n').map(l=>l.trim()?'<p style="margin:0 0 8px">'+_bold(_esc(l))+'</p>':'<div style="height:5px"></div>').join('');
+    const points=CLOSING_SPEECH.points.map(p=>'<div class="col-md-4"><div style="text-align:center;background:#fff;border:1px solid #eef2f6;border-radius:14px;padding:18px 14px;box-shadow:0 1px 3px rgba(15,23,42,.04);height:100%"><div style="font-size:30px">'+p.icon+'</div><div style="font-weight:800;font-size:14px;margin-top:8px;color:#0f172a">'+_esc(p.title)+'</div><div style="font-size:12px;color:#64748b;margin-top:3px">'+_esc(p.desc)+'</div></div></div>').join('');
+    return '<div class="spdt-hero" style="background:linear-gradient(135deg,#fb923c,#ea580c)">'
+        +'<div class="sh-name"><i class="bi bi-stars me-2"></i>원장님 클로징</div>'
+        +'<div class="sh-tag">모든 장비 상담의 마무리 — 투자 회수 관점 한마디</div>'
+      +'</div>'
+      +'<div class="spdt-close" style="background:#fff7ed;border:1px solid #fed7aa"><div class="q" style="line-height:1.85">'+paras+'</div></div>'
+      +'<div class="row g-3">'+points+'</div>';
+  }
+  // 뒤로가기 연동(국내와 동일 동작): 상세 → 목록 복귀
+  window.addEventListener('popstate', function(e){
+    var sd=document.getElementById('speech-detail-view'); if(!sd||sd.style.display==='none')return;
+    if(e.state && e.state.page==='speech' && e.state.sd){ window.showSpeechDetail(e.state.sd, true); return; }
+    sd.style.display='none'; var sg=document.getElementById('speech-grid-view'); if(sg)sg.style.display=''; window.scrollTo(0,0);
+  });
+})();
 </script>
 </body>
 </html>
