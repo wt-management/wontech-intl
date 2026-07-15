@@ -3887,14 +3887,7 @@ renderByRep=function(){
         +'<div class="spd-name">'+_esc(d.name)+'</div>'
         +'<div class="spd-tag">'+_esc(d.tagline)+'</div>'
       +'</div></div>'
-    ).join('') +
-      '<div class="col-lg-4 col-md-6"><div class="spd-card" onclick="showSpeechDetail(\'closing\')" style="background:linear-gradient(135deg,#fff7ed,#fff)">'
-        +'<span class="spd-bar" style="background:#ff5a0a"></span>'
-        +'<i class="bi bi-arrow-right spd-go"></i>'
-        +'<span class="spd-badge" style="background:linear-gradient(135deg,#fb923c,#ff5a0a)"><i class="bi bi-stars"></i></span>'
-        +'<div class="spd-name" style="color:#c2410c">원장님 클로징</div>'
-        +'<div class="spd-tag" style="color:#9a3412">전 장비 공통 · 마무리 세일즈 멘트</div>'
-      +'</div></div>';
+    ).join('');
   };
   window.showSpeechDetail = function(id, noPush){
     const c=document.getElementById('speech-detail-content');
