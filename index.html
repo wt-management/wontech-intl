@@ -1090,6 +1090,16 @@ const SUPABASE_KEY = 'sb_publishable_aPMOOWAlyJlMcP1ZM_gpPA_jlrcvCRd';
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let _currentUser = null;
 
+// ── 중앙 로그인(WT_SSO) ──────────────────────────────────
+// 자체 로그인 화면은 더 이상 노출하지 않는다. 세션 없음 → 중앙(wontech)으로 ret 붙여 보냄(로그인 후 복귀).
+// 권한 없음은 ret 없이 보낸다(붙이면 중앙→여기→중앙 무한루프).
+var _WT_CENTRAL='https://wt-management.github.io/wontech/';
+function _wtToCentral(withRet){
+  var u=_WT_CENTRAL;
+  if(withRet) u+='#ret='+encodeURIComponent(location.origin+location.pathname+location.search);   // 해시 제외(토큰 유출·오염 방지)
+  location.replace(u);
+}
+
 async function doLogin() {
   const email = (document.getElementById('login-email').value||'').trim().toLowerCase();
   const pw    = (document.getElementById('login-pw').value||'').trim();
@@ -1107,10 +1117,8 @@ async function _afterLogin(user) {
   const access = profile?.access||'';
   const allowed = access.includes('intl')||profile?.role==='admin'||user.email==='pmw0406@gmail.com';
   if(!allowed){
-    await _sb.auth.signOut();
-    const errEl=document.getElementById('login-error');
-    errEl.textContent='해외영업 접근 권한이 없습니다. (해외 권한 필요)';errEl.style.display='block';
-    const btn=document.getElementById('login-btn');btn.disabled=false;btn.textContent='로그인';
+    alert('해외영업 접근 권한이 없습니다. (해외 권한 필요)');
+    _wtToCentral(false);   // 권한 없음 → ret 없이(무한루프 방지). 세션은 유지(다른 사이트는 쓸 수 있음)
     return;
   }
   _currentUser={email:user.email,name:profile?.display_name||user.email.split('@')[0],access,role:profile?.role||'general',position:profile?.position||'',dept:profile?.dept||''};
@@ -1412,7 +1420,7 @@ async function _markPend(id,status){
   if(session){
     await _afterLogin(session.user);
   } else {
-    location.replace('https://wt-management.github.io/wontech/');   // WT_NAV[5] 게이트 실패는 replace(히스토리 오염 방지)
+    _wtToCentral(true);   // 세션 없음 → 중앙 로그인(로그인 후 여기로 복귀). replace로 히스토리 오염 방지
   }
 })();
 
