@@ -3757,7 +3757,8 @@ openDealer=function(name){
 var PART_OF={'미주':'미주·아시아파트','동남아':'미주·아시아파트','일본법인':'미주·아시아파트','오세아니아':'미주·아시아파트','아시아':'미주·아시아파트','중화':'중화파트','유럽':'유럽·중아파트','중동':'유럽·중아파트','아프리카':'유럽·중아파트','중동아프리카':'유럽·중아파트'};
 var PART_LIST=['미주·아시아파트','중화파트','유럽·중아파트'];
 var PART_COLOR={'미주·아시아파트':'#0891b2','중화파트':'#dc2626','유럽·중아파트':'#7c3aed'};
-function _partOf(c,nm){ var g=_geoReg(c,nm); return PART_OF[g]||'기타'; }
+var _PART_CTRY_FIX={'국내법인':'유럽·중아파트'}; /* 더마케이=러시아 수출 → 유럽·중아파트 편입 */
+function _partOf(c,nm){ if(_PART_CTRY_FIX[c]) return _PART_CTRY_FIX[c]; var g=_geoReg(c,nm); return PART_OF[g]||'기타'; }
 var _dlPart='';
 
 function renderDealers(){
