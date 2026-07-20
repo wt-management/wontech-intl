@@ -241,6 +241,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
       <li><a class="nav-link" onclick="showPage('speech',this)"><i class="bi bi-chat-quote"></i>Sales Speech</a></li>
       <li id="nav-byrep" style="display:none;border-top:1px solid #1e293b;margin-top:6px;padding-top:6px"><a class="nav-link" onclick="showPage('by-rep',this)"><i class="bi bi-person-badge"></i>담당자별 분석 <span style="font-size:9px;color:#64748b;font-weight:700">팀장</span></a></li>
       <li id="nav-unitprice" style="display:none"><a class="nav-link" onclick="showPage('unitprice',this)"><i class="bi bi-tags"></i>단가 현황 <span style="font-size:9px;color:#64748b;font-weight:700">팀장</span></a></li>
+      <li id="nav-intl-users" style="display:none"><a class="nav-link" onclick="showPage('intl-users',this)"><i class="bi bi-person-gear"></i>사용자 관리 <span style="font-size:9px;color:#64748b;font-weight:700">팀장</span></a></li>
     </ul>
   </div>
   <!-- 계정 정보 (사이트 이동 위에) -->
@@ -416,6 +417,29 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 <div id="page-unitprice" class="page">
   <div class="page-header"><h5><i class="bi bi-tags" style="color:#dc2626"></i>단가 현황 <span style="font-size:12px;font-weight:400;color:#9ca3af">지역별·제품별 판매단가 · 작년/올해 비교 · 팀장/관리자 전용</span></h5></div>
   <div id="up-body"></div>
+</div>
+
+<div id="page-intl-users" class="page">
+  <div class="page-header"><h5><i class="bi bi-person-gear" style="color:#2563eb"></i>사용자 관리 <span style="font-size:12px;font-weight:400;color:#9ca3af">해외영업 팀원 계정 등록·삭제·비번초기화 · 팀장 전용</span></h5><button class="btn btn-sm" style="background:#2563eb;color:#fff" onclick="_iuAddOpen()"><i class="bi bi-person-plus me-1"></i>팀원 추가</button></div>
+  <div id="iu-body"></div>
+</div>
+<div id="iu-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:600;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:14px;padding:20px 22px;width:440px;max-width:96vw">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><span style="font-weight:700"><i class="bi bi-person-plus me-1" style="color:#2563eb"></i>팀원 추가</span><span style="cursor:pointer;font-size:20px;color:#94a3b8" onclick="document.getElementById('iu-modal').style.display='none'">&times;</span></div>
+    <div class="row g-2" style="font-size:13px">
+      <div class="col-12"><label>이름</label><input id="iu-name" class="form-control form-control-sm" autocomplete="off"></div>
+      <div class="col-12"><label>이메일(로그인 ID)</label><input id="iu-email" class="form-control form-control-sm" placeholder="name@wontech.com" autocomplete="off"></div>
+      <div class="col-6"><label>임시 비밀번호</label><input id="iu-pw" class="form-control form-control-sm" value="wontech123" autocomplete="off"></div>
+      <div class="col-6"><label>직급</label><input id="iu-pos" class="form-control form-control-sm" placeholder="대리" autocomplete="off"></div>
+      <div class="col-12"><label>소속 파트</label><select id="iu-dept" class="form-select form-select-sm"><option value="미주·아시아파트">미주·아시아파트</option><option value="중화파트">중화파트</option><option value="유럽·중아파트">유럽·중아파트</option></select></div>
+    </div>
+    <div id="iu-err" style="display:none;color:#dc2626;font-size:12px;margin-top:8px"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
+      <button class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('iu-modal').style.display='none'">취소</button>
+      <button id="iu-save" class="btn btn-sm" style="background:#2563eb;color:#fff" onclick="_iuCreate()">계정 생성</button>
+    </div>
+    <div style="font-size:10px;color:#94a3b8;margin-top:10px"><i class="bi bi-info-circle me-1"></i>생성 즉시 이메일+임시비번으로 로그인 가능. 접근권한은 해외영업(intl)으로 자동 설정됩니다.</div>
+  </div>
 </div>
 
   <!-- Sales Speech (네이티브 재구현) -->
@@ -696,7 +720,7 @@ function showPage(n,el,noPush){
   if(noPush!==true){ try{ if(!(history.state&&history.state.p===n)) history.pushState({p:n},'','#'+n); }catch(_e){} }
   var _mt=document.getElementById('m-title'); if(_mt&&el) _mt.textContent=el.textContent.trim();
   if(window.innerWidth<=820) toggleNav(false);
-  ({overview:renderOverview,'pv-am':function(){_renderPartView('미주·아시아파트','pv-am-root');},'pv-cn':function(){_renderPartView('중화파트','pv-cn-root');},'pv-eu':function(){_renderPartView('유럽·중아파트','pv-eu-root');},'by-country':renderByCountry,'by-product':renderByProduct,'by-cons':renderByCons,'by-rep':renderByRep,unitprice:renderUnitPrice,pending:renderPending,sales:renderSales,'crm-dash':renderCrmDash,dealers:renderDealers,activities:renderActivities,schedule:renderSchedule,quotes:renderQuotes,speech:function(){if(!window._speechInit){buildSpeechGrid();window._speechInit=1;}var _sd=document.getElementById('speech-detail-view'),_sg=document.getElementById('speech-grid-view');if(_sd&&_sg){_sd.style.display='none';_sg.style.display='';}}})[n]?.();
+  ({overview:renderOverview,'pv-am':function(){_renderPartView('미주·아시아파트','pv-am-root');},'pv-cn':function(){_renderPartView('중화파트','pv-cn-root');},'pv-eu':function(){_renderPartView('유럽·중아파트','pv-eu-root');},'by-country':renderByCountry,'by-product':renderByProduct,'by-cons':renderByCons,'by-rep':renderByRep,unitprice:renderUnitPrice,'intl-users':renderIntlUsers,pending:renderPending,sales:renderSales,'crm-dash':renderCrmDash,dealers:renderDealers,activities:renderActivities,schedule:renderSchedule,quotes:renderQuotes,speech:function(){if(!window._speechInit){buildSpeechGrid();window._speechInit=1;}var _sd=document.getElementById('speech-detail-view'),_sg=document.getElementById('speech-grid-view');if(_sd&&_sg){_sd.style.display='none';_sg.style.display='';}}})[n]?.();
 }
 
 function _ovPC(){ const f=+document.getElementById('ov-from').value,t=document.getElementById('ov-to'); if(+t.value<f)t.value=f; renderOverview(); }
@@ -1161,6 +1185,7 @@ async function _afterLogin(user) {
   if(typeof _loadFx==="function")_loadFx(function(){});
   _setDefaultRanges();
   try{ if(_isLeaderIntl()){ var _nb=document.getElementById('nav-byrep'); if(_nb)_nb.style.display=''; var _nu=document.getElementById('nav-unitprice'); if(_nu)_nu.style.display=''; } }catch(_e){}
+  try{ if(_canTeamMgmtIntl()){ var _ni=document.getElementById('nav-intl-users'); if(_ni)_ni.style.display=''; } }catch(_e){}
   try{ var _mp=_myPartIntl(), _all=_seeAllIntl();
     document.querySelectorAll('.nav-analysis').forEach(function(li){ li.style.display=_all?'':'none'; });
     document.querySelectorAll('.nav-part').forEach(function(li){ li.style.display=(_all||li.getAttribute('data-part')===_mp)?'':'none'; });
@@ -1451,6 +1476,7 @@ function _wtNavEl(n){ try{ return document.querySelector('.nav-link[onclick*="\'
 function _wtPageOk(n){
   if(!n||!document.getElementById('page-'+n)) return false;
   if(n==='by-rep'||n==='unitprice'){ try{ return _isLeaderIntl(); }catch(e){ return false; } }   // 팀장 전용 게이트
+  if(n==='intl-users'){ try{ return _canTeamMgmtIntl(); }catch(e){ return false; } }   // 팀장(해외영업팀)/관리자 전용
   try{ if(n==='overview'||n==='by-country'||n==='by-product'||n==='by-cons') return _seeAllIntl(); if(n==='pv-am'||n==='pv-cn'||n==='pv-eu') return _seeAllIntl()||_myPartIntl()===_pvPart(n); }catch(e){ return false; }
   return true;
 }
@@ -1557,7 +1583,7 @@ function openDeal(id){
   document.getElementById('is-modal-title').textContent=id?'딜 수정':'새 딜';
   document.getElementById('d-stage').innerHTML=STAGES_INTL.map(function(s){return '<option'+(d.stage===s?' selected':'')+'>'+s+'</option>';}).join('');
   var cs=[]; INTL_PIPE.forEach(function(x){ if(x.country&&cs.indexOf(x.country)<0)cs.push(x.country); });
-  document.getElementById('d-country-list').innerHTML=cs.map(function(c){return '<option value="'+_esc(c)+'">';}).join('');
+  document.getElementById('d-country-list').innerHTML=cs.map(function(c){return '<option value="'+c+'">';}).join('');
   var set=function(k,v){var el=document.getElementById(k);if(el)el.value=(v==null?'':v);};
   set('d-country',d.country);set('d-dealer',d.dealer);set('d-product',d.product);set('d-amount',d.amount);
   set('d-prob',d.prob);set('d-sales',d.sales!=null?d.sales:_meName);set('d-ship',d.expectedShip);set('d-nextdate',d.nextDate);set('d-next',d.nextAction);set('d-note',d.note);
@@ -1612,16 +1638,16 @@ function _dealerAgg(){
 function renderCrmDash(){
   var el=document.getElementById('cd-body'); if(!el)return;
   var deals=INTL_PIPE, active=deals.filter(function(d){return d.stage!=='선적/납품';});
-  var weighted=active.reduce(function(s,d){return s+_dealUsd(d)*(Number(d.prob||0)/100);},0);
-  var total=deals.reduce(function(s,d){return s+_dealUsd(d);},0);
+  var weighted=active.reduce(function(s,d){return s+Number(d.amount||0)*(Number(d.prob||0)/100);},0);
+  var total=deals.reduce(function(s,d){return s+Number(d.amount||0);},0);
   var won=deals.filter(function(d){return d.stage==='계약/PO'||d.stage==='선적/납품';});
   var winRate=deals.length?Math.round(won.length/deals.length*100):0;
   var kpi=[['진행 딜',active.length+'건','#0891b2'],['가중 예상(USD)',_fmtUSD(weighted),'#0d9488'],['파이프라인 총액',_fmtUSD(total),'#7c3aed'],['Win율',winRate+'%','#16a34a']];
   var kpiH=kpi.map(function(c){return '<div class="col-6 col-md-3"><div class="kpi-card" style="padding:10px 12px"><div class="kpi-label">'+c[0]+'</div><div class="kpi-value" style="font-size:1.05rem;color:'+c[2]+'">'+c[1]+'</div></div></div>';}).join('');
-  var funnel=STAGES_INTL.map(function(st){var c=deals.filter(function(d){return d.stage===st;});return {st:st,n:c.length,amt:c.reduce(function(s,d){return s+_dealUsd(d);},0)};});
+  var funnel=STAGES_INTL.map(function(st){var c=deals.filter(function(d){return d.stage===st;});return {st:st,n:c.length,amt:c.reduce(function(s,d){return s+Number(d.amount||0);},0)};});
   var fmax=Math.max.apply(null,funnel.map(function(f){return f.n;}).concat([1]));
   var funH=funnel.map(function(f){return _bar(f.st,f.n,fmax,SC_INTL[f.st],f.n+'건 · '+_fmtUSD(f.amt));}).join('');
-  var byC={}; deals.forEach(function(d){var c=d.country||'기타'; byC[c]=(byC[c]||0)+_dealUsd(d);});
+  var byC={}; deals.forEach(function(d){var c=d.country||'기타'; byC[c]=(byC[c]||0)+Number(d.amount||0);});
   var cArr=Object.entries(byC).sort(function(a,b){return b[1]-a[1];}).slice(0,6), cmax=cArr.length?cArr[0][1]:1;
   var cH=cArr.map(function(x){return _bar(x[0],x[1],cmax,'#0d9488',_fmtUSD(x[1]));}).join('')||'<div style="font-size:12px;color:#9ca3af">딜 없음</div>';
   var today=_today(), acts=[];
@@ -1630,7 +1656,7 @@ function renderCrmDash(){
   acts.sort(function(a,b){return (a.date||'')<(b.date||'')?-1:1;});
   var actH=acts.slice(0,8).map(function(a){var od=a.date<today; return '<div style="display:flex;flex-direction:row;gap:8px;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:12px"><span style="width:52px;color:'+(od?'#dc2626':'#64748b')+';font-weight:'+(od?'700':'400')+'">'+(a.date||'').slice(5)+(od?' !':'')+'</span><span style="flex:1">'+(a.who||'')+' — '+a.what+'</span></div>';}).join('')||'<div style="font-size:12px;color:#9ca3af">예정 액션 없음</div>';
   var ship=deals.filter(function(d){return d.expectedShip&&d.stage!=='선적/납품';}).sort(function(a,b){return (a.expectedShip||'')<(b.expectedShip||'')?-1:1;}).slice(0,6);
-  var shipH=ship.map(function(d){var od=d.expectedShip<today; return '<div style="display:flex;flex-direction:row;gap:8px;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:12px"><span style="width:52px;color:'+(od?'#dc2626':'#64748b')+'">'+d.expectedShip.slice(5)+'</span><span style="flex:1">'+_esc(d.dealer||'')+' <span style="color:#94a3b8">'+_esc(d.country||'')+'</span></span><span style="font-weight:600;color:#0d9488">'+_fmtUSD(_dealUsd(d))+'</span></div>';}).join('')||'<div style="font-size:12px;color:#9ca3af">선적 예정 없음</div>';
+  var shipH=ship.map(function(d){var od=d.expectedShip<today; return '<div style="display:flex;flex-direction:row;gap:8px;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:12px"><span style="width:52px;color:'+(od?'#dc2626':'#64748b')+'">'+d.expectedShip.slice(5)+'</span><span style="flex:1">'+_esc(d.dealer||'')+' <span style="color:#94a3b8">'+_esc(d.country||'')+'</span></span><span style="font-weight:600;color:#0d9488">'+_fmtUSD(d.amount)+'</span></div>';}).join('')||'<div style="font-size:12px;color:#9ca3af">선적 예정 없음</div>';
   el.innerHTML=
     _alertStripHTML()+
     '<div class="row g-2 mb-3">'+kpiH+'</div>'+
@@ -1707,7 +1733,7 @@ function openAct(id){
   _actEdit=id?INTL_ACT.find(function(a){return a.id===id;}):null; var a=_actEdit||{};
   document.getElementById('ac-modal-title').textContent=id?'활동 수정':'활동 기록';
   document.getElementById('a-type').innerHTML=ACT_TYPES.map(function(t){return '<option'+(a.type===t?' selected':'')+'>'+t+'</option>';}).join('');
-  var cs=[]; INTL_PIPE.forEach(function(x){if(x.country&&cs.indexOf(x.country)<0)cs.push(x.country);}); INTL_ACT.forEach(function(x){if(x.country&&cs.indexOf(x.country)<0)cs.push(x.country);}); var dcl=document.getElementById('d-country-list'); if(dcl)dcl.innerHTML=cs.map(function(c){return '<option value="'+_esc(c)+'">';}).join('');
+  var cs=[]; INTL_PIPE.forEach(function(x){if(x.country&&cs.indexOf(x.country)<0)cs.push(x.country);}); INTL_ACT.forEach(function(x){if(x.country&&cs.indexOf(x.country)<0)cs.push(x.country);}); var dcl=document.getElementById('d-country-list'); if(dcl)dcl.innerHTML=cs.map(function(c){return '<option value="'+c+'">';}).join('');
   var g=function(k,v){var e=document.getElementById(k);if(e)e.value=v==null?'':v;};
   g('a-date',a.date||_today());g('a-country',a.country);g('a-dealer',a.dealer);g('a-product',a.product);g('a-sales',a.sales!=null?a.sales:_meName);g('a-content',a.content);g('a-next',a.nextAction);g('a-nextdate',a.nextDate);
   document.getElementById('a-del').style.display=id?'inline-block':'none';
@@ -2093,12 +2119,12 @@ function renderCrmDash(){
     '</div>';
   }).join('');
   // 국가별
-  var byC={}; deals.forEach(function(d){var c=d.country||'기타'; byC[c]=(byC[c]||0)+_dealUsd(d);});
+  var byC={}; deals.forEach(function(d){var c=d.country||'기타'; byC[c]=(byC[c]||0)+Number(d.amount||0);});
   var cArr=Object.entries(byC).sort(function(a,b){return b[1]-a[1];}).slice(0,7), cmax=cArr.length?cArr[0][1]:1;
   var cH=cArr.map(function(x){return '<div style="display:flex;flex-direction:row;align-items:center;gap:8px;margin-bottom:6px;font-size:12px"><span style="width:64px;color:#475569">'+_esc(x[0])+'</span><div style="flex:1;height:8px;background:#eef2f7;border-radius:4px;overflow:hidden"><div style="width:'+Math.round(x[1]/cmax*100)+'%;height:100%;background:#0d9488"></div></div><span style="width:78px;text-align:right;font-weight:600">'+_fmtUSD(x[1])+'</span></div>';}).join('')||'<div style="font-size:12px;color:#9ca3af">딜 없음</div>';
   // 담당자 리더보드
   var reps={};
-  deals.forEach(function(d){var r=d.sales||'미지정'; var o=reps[r]||(reps[r]={won:0,wonCnt:0,open:0,wt:0}); if(d.stage==='계약/PO'||d.stage==='선적/납품'){o.won+=_dealUsd(d);o.wonCnt++;} else {o.open++;o.wt+=_dealUsd(d)*(Number(d.prob||0)/100);} });
+  deals.forEach(function(d){var r=d.sales||'미지정'; var o=reps[r]||(reps[r]={won:0,wonCnt:0,open:0,wt:0}); if(d.stage==='계약/PO'||d.stage==='선적/납품'){o.won+=Number(d.amount||0);o.wonCnt++;} else {o.open++;o.wt+=Number(d.amount||0)*(Number(d.prob||0)/100);} });
   var repArr=Object.entries(reps).sort(function(a,b){return (b[1].won-a[1].won)||(b[1].wt-a[1].wt);});
   var rmax=Math.max.apply(null,repArr.map(function(x){return x[1].won;}).concat([1]));
   var medals=['🥇','🥈','🥉'];
@@ -2651,7 +2677,6 @@ function _loadFx(cb){
   }catch(e){if(cb)cb();}
 }
 function _dealKrw(d){ return Number(d.amount||0)*(FX[d.currency||'USD']||FX.USD); }
-function _dealUsd(d){ return _dealKrw(d)/(FX.USD||1); }  // 통화 혼합 방지: USD 등가
 function _fmtCur(d){ return (CUR_SYM[d.currency||'USD']||'$')+Math.round(Number(d.amount)||0).toLocaleString(); }
 function _updDealKrw(){
   var a=document.getElementById('d-amount'),c=document.getElementById('d-cur'),k=document.getElementById('d-krw');
@@ -4573,6 +4598,69 @@ function renderUnitPrice(){
   var note=(_UPRICE.updatedAt?'<div style="font-size:10px;color:#cbd5e1;text-align:right;margin-top:6px">기준 '+_esc(_UPRICE.updatedAt)+' · 작년 지역별 단가는 원본 수량 재집계 기반</div>':'');
   el.innerHTML=ctrl+body+note;
 }
+</script>
+<script>
+/* ══ 사용자 관리(해외영업 팀장 전용): 팀원 로그인 계정 생성·삭제·비번초기화 ══ */
+function _canTeamMgmtIntl(){ try{ return _isMasterIntl() || (_currentUser && _currentUser.dept==='해외영업팀'); }catch(e){ return false; } }
+var _IU_EP='https://mhfacbsittfdkknwybhc.supabase.co/functions/v1/intl-user-admin';
+var _IU_PARTS=['미주·아시아파트','중화파트','유럽·중아파트'];
+async function _intlUserApi(body){
+  var s=(await _sb.auth.getSession()).data.session;
+  if(!s){ var r=await _sb.auth.refreshSession(); s=r.data&&r.data.session; }
+  if(!s||!s.access_token) throw new Error('세션이 만료됐습니다. 새로고침 후 다시 시도하세요.');
+  var res=await fetch(_IU_EP,{method:'POST',headers:{'Authorization':'Bearer '+s.access_token,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  var d; try{ d=await res.json(); }catch(e){ d={}; }
+  if(!res.ok) throw new Error(d.error||('요청 실패('+res.status+')'));
+  return d;
+}
+function renderIntlUsers(){
+  var el=document.getElementById('iu-body'); if(!el)return;
+  if(!_canTeamMgmtIntl()){ el.innerHTML='<div class="card p-4 text-center" style="font-size:13px;color:#94a3b8"><i class="bi bi-lock d-block mb-2" style="font-size:22px"></i>해외영업 팀장·관리자만 사용할 수 있습니다.</div>'; return; }
+  el.innerHTML='<div class="card p-4 text-center text-muted" style="font-size:12px">팀원 목록 로딩...</div>';
+  _intlUserApi({action:'list'}).then(function(d){ _iuRender(d.users||[]); }).catch(function(e){
+    el.innerHTML='<div class="card p-4" style="font-size:12px;color:#dc2626"><b>목록을 불러오지 못했습니다.</b><br>'+_esc(e.message)+'<div style="color:#94a3b8;margin-top:8px">edge function(intl-user-admin)이 아직 배포되지 않았을 수 있습니다. 배포 후 다시 시도하세요.</div></div>';
+  });
+}
+function _iuRender(users){
+  var el=document.getElementById('iu-body'); if(!el)return;
+  var byPart={}; _IU_PARTS.forEach(function(p){byPart[p]=[];}); var others=[];
+  users.forEach(function(u){ if(_IU_PARTS.indexOf(u.dept)>=0)byPart[u.dept].push(u); else others.push(u); });
+  var deptSel=function(u){ return '<select onchange="_iuUpdate(this.dataset.id,\'dept\',this.value)" data-id="'+_esc(u.id)+'" class="form-select form-select-sm" style="width:130px;font-size:12px;display:inline-block">'+_IU_PARTS.map(function(p){return '<option'+(u.dept===p?' selected':'')+'>'+p+'</option>';}).join('')+'</select>'; };
+  var rowsFor=function(list){ return list.map(function(u){ return '<tr style="border-top:1px solid #f1f5f9">'+
+    '<td style="padding:6px 12px"><b>'+_esc(u.display_name||'')+'</b></td>'+
+    '<td style="color:#475569">'+_esc(u.email||'')+'</td>'+
+    '<td>'+deptSel(u)+'</td>'+
+    '<td><input value="'+_esc(u.position||'')+'" onchange="_iuUpdate(this.dataset.id,\'position\',this.value)" data-id="'+_esc(u.id)+'" class="form-control form-control-sm" style="width:74px;font-size:12px;display:inline-block" placeholder="직급"></td>'+
+    '<td style="color:#94a3b8;font-family:monospace;font-size:11px">'+_esc(u.temp_pw||'—')+'</td>'+
+    '<td style="text-align:right;white-space:nowrap;padding-right:12px"><button class="btn btn-sm btn-link p-0 me-2" style="font-size:11px;text-decoration:none" onclick="_iuPw(this.dataset.id,this.dataset.n)" data-id="'+_esc(u.id)+'" data-n="'+_esc(u.display_name||u.email)+'"><i class="bi bi-key"></i> 비번초기화</button>'+
+      '<button class="btn btn-sm btn-link p-0 text-danger" style="font-size:11px;text-decoration:none" onclick="_iuDel(this.dataset.id,this.dataset.n)" data-id="'+_esc(u.id)+'" data-n="'+_esc(u.display_name||u.email)+'"><i class="bi bi-trash"></i> 삭제</button></td></tr>'; }).join(''); };
+  var html='';
+  _IU_PARTS.forEach(function(p){ var col=(typeof PART_COLOR!=='undefined'&&PART_COLOR[p])||'#64748b';
+    html+='<div class="card p-0 mb-2" style="overflow:hidden"><div style="font-size:13px;font-weight:800;padding:10px 14px;border-left:4px solid '+col+';color:'+col+'">'+p+' <span style="font-size:11px;font-weight:400;color:#94a3b8">'+byPart[p].length+'명</span></div>'+
+      '<div style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12px"><thead style="background:#f8fafc"><tr><th style="padding:6px 12px">이름</th><th>이메일</th><th>소속</th><th>직급</th><th>임시비번</th><th style="text-align:right;padding-right:12px">관리</th></tr></thead><tbody>'+(rowsFor(byPart[p])||'<tr><td colspan="6" style="padding:12px;text-align:center;color:#cbd5e1">팀원 없음 — 우측 상단 「팀원 추가」</td></tr>')+'</tbody></table></div></div>';
+  });
+  if(others.length){ html+='<div class="card p-0" style="overflow:hidden"><div style="font-size:12px;font-weight:700;padding:9px 14px;color:#64748b;background:#f8fafc">팀장/기타 <span style="font-size:10px;font-weight:400;color:#cbd5e1">· 파트 소속 팀원만 편집 가능</span></div><div style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12px"><tbody>'+others.map(function(u){return '<tr style="border-top:1px solid #f1f5f9"><td style="padding:6px 12px"><b>'+_esc(u.display_name||'')+'</b></td><td style="color:#475569">'+_esc(u.email||'')+'</td><td style="color:#94a3b8">'+_esc(u.dept||'')+' · '+_esc(u.position||'')+'</td></tr>';}).join('')+'</tbody></table></div></div>'; }
+  el.innerHTML=html;
+}
+function _iuAddOpen(){ if(!_canTeamMgmtIntl()){alert('팀장·관리자만 가능합니다.');return;} var e=document.getElementById('iu-err'); if(e)e.style.display='none'; ['iu-name','iu-email','iu-pos'].forEach(function(k){var el=document.getElementById(k);if(el)el.value='';}); var pw=document.getElementById('iu-pw'); if(pw)pw.value='wontech123'; document.getElementById('iu-modal').style.display='flex'; }
+function _iuCreate(){
+  var g=function(k){var el=document.getElementById(k);return el?el.value.trim():'';};
+  var email=g('iu-email'),pw=g('iu-pw'),name=g('iu-name'),pos=g('iu-pos'),dept=(document.getElementById('iu-dept')||{}).value;
+  var err=document.getElementById('iu-err'); var show=function(m){ if(err){err.textContent=m;err.style.display='block';} };
+  if(!email||!pw){ show('이메일과 비밀번호를 입력하세요.'); return; }
+  var btn=document.getElementById('iu-save'); if(btn){btn.disabled=true;btn.textContent='생성 중...';}
+  _intlUserApi({action:'create',email:email,password:pw,name:name,dept:dept,position:pos}).then(function(){
+    document.getElementById('iu-modal').style.display='none';
+    if(typeof _pToast==='function')_pToast(name+' 계정 생성 완료',true); else alert('계정 생성 완료');
+    renderIntlUsers();
+  }).catch(function(e){ show(e.message); }).finally(function(){ if(btn){btn.disabled=false;btn.textContent='계정 생성';} });
+}
+function _iuDel(id,n){ if(!confirm('['+n+'] 팀원의 로그인 계정을 삭제할까요?\n로그인이 즉시 차단됩니다.'))return;
+  _intlUserApi({action:'delete',user_id:id}).then(function(){ if(typeof _pToast==='function')_pToast(n+' 삭제됨',true); renderIntlUsers(); }).catch(function(e){ alert('삭제 실패: '+e.message); }); }
+function _iuPw(id,n){ var np=prompt('['+n+'] 새 임시 비밀번호(6자 이상)','wontech123'); if(!np)return; if(np.length<6){alert('6자 이상 입력하세요');return;}
+  _intlUserApi({action:'setpw',user_id:id,password:np}).then(function(){ if(typeof _pToast==='function')_pToast(n+' 비밀번호 변경됨',true); renderIntlUsers(); }).catch(function(e){ alert('변경 실패: '+e.message); }); }
+function _iuUpdate(id,field,val){ var b={action:'update',user_id:id}; b[field]=val;
+  _intlUserApi(b).then(function(){ if(typeof _pToast==='function')_pToast('수정됨',true); }).catch(function(e){ alert('수정 실패: '+e.message); renderIntlUsers(); }); }
 </script>
 </body>
 </html>
