@@ -224,10 +224,13 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
   <div class="nav-section">
     <div class="nav-label">매출현황</div>
     <ul class="nav flex-column gap-0">
-      <li><a class="nav-link active" onclick="showPage('overview',this)"><i class="bi bi-bar-chart-line"></i>종합 현황</a></li>
-      <li><a class="nav-link" onclick="showPage('by-country',this)"><i class="bi bi-globe"></i>국가별 분석</a></li>
-      <li><a class="nav-link" onclick="showPage('by-product',this)"><i class="bi bi-box-seam"></i>제품별 분석</a></li>
-      <li><a class="nav-link" onclick="showPage('by-cons',this)"><i class="bi bi-capsule"></i>소모품 분석</a></li>
+      <li class="nav-analysis"><a class="nav-link active" onclick="showPage('overview',this)"><i class="bi bi-bar-chart-line"></i>종합 현황</a></li>
+      <li class="nav-analysis"><a class="nav-link" onclick="showPage('by-country',this)"><i class="bi bi-globe"></i>국가별 분석</a></li>
+      <li class="nav-analysis"><a class="nav-link" onclick="showPage('by-product',this)"><i class="bi bi-box-seam"></i>제품별 분석</a></li>
+      <li class="nav-analysis"><a class="nav-link" onclick="showPage('by-cons',this)"><i class="bi bi-capsule"></i>소모품 분석</a></li>
+      <li class="nav-part" data-part="미주·아시아파트" style="display:none"><a class="nav-link" onclick="showPage('pv-am',this)"><i class="bi bi-globe-americas"></i>미주·아시아파트</a></li>
+      <li class="nav-part" data-part="중화파트" style="display:none"><a class="nav-link" onclick="showPage('pv-cn',this)"><i class="bi bi-globe-central-south-asia"></i>중화파트</a></li>
+      <li class="nav-part" data-part="유럽·중아파트" style="display:none"><a class="nav-link" onclick="showPage('pv-eu',this)"><i class="bi bi-globe-europe-africa"></i>유럽·중아파트</a></li>
       <li><a class="nav-link" onclick="showPage('pending',this)"><i class="bi bi-hourglass-split"></i>회계미반영분</a></li>
       <li style="border-top:1px solid #1e293b;margin-top:6px;padding-top:6px"><a class="nav-link" onclick="showPage('crm-dash',this)"><i class="bi bi-speedometer2"></i>영업 현황판</a></li>
       <li><a class="nav-link" onclick="showPage('sales',this)"><i class="bi bi-kanban"></i>수주관리</a></li>
@@ -466,6 +469,9 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
     <div id="ovm-body"></div>
   </div>
 </div>
+<div id="page-pv-am" class="page"><div id="pv-am-root"></div></div>
+<div id="page-pv-cn" class="page"><div id="pv-cn-root"></div></div>
+<div id="page-pv-eu" class="page"><div id="pv-eu-root"></div></div>
 <div id="page-crm-dash" class="page">
   <div class="page-header"><h5><i class="bi bi-speedometer2" style="color:#0891b2"></i>영업 현황판 <span style="font-size:12px;font-weight:400;color:#9ca3af">파이프라인 · 딜러 · 액션</span></h5></div>
   <div id="cd-body"></div>
@@ -682,7 +688,7 @@ function showPage(n,el,noPush){
   if(noPush!==true){ try{ if(!(history.state&&history.state.p===n)) history.pushState({p:n},'','#'+n); }catch(_e){} }
   var _mt=document.getElementById('m-title'); if(_mt&&el) _mt.textContent=el.textContent.trim();
   if(window.innerWidth<=820) toggleNav(false);
-  ({overview:renderOverview,'by-country':renderByCountry,'by-product':renderByProduct,'by-cons':renderByCons,'by-rep':renderByRep,pending:renderPending,sales:renderSales,'crm-dash':renderCrmDash,dealers:renderDealers,activities:renderActivities,schedule:renderSchedule,quotes:renderQuotes,speech:function(){if(!window._speechInit){buildSpeechGrid();window._speechInit=1;}var _sd=document.getElementById('speech-detail-view'),_sg=document.getElementById('speech-grid-view');if(_sd&&_sg){_sd.style.display='none';_sg.style.display='';}}})[n]?.();
+  ({overview:renderOverview,'pv-am':function(){_renderPartView('미주·아시아파트','pv-am-root');},'pv-cn':function(){_renderPartView('중화파트','pv-cn-root');},'pv-eu':function(){_renderPartView('유럽·중아파트','pv-eu-root');},'by-country':renderByCountry,'by-product':renderByProduct,'by-cons':renderByCons,'by-rep':renderByRep,pending:renderPending,sales:renderSales,'crm-dash':renderCrmDash,dealers:renderDealers,activities:renderActivities,schedule:renderSchedule,quotes:renderQuotes,speech:function(){if(!window._speechInit){buildSpeechGrid();window._speechInit=1;}var _sd=document.getElementById('speech-detail-view'),_sg=document.getElementById('speech-grid-view');if(_sd&&_sg){_sd.style.display='none';_sg.style.display='';}}})[n]?.();
 }
 
 function _ovPC(){ const f=+document.getElementById('ov-from').value,t=document.getElementById('ov-to'); if(+t.value<f)t.value=f; renderOverview(); }
@@ -713,6 +719,7 @@ function pbars(obj, cols){
 }
 
 function renderOverview(){
+  if(!_seeAllIntl()){ _partLock(document.getElementById('ov-kpi')); return; }
   const yr=+document.getElementById('ov-year').value, f=+document.getElementById('ov-from').value, t=+document.getElementById('ov-to').value;
   const cur=yr===2026?INTL:INTL.data2025, pre=yr===2026?INTL.data2025:null;
   const tot=ytd(cur.monthly,f,t), totU=ytd(cur.monthly_usd,f,t);
@@ -771,6 +778,7 @@ function renderOverview(){
 }
 
 function renderByCountry(){
+  if(!_seeAllIntl()){ _partLock(document.getElementById('ct-rank')); return; }
   const yr=+document.getElementById('ct-year').value, f=+document.getElementById('ct-from').value, t=+document.getElementById('ct-to').value;
   const cur=yr===2026?INTL:INTL.data2025, pre=yr===2026?INTL.data2025:null;
   const arr=Object.entries(cur.countries||{}).map(([n,c])=>({n,v:ytd(c.m,f,t),pv:pre?ytd(pre.countries[n]?.m||{},f,t):0,c})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
@@ -947,6 +955,7 @@ function renderPdTrend(){
     scales:{y:{ticks:{callback:v=>v+'억',font:{size:9}},grid:{color:'#f3f4f6'}},x:{ticks:{font:{size:9}}}}}});
 }
 function renderByProduct(){
+  if(!_seeAllIntl()){ var _e=document.querySelector('#page-by-product .card, #page-by-product'); _partLock(_e); return; }
   const yr=+document.getElementById('pd-year').value, f=+document.getElementById('pd-from').value, t=+document.getElementById('pd-to').value;
   const cur=yr===2026?INTL:INTL.data2025, pre=yr===2026?INTL.data2025:null;
 
@@ -1144,6 +1153,10 @@ async function _afterLogin(user) {
   if(typeof _loadFx==="function")_loadFx(function(){});
   _setDefaultRanges();
   try{ if(_isLeaderIntl()){ var _nb=document.getElementById('nav-byrep'); if(_nb)_nb.style.display=''; } }catch(_e){}
+  try{ var _mp=_myPartIntl(), _all=_seeAllIntl();
+    document.querySelectorAll('.nav-analysis').forEach(function(li){ li.style.display=_all?'':'none'; });
+    document.querySelectorAll('.nav-part').forEach(function(li){ li.style.display=(_all||li.getAttribute('data-part')===_mp)?'':'none'; });
+  }catch(_e){}
   // 조회기간 종료월을 데이터 마지막월로 동적 세팅(하드코딩 5월 → 실제 마지막 데이터월, 종합사이트와 정합)
   try{
     var _im=Object.keys((INTL&&INTL.monthly)||{}).map(Number).filter(function(m){return m>=1&&m<=12;});
@@ -1156,7 +1169,7 @@ async function _afterLogin(user) {
   var _nav=(performance.getEntriesByType('navigation')[0]||{}).type;   // reload=새로고침 / back_forward=뒤로가기 / navigate=신규진입
   var _sv=sessionStorage.getItem('intl_page');
   var _hk=(location.hash||'').replace(/^#/,'');
-  var _saved='overview';
+  var _saved=(!_seeAllIntl()&&_myPartIntl())?_pvKey(_myPartIntl()):'overview';
   if(_hk && _wtPageOk(_hk)) _saved=_hk;                                                             // 유효 딥링크 우선
   else if((_nav==='reload'||_nav==='back_forward') && _sv && _wtPageOk(_sv)) _saved=_sv;            // 새로고침·뒤로가기=머문 페이지
   showPage(_saved, _wtNavEl(_saved), true);
@@ -1430,6 +1443,7 @@ function _wtNavEl(n){ try{ return document.querySelector('.nav-link[onclick*="\'
 function _wtPageOk(n){
   if(!n||!document.getElementById('page-'+n)) return false;
   if(n==='by-rep'){ try{ return _isLeaderIntl(); }catch(e){ return false; } }   // 팀장 전용 게이트
+  try{ if(n==='overview'||n==='by-country'||n==='by-product'||n==='by-cons') return _seeAllIntl(); if(n==='pv-am'||n==='pv-cn'||n==='pv-eu') return _seeAllIntl()||_myPartIntl()===_pvPart(n); }catch(e){ return false; }
   return true;
 }
 function _wtOpenOverlay(){
@@ -1957,6 +1971,7 @@ function renderConsDetail(){
   document.getElementById('cs-detail').innerHTML=tbl;
 }
 function renderByCons(){
+  if(!_seeAllIntl()){ var _e=document.querySelector('#page-by-cons .card, #page-by-cons'); _partLock(_e); return; }
   const yr=+document.getElementById('cs-year').value, f=+document.getElementById('cs-from').value, t=+document.getElementById('cs-to').value;
   const cur=yr===2026?INTL:INTL.data2025, pre=yr===2026?INTL.data2025:null;
   const prods = cur.prods_cons||{};
@@ -4159,6 +4174,49 @@ window.spPdfMake = function(){
   var m=document.getElementById('sp-pdf-modal'); if(m)m.style.display='none';
 };
 })();
+</script>
+<script>
+/* ── 파트별 접근제어 + 파트 현황 뷰 ── */
+function _seeAllIntl(){ try{ return _isLeaderIntl() || (_currentUser&&_currentUser.role==='manager'); }catch(e){ return false; } }
+function _myPartIntl(){ var d=(_currentUser&&_currentUser.dept)||''; return (typeof PART_LIST!=='undefined'&&PART_LIST.indexOf(d)>=0)?d:null; }
+function _pvPart(k){ return {'pv-am':'미주·아시아파트','pv-cn':'중화파트','pv-eu':'유럽·중아파트'}[k]||null; }
+function _pvKey(p){ return {'미주·아시아파트':'pv-am','중화파트':'pv-cn','유럽·중아파트':'pv-eu'}[p]||'overview'; }
+function _partLock(el){ if(el)el.innerHTML='<div class="text-center py-5" style="color:#94a3b8"><i class="bi bi-shield-lock" style="font-size:30px"></i><div style="font-size:13px;margin-top:10px;font-weight:700">파트/팀장 전용 화면</div><div style="font-size:11px;margin-top:4px;color:#cbd5e1">본인 파트 메뉴를 이용하세요</div></div>'; }
+
+function _renderPartView(part, rootId){
+  var root=document.getElementById(rootId); if(!root)return;
+  if(typeof _REGMAP==='undefined'||!_REGMAP){ root.innerHTML='<div class="card p-4 text-center text-muted" style="font-size:12px">지역 매핑 로딩...</div>'; if(typeof _loadRegmap==='function')_loadRegmap(function(){_renderPartView(part,rootId);}); return; }
+  var cur=INTL, pre=INTL.data2025||{};
+  var lastM=1; for(var mm=1;mm<=12;mm++){ if(Number((cur.monthly||{})[mm])>0) lastM=mm; }
+  var mine=Object.entries(cur.countries||{}).filter(function(e){ return _partOf(e[0],null)===part; });
+  var pcur={}, pprev={}, prods={}, tot=0, prev=0;
+  mine.forEach(function(e){ var c=e[0],o=e[1];
+    for(var m=1;m<=lastM;m++){ var v=Number((o.m||{})[m])||0; pcur[m]=(pcur[m]||0)+v; tot+=v; }
+    var po=(pre.countries||{})[c];
+    if(po){ for(var m2=1;m2<=lastM;m2++){ var pv=Number((po.m||{})[m2])||0; pprev[m2]=(pprev[m2]||0)+pv; prev+=pv; } }
+    Object.values(o.clientData||{}).forEach(function(cd){ Object.entries(cd.prods||{}).forEach(function(pe){ prods[pe[0]]=(prods[pe[0]]||0)+(Number(pe[1])||0); }); });
+  });
+  var yoy=pct(tot,prev);
+  var nClients=mine.reduce(function(s,e){ return s+Object.keys(e[1].clientData||{}).length; },0);
+  var cArr=mine.map(function(e){ var v=0,pv=0; for(var m=1;m<=lastM;m++)v+=Number((e[1].m||{})[m])||0; var po=(pre.countries||{})[e[0]]; if(po)for(var m2=1;m2<=lastM;m2++)pv+=Number((po.m||{})[m2])||0; return {n:e[0],v:v,pv:pv}; }).filter(function(x){return x.v>0;}).sort(function(a,b){return b.v-a.v;});
+  var cmax=cArr.length?cArr[0].v:1;
+  var pArr=Object.entries(prods).sort(function(a,b){return b[1]-a[1];}).slice(0,10);
+  var pmax=pArr.length?pArr[0][1]:1;
+  var mmax=1; for(var m3=1;m3<=12;m3++)mmax=Math.max(mmax,pcur[m3]||0,pprev[m3]||0);
+  var moBars=''; for(var m4=1;m4<=12;m4++){ var cv=pcur[m4]||0,pv2=pprev[m4]||0;
+    moBars+='<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;display:flex;align-items:flex-end;justify-content:center;gap:2px;height:92px" title="'+m4+'월 · 올해 '+fmtW(cv)+' / 전년 '+fmtW(pv2)+'"><div style="width:38%;height:'+Math.max(2,Math.round(pv2/mmax*88))+'px;background:#e2e8f0;border-radius:2px 2px 0 0"></div><div style="width:38%;height:'+Math.max(2,Math.round(cv/mmax*88))+'px;background:#0d9488;border-radius:2px 2px 0 0"></div></div><div style="font-size:9px;color:#94a3b8">'+m4+'</div></div>';
+  }
+  root.innerHTML=
+    '<div class="page-header"><h5><i class="bi bi-diagram-3" style="color:#0d9488"></i>'+_esc(part)+' 현황 <span style="font-size:12px;font-weight:400;color:#9ca3af">1~'+lastM+'월 · 회계 기준</span></h5><span style="font-size:11px;color:#94a3b8">기준일 '+_esc(INTL.updatedAt||'')+'</span></div>'+
+    '<div class="row g-2 mb-3">'+
+      [['파트 합계',fmtW(tot),'#0f172a',bdg(yoy)],['전년 동기',fmtW(prev),'#94a3b8',''],['거래 국가',cArr.length+'개국','#0891b2',''],['거래처',nClients+'개사','#7c3aed','']].map(function(k){ return '<div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">'+k[0]+'</div><div class="kpi-value" style="font-size:1.15rem;color:'+k[2]+'">'+k[1]+' <span style="font-size:11px">'+(k[3]||'')+'</span></div></div></div>'; }).join('')+
+    '</div>'+
+    '<div class="row g-2">'+
+      '<div class="col-md-7"><div class="card p-3 h-100"><div class="fw-bold mb-2" style="font-size:13px"><i class="bi bi-bar-chart me-1" style="color:#0d9488"></i>월별 추이 <span style="font-size:10px;font-weight:400;color:#94a3b8"><span style="display:inline-block;width:8px;height:8px;background:#0d9488;border-radius:2px"></span> 올해 <span style="display:inline-block;width:8px;height:8px;background:#e2e8f0;border-radius:2px;margin-left:6px"></span> 전년</span></div><div style="display:flex;gap:4px">'+moBars+'</div></div></div>'+
+      '<div class="col-md-5"><div class="card p-3 h-100"><div class="fw-bold mb-2" style="font-size:13px"><i class="bi bi-globe me-1" style="color:#0891b2"></i>국가별</div>'+(cArr.map(function(x,i){ return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px"><span style="width:66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_esc(x.n)+'</span><div style="flex:1;height:8px;background:#eef2f7;border-radius:4px;overflow:hidden"><div style="width:'+Math.round(x.v/cmax*100)+'%;height:100%;background:'+C7[i%C7.length]+'"></div></div><span style="width:62px;text-align:right;font-weight:700">'+fmtW(x.v)+'</span>'+bdg(pct(x.v,x.pv))+'</div>'; }).join('')||'<div style="font-size:12px;color:#9ca3af">데이터 없음</div>')+'</div></div>'+
+    '</div>'+
+    '<div class="card p-3 mt-2"><div class="fw-bold mb-2" style="font-size:13px"><i class="bi bi-box-seam me-1" style="color:#7c3aed"></i>제품 TOP</div><div class="row g-1">'+(pArr.map(function(p){ return '<div class="col-md-6" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px"><span style="width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+_esc(p[0])+'">'+_esc(p[0])+'</span><div style="flex:1;height:8px;background:#eef2f7;border-radius:4px;overflow:hidden"><div style="width:'+Math.round(p[1]/pmax*100)+'%;height:100%;background:#0891b2"></div></div><span style="width:58px;text-align:right;font-weight:700">'+fmtW(p[1])+'</span></div>'; }).join('')||'<div style="font-size:12px;color:#9ca3af">데이터 없음</div>')+'</div></div>';
+}
 </script>
 </body>
 </html>
