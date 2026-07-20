@@ -1557,7 +1557,7 @@ function openDeal(id){
   document.getElementById('is-modal-title').textContent=id?'딜 수정':'새 딜';
   document.getElementById('d-stage').innerHTML=STAGES_INTL.map(function(s){return '<option'+(d.stage===s?' selected':'')+'>'+s+'</option>';}).join('');
   var cs=[]; INTL_PIPE.forEach(function(x){ if(x.country&&cs.indexOf(x.country)<0)cs.push(x.country); });
-  document.getElementById('d-country-list').innerHTML=cs.map(function(c){return '<option value="'+c+'">';}).join('');
+  document.getElementById('d-country-list').innerHTML=cs.map(function(c){return '<option value="'+_esc(c)+'">';}).join('');
   var set=function(k,v){var el=document.getElementById(k);if(el)el.value=(v==null?'':v);};
   set('d-country',d.country);set('d-dealer',d.dealer);set('d-product',d.product);set('d-amount',d.amount);
   set('d-prob',d.prob);set('d-sales',d.sales!=null?d.sales:_meName);set('d-ship',d.expectedShip);set('d-nextdate',d.nextDate);set('d-next',d.nextAction);set('d-note',d.note);
@@ -1612,16 +1612,16 @@ function _dealerAgg(){
 function renderCrmDash(){
   var el=document.getElementById('cd-body'); if(!el)return;
   var deals=INTL_PIPE, active=deals.filter(function(d){return d.stage!=='선적/납품';});
-  var weighted=active.reduce(function(s,d){return s+Number(d.amount||0)*(Number(d.prob||0)/100);},0);
-  var total=deals.reduce(function(s,d){return s+Number(d.amount||0);},0);
+  var weighted=active.reduce(function(s,d){return s+_dealUsd(d)*(Number(d.prob||0)/100);},0);
+  var total=deals.reduce(function(s,d){return s+_dealUsd(d);},0);
   var won=deals.filter(function(d){return d.stage==='계약/PO'||d.stage==='선적/납품';});
   var winRate=deals.length?Math.round(won.length/deals.length*100):0;
   var kpi=[['진행 딜',active.length+'건','#0891b2'],['가중 예상(USD)',_fmtUSD(weighted),'#0d9488'],['파이프라인 총액',_fmtUSD(total),'#7c3aed'],['Win율',winRate+'%','#16a34a']];
   var kpiH=kpi.map(function(c){return '<div class="col-6 col-md-3"><div class="kpi-card" style="padding:10px 12px"><div class="kpi-label">'+c[0]+'</div><div class="kpi-value" style="font-size:1.05rem;color:'+c[2]+'">'+c[1]+'</div></div></div>';}).join('');
-  var funnel=STAGES_INTL.map(function(st){var c=deals.filter(function(d){return d.stage===st;});return {st:st,n:c.length,amt:c.reduce(function(s,d){return s+Number(d.amount||0);},0)};});
+  var funnel=STAGES_INTL.map(function(st){var c=deals.filter(function(d){return d.stage===st;});return {st:st,n:c.length,amt:c.reduce(function(s,d){return s+_dealUsd(d);},0)};});
   var fmax=Math.max.apply(null,funnel.map(function(f){return f.n;}).concat([1]));
   var funH=funnel.map(function(f){return _bar(f.st,f.n,fmax,SC_INTL[f.st],f.n+'건 · '+_fmtUSD(f.amt));}).join('');
-  var byC={}; deals.forEach(function(d){var c=d.country||'기타'; byC[c]=(byC[c]||0)+Number(d.amount||0);});
+  var byC={}; deals.forEach(function(d){var c=d.country||'기타'; byC[c]=(byC[c]||0)+_dealUsd(d);});
   var cArr=Object.entries(byC).sort(function(a,b){return b[1]-a[1];}).slice(0,6), cmax=cArr.length?cArr[0][1]:1;
   var cH=cArr.map(function(x){return _bar(x[0],x[1],cmax,'#0d9488',_fmtUSD(x[1]));}).join('')||'<div style="font-size:12px;color:#9ca3af">딜 없음</div>';
   var today=_today(), acts=[];
@@ -1630,7 +1630,7 @@ function renderCrmDash(){
   acts.sort(function(a,b){return (a.date||'')<(b.date||'')?-1:1;});
   var actH=acts.slice(0,8).map(function(a){var od=a.date<today; return '<div style="display:flex;flex-direction:row;gap:8px;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:12px"><span style="width:52px;color:'+(od?'#dc2626':'#64748b')+';font-weight:'+(od?'700':'400')+'">'+(a.date||'').slice(5)+(od?' !':'')+'</span><span style="flex:1">'+(a.who||'')+' — '+a.what+'</span></div>';}).join('')||'<div style="font-size:12px;color:#9ca3af">예정 액션 없음</div>';
   var ship=deals.filter(function(d){return d.expectedShip&&d.stage!=='선적/납품';}).sort(function(a,b){return (a.expectedShip||'')<(b.expectedShip||'')?-1:1;}).slice(0,6);
-  var shipH=ship.map(function(d){var od=d.expectedShip<today; return '<div style="display:flex;flex-direction:row;gap:8px;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:12px"><span style="width:52px;color:'+(od?'#dc2626':'#64748b')+'">'+d.expectedShip.slice(5)+'</span><span style="flex:1">'+_esc(d.dealer||'')+' <span style="color:#94a3b8">'+_esc(d.country||'')+'</span></span><span style="font-weight:600;color:#0d9488">'+_fmtUSD(d.amount)+'</span></div>';}).join('')||'<div style="font-size:12px;color:#9ca3af">선적 예정 없음</div>';
+  var shipH=ship.map(function(d){var od=d.expectedShip<today; return '<div style="display:flex;flex-direction:row;gap:8px;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:12px"><span style="width:52px;color:'+(od?'#dc2626':'#64748b')+'">'+d.expectedShip.slice(5)+'</span><span style="flex:1">'+_esc(d.dealer||'')+' <span style="color:#94a3b8">'+_esc(d.country||'')+'</span></span><span style="font-weight:600;color:#0d9488">'+_fmtUSD(_dealUsd(d))+'</span></div>';}).join('')||'<div style="font-size:12px;color:#9ca3af">선적 예정 없음</div>';
   el.innerHTML=
     _alertStripHTML()+
     '<div class="row g-2 mb-3">'+kpiH+'</div>'+
@@ -1707,7 +1707,7 @@ function openAct(id){
   _actEdit=id?INTL_ACT.find(function(a){return a.id===id;}):null; var a=_actEdit||{};
   document.getElementById('ac-modal-title').textContent=id?'활동 수정':'활동 기록';
   document.getElementById('a-type').innerHTML=ACT_TYPES.map(function(t){return '<option'+(a.type===t?' selected':'')+'>'+t+'</option>';}).join('');
-  var cs=[]; INTL_PIPE.forEach(function(x){if(x.country&&cs.indexOf(x.country)<0)cs.push(x.country);}); INTL_ACT.forEach(function(x){if(x.country&&cs.indexOf(x.country)<0)cs.push(x.country);}); var dcl=document.getElementById('d-country-list'); if(dcl)dcl.innerHTML=cs.map(function(c){return '<option value="'+c+'">';}).join('');
+  var cs=[]; INTL_PIPE.forEach(function(x){if(x.country&&cs.indexOf(x.country)<0)cs.push(x.country);}); INTL_ACT.forEach(function(x){if(x.country&&cs.indexOf(x.country)<0)cs.push(x.country);}); var dcl=document.getElementById('d-country-list'); if(dcl)dcl.innerHTML=cs.map(function(c){return '<option value="'+_esc(c)+'">';}).join('');
   var g=function(k,v){var e=document.getElementById(k);if(e)e.value=v==null?'':v;};
   g('a-date',a.date||_today());g('a-country',a.country);g('a-dealer',a.dealer);g('a-product',a.product);g('a-sales',a.sales!=null?a.sales:_meName);g('a-content',a.content);g('a-next',a.nextAction);g('a-nextdate',a.nextDate);
   document.getElementById('a-del').style.display=id?'inline-block':'none';
@@ -2093,12 +2093,12 @@ function renderCrmDash(){
     '</div>';
   }).join('');
   // 국가별
-  var byC={}; deals.forEach(function(d){var c=d.country||'기타'; byC[c]=(byC[c]||0)+Number(d.amount||0);});
+  var byC={}; deals.forEach(function(d){var c=d.country||'기타'; byC[c]=(byC[c]||0)+_dealUsd(d);});
   var cArr=Object.entries(byC).sort(function(a,b){return b[1]-a[1];}).slice(0,7), cmax=cArr.length?cArr[0][1]:1;
   var cH=cArr.map(function(x){return '<div style="display:flex;flex-direction:row;align-items:center;gap:8px;margin-bottom:6px;font-size:12px"><span style="width:64px;color:#475569">'+_esc(x[0])+'</span><div style="flex:1;height:8px;background:#eef2f7;border-radius:4px;overflow:hidden"><div style="width:'+Math.round(x[1]/cmax*100)+'%;height:100%;background:#0d9488"></div></div><span style="width:78px;text-align:right;font-weight:600">'+_fmtUSD(x[1])+'</span></div>';}).join('')||'<div style="font-size:12px;color:#9ca3af">딜 없음</div>';
   // 담당자 리더보드
   var reps={};
-  deals.forEach(function(d){var r=d.sales||'미지정'; var o=reps[r]||(reps[r]={won:0,wonCnt:0,open:0,wt:0}); if(d.stage==='계약/PO'||d.stage==='선적/납품'){o.won+=Number(d.amount||0);o.wonCnt++;} else {o.open++;o.wt+=Number(d.amount||0)*(Number(d.prob||0)/100);} });
+  deals.forEach(function(d){var r=d.sales||'미지정'; var o=reps[r]||(reps[r]={won:0,wonCnt:0,open:0,wt:0}); if(d.stage==='계약/PO'||d.stage==='선적/납품'){o.won+=_dealUsd(d);o.wonCnt++;} else {o.open++;o.wt+=_dealUsd(d)*(Number(d.prob||0)/100);} });
   var repArr=Object.entries(reps).sort(function(a,b){return (b[1].won-a[1].won)||(b[1].wt-a[1].wt);});
   var rmax=Math.max.apply(null,repArr.map(function(x){return x[1].won;}).concat([1]));
   var medals=['🥇','🥈','🥉'];
@@ -2651,6 +2651,7 @@ function _loadFx(cb){
   }catch(e){if(cb)cb();}
 }
 function _dealKrw(d){ return Number(d.amount||0)*(FX[d.currency||'USD']||FX.USD); }
+function _dealUsd(d){ return _dealKrw(d)/(FX.USD||1); }  // 통화 혼합 방지: USD 등가
 function _fmtCur(d){ return (CUR_SYM[d.currency||'USD']||'$')+Math.round(Number(d.amount)||0).toLocaleString(); }
 function _updDealKrw(){
   var a=document.getElementById('d-amount'),c=document.getElementById('d-cur'),k=document.getElementById('d-krw');
