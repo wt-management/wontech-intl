@@ -4377,9 +4377,12 @@ function _scPartCol(country){
 /* ══ 단가 현황(팀장·관리자 전용): 지역별·제품별 판매단가 + 작년/올해 비교 ══ */
 var _UPRICE=null, _upLoading=false, _upView='product', _upMinQty=3, _upCat='장비';
 function _loadUprice(cb){ if(_UPRICE){if(cb)cb();return;} if(_upLoading)return; _upLoading=true;
-  _sb.from('cons_cache').select('data').eq('key','intl_unitprice').maybeSingle().then(function(r){
-    _UPRICE=(r&&r.data&&r.data.data)||{y2026:{prod:{},ctry:{}},y2025:{prod:{},ctry:{}}}; _upLoading=false; if(cb)cb();
-  }).catch(function(){ _UPRICE={y2026:{prod:{},ctry:{}},y2025:{prod:{},ctry:{}}}; _upLoading=false; if(cb)cb(); });
+  var done=function(d){ _UPRICE=d||{y2026:{prod:{},ctry:{}},y2025:{prod:{},ctry:{}}}; _upLoading=false; if(cb)cb(); };
+  var fallback=function(){ _sb.from('cons_cache').select('data').eq('key','intl_unitprice').maybeSingle().then(function(r2){ done(r2&&r2.data&&r2.data.data); }).catch(function(){ done(null); }); };
+  // 전용 테이블(RLS: 팀장·관리자만) 우선 → 없으면(전환기) cons_cache 폴백
+  _sb.from('intl_unitprice').select('data').maybeSingle().then(function(r){
+    if(r&&r.data&&r.data.data){ done(r.data.data); } else { fallback(); }
+  }).catch(function(){ fallback(); });
 }
 function _upFmt(v){ return v>=1e8?(v/1e8).toFixed(1)+'억':v>=1e4?Math.round(v/1e4).toLocaleString()+'만':Math.round(v).toLocaleString(); }
 function _upUnit(a,q){ return q>0?a/q:null; }
