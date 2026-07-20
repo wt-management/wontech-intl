@@ -4218,5 +4218,62 @@ function _renderPartView(part, rootId){
     '<div class="card p-3 mt-2"><div class="fw-bold mb-2" style="font-size:13px"><i class="bi bi-box-seam me-1" style="color:#7c3aed"></i>제품 TOP</div><div class="row g-1">'+(pArr.map(function(p){ return '<div class="col-md-6" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px"><span style="width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+_esc(p[0])+'">'+_esc(p[0])+'</span><div style="flex:1;height:8px;background:#eef2f7;border-radius:4px;overflow:hidden"><div style="width:'+Math.round(p[1]/pmax*100)+'%;height:100%;background:#0891b2"></div></div><span style="width:58px;text-align:right;font-weight:700">'+fmtW(p[1])+'</span></div>'; }).join('')||'<div style="font-size:12px;color:#9ca3af">데이터 없음</div>')+'</div></div>';
 }
 </script>
+<script>
+/* ── CRM 파트 스코프 통합: 전 메뉴에 파트 컨텍스트 일관 적용 ── */
+var _crmPartFilter='';
+function _partScope(){ try{ var mp=_myPartIntl(); if(mp && !_seeAllIntl()) return mp; return _crmPartFilter||''; }catch(e){ return ''; } }
+function _ctry(s){ s=String(s||''); return s.indexOf('/')>=0?s.split('/')[0]:s; }
+function _withScope(fn){
+  var sc=_partScope(); if(!sc) return fn();
+  var oP=(typeof INTL_PIPE!=='undefined')?INTL_PIPE:null, oA=(typeof INTL_ACT!=='undefined')?INTL_ACT:null, oQ=(typeof INTL_QUOTES!=='undefined')?INTL_QUOTES:null, oC=INTL.countries, oI=(typeof ILBO_PEND!=='undefined')?ILBO_PEND:null;
+  try{
+    if(oP)INTL_PIPE=oP.filter(function(d){return _partOf(d.country,null)===sc;});
+    if(oA)INTL_ACT=oA.filter(function(a){return _partOf(a.country,null)===sc;});
+    if(oQ)INTL_QUOTES=oQ.filter(function(q){return _partOf(q.country,null)===sc;});
+    var fc={}; for(var c in (oC||{})){ if(Object.prototype.hasOwnProperty.call(oC,c) && _partOf(c,null)===sc) fc[c]=oC[c]; } INTL.countries=fc;
+    if(oI)ILBO_PEND=oI.filter(function(p){return _partOf(_ctry(p.customer),null)===sc;});
+    return fn();
+  } finally { if(oP)INTL_PIPE=oP; if(oA)INTL_ACT=oA; if(oQ)INTL_QUOTES=oQ; INTL.countries=oC; if(oI)ILBO_PEND=oI; }
+}
+// 렌더 함수 래핑(마지막 정의를 감싸 파트 필터 적용) — showPage 맵은 호출시점 평가라 자동 반영
+(function(){
+  ['renderCrmDash','renderSales','renderDealers','renderActivities','renderSchedule','renderQuotes','renderPending'].forEach(function(nm){
+    var o=window[nm]; if(typeof o==='function'){ window[nm]=function(){ return _withScope(o); }; }
+  });
+})();
+// 팀장 파트 집중 설정
+function _setCrmPart(p){
+  _crmPartFilter=p||'';
+  try{ _acctCache=null; }catch(e){}
+  _scopeChip();
+  try{ var cur=sessionStorage.getItem('intl_page')||''; var m={'crm-dash':renderCrmDash,'sales':renderSales,'dealers':renderDealers,'activities':renderActivities,'schedule':renderSchedule,'quotes':renderQuotes,'pending':renderPending}; if(m[cur])m[cur](); }catch(e){}
+}
+// 스코프 안내 칩(팀장이 특정 파트에 집중 중일 때만 표시)
+function _scopeChip(){
+  var el=document.getElementById('crm-scope-chip');
+  if(!el){ document.body.insertAdjacentHTML('beforeend','<div id="crm-scope-chip" style="display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:450;background:#0f766e;color:#fff;border-radius:20px;padding:8px 16px;font-size:12px;box-shadow:0 6px 18px rgba(0,0,0,.22)"></div>'); el=document.getElementById('crm-scope-chip'); }
+  if(!el)return;
+  try{
+    if(_crmPartFilter && _seeAllIntl()){ el.style.display=''; el.innerHTML='<i class="bi bi-funnel-fill me-1"></i><b>'+_esc(_crmPartFilter)+'</b> 집중 보기 <span onclick="_setCrmPart(\'\')" style="cursor:pointer;text-decoration:underline;margin-left:10px;opacity:.85">전체 해제</span>'; }
+    else { el.style.display='none'; }
+  }catch(e){}
+}
+// 파트 현황 뷰에 CRM 바로가기 버튼 부착
+(function(){
+  if(typeof _renderPartView!=='function') return;
+  var _origPV=_renderPartView;
+  window._renderPartView=function(part,rootId){
+    _origPV(part,rootId);
+    try{
+      var root=document.getElementById(rootId); if(!root)return;
+      var hdr=root.querySelector('.page-header'); if(!hdr || root.querySelector('.pv-links'))return;
+      var pe=String(part).replace(/'/g,"\\'");
+      var btn=function(pg,ic,tx){ return '<button class="btn btn-sm btn-outline-secondary" style="font-size:12px" onclick="_setCrmPart(\''+pe+'\');showPage(\''+pg+'\',(typeof _wtNavEl===\'function\'?_wtNavEl(\''+pg+'\'):null))"><i class="bi '+ic+' me-1"></i>'+tx+'</button>'; };
+      hdr.insertAdjacentHTML('afterend','<div class="pv-links" style="display:flex;flex-direction:row;gap:8px;flex-wrap:wrap;margin:-4px 0 14px">'+
+        btn('dealers','bi-buildings','이 파트 딜러')+btn('sales','bi-kanban','파이프라인')+btn('activities','bi-journal-text','활동')+btn('schedule','bi-calendar-week','일정')+'</div>');
+    }catch(e){}
+  };
+})();
+</script>
 </body>
 </html>
