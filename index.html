@@ -4268,24 +4268,29 @@ function _renderPartView(part, rootId){
   var pendAmt=pPend.reduce(function(s,p){return s+(Number(p.amount)||0);},0);
   var crmRow=function(ic,color,label,val,sub,page){ return '<div onclick="_pvGo(\''+part+'\',\''+page+'\')" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid #f6f8fb" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'"><span style="width:30px;height:30px;border-radius:8px;background:'+color+'14;color:'+color+';display:flex;align-items:center;justify-content:center;flex:0 0 auto"><i class="bi '+ic+'"></i></span><div style="flex:1"><div style="font-size:11px;color:#64748b">'+label+'</div><div style="font-size:14px;font-weight:800;color:#0f172a">'+val+'</div></div><div style="font-size:11px;color:#94a3b8;text-align:right">'+sub+'</div><i class="bi bi-chevron-right" style="color:#cbd5e1;font-size:11px"></i></div>'; };
   // ── 국가별 상세 테이블 ──
-  var ctrTable='<div class="card p-0" style="overflow:hidden"><div class="fw-bold" style="font-size:13px;padding:12px 14px 8px"><i class="bi bi-globe me-1" style="color:#0891b2"></i>국가별 실적 <span style="font-size:10px;font-weight:400;color:#cbd5e1">행 클릭 → 상세</span></div>'+
-    '<div style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12px"><thead style="background:#f8fafc"><tr><th style="padding:7px 14px">국가</th><th style="text-align:right">매출</th><th style="text-align:right">전년</th><th style="text-align:center">YoY</th><th style="text-align:center">거래처</th><th style="padding-right:14px">주력제품</th></tr></thead><tbody>'+
-    (cArr.map(function(x,i){ return '<tr style="cursor:pointer;border-top:1px solid #f4f6f9" onclick="openPartCountry(this.dataset.c)" data-c="'+_esc(x.n)+'" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'">'+
-      '<td style="padding:6px 14px"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+C7[i%C7.length]+';margin-right:6px"></span><b>'+_esc(x.n)+'</b></td>'+
+  var ctrTable='<div class="card p-0 mb-2" style="overflow:hidden"><div class="fw-bold" style="font-size:13px;padding:12px 16px 8px"><i class="bi bi-globe me-1" style="color:#0891b2"></i>국가별 실적 <span style="font-size:11px;font-weight:400;color:#94a3b8">'+cArr.length+'개국 · 행 클릭 → 상세</span></div>'+
+    '<div style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12.5px"><thead style="background:#f8fafc"><tr><th style="padding:7px 16px;width:32px">#</th><th>국가</th><th style="text-align:right">매출</th><th style="text-align:right">전년</th><th style="text-align:center">YoY</th><th style="text-align:center">거래처</th><th>주력제품</th><th style="padding-right:16px;width:230px">점유율</th></tr></thead><tbody>'+
+    (cArr.map(function(x,i){ var share=tot>0?Math.round(x.v/tot*100):0; var w=Math.round(x.v/cmax*100); return '<tr style="cursor:pointer;border-top:1px solid #f4f6f9" onclick="openPartCountry(this.dataset.c)" data-c="'+_esc(x.n)+'" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'">'+
+      '<td style="padding:7px 16px;color:#cbd5e1;font-weight:700">'+(i+1)+'</td>'+
+      '<td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+C7[i%C7.length]+';margin-right:7px"></span><b>'+_esc(x.n)+'</b></td>'+
       '<td style="text-align:right;font-weight:700">'+fmtW(x.v)+'</td>'+
       '<td style="text-align:right;color:#94a3b8">'+fmtW(x.pv)+'</td>'+
       '<td style="text-align:center">'+(bdg(pct(x.v,x.pv))||'<span style="color:#cbd5e1">–</span>')+'</td>'+
       '<td style="text-align:center;color:#64748b">'+x.cl+'</td>'+
-      '<td style="padding-right:14px;color:#475569;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_esc(x.tp)+'</td></tr>'; }).join('')||'<tr><td colspan="6" style="padding:16px;text-align:center;color:#cbd5e1">데이터 없음</td></tr>')+
+      '<td style="color:#475569;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_esc(x.tp)+'</td>'+
+      '<td style="padding-right:16px"><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:8px;background:#eef2f7;border-radius:4px;overflow:hidden"><div style="width:'+w+'%;height:100%;background:'+C7[i%C7.length]+'"></div></div><span style="width:32px;text-align:right;font-size:11px;color:#94a3b8">'+share+'%</span></div></td></tr>'; }).join('')||'<tr><td colspan="8" style="padding:16px;text-align:center;color:#cbd5e1">데이터 없음</td></tr>')+
     '</tbody></table></div></div>';
   // ── 제품 테이블 ──
-  var prodTable='<div class="card p-0" style="overflow:hidden"><div class="fw-bold" style="font-size:13px;padding:12px 14px 8px"><i class="bi bi-box-seam me-1" style="color:#7c3aed"></i>제품별 <span style="font-size:10px;font-weight:400;color:#cbd5e1">행 클릭 → 상세</span></div>'+
-    '<div style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12px"><thead style="background:#f8fafc"><tr><th style="padding:7px 14px">제품</th><th style="text-align:right">매출</th><th style="text-align:right">대수</th><th style="padding-right:14px;width:90px">비중</th></tr></thead><tbody>'+
-    (pArr.map(function(p){ var q=pQty[p[0]]||0; return '<tr style="cursor:pointer;border-top:1px solid #f4f6f9" onclick="openPartProduct(this.dataset.p,this.dataset.pt)" data-p="'+_esc(p[0])+'" data-pt="'+_esc(part)+'" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'">'+
-      '<td style="padding:6px 14px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>'+_esc(p[0])+'</b></td>'+
+  var prodShareTot=pArr.reduce(function(s,p){return s+p[1];},0)||1;
+  var prodTable='<div class="card p-0 mb-2" style="overflow:hidden"><div class="fw-bold" style="font-size:13px;padding:12px 16px 8px"><i class="bi bi-box-seam me-1" style="color:#7c3aed"></i>제품별 <span style="font-size:11px;font-weight:400;color:#94a3b8">'+pArr.length+'개 · 행 클릭 → 상세'+(lead?' · 단가=금액÷대수':'')+'</span></div>'+
+    '<div style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12.5px"><thead style="background:#f8fafc"><tr><th style="padding:7px 16px;width:32px">#</th><th>제품</th><th style="text-align:right">매출</th><th style="text-align:right">대수</th>'+(lead?'<th style="text-align:right">단가</th>':'')+'<th style="padding-right:16px;width:260px">비중</th></tr></thead><tbody>'+
+    (pArr.map(function(p,i){ var q=pQty[p[0]]||0; var up=(lead&&q>0)?p[1]/q:null; var w=Math.round(p[1]/pmax*100); var share=Math.round(p[1]/prodShareTot*100); return '<tr style="cursor:pointer;border-top:1px solid #f4f6f9" onclick="openPartProduct(this.dataset.p,this.dataset.pt)" data-p="'+_esc(p[0])+'" data-pt="'+_esc(part)+'" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'">'+
+      '<td style="padding:7px 16px;color:#cbd5e1;font-weight:700">'+(i+1)+'</td>'+
+      '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>'+_esc(p[0])+'</b></td>'+
       '<td style="text-align:right;font-weight:700">'+fmtW(p[1])+'</td>'+
       '<td style="text-align:right;color:#64748b">'+(q>0?q+'대':'–')+'</td>'+
-      '<td style="padding-right:14px"><div style="height:7px;background:#eef2f7;border-radius:4px;overflow:hidden"><div style="width:'+Math.round(p[1]/pmax*100)+'%;height:100%;background:#7c3aed"></div></div></td></tr>'; }).join('')||'<tr><td colspan="4" style="padding:16px;text-align:center;color:#cbd5e1">데이터 없음</td></tr>')+
+      (lead?'<td style="text-align:right;font-weight:700;color:#dc2626">'+(up?Math.round(up/1e4).toLocaleString()+'만':'–')+'</td>':'')+
+      '<td style="padding-right:16px"><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:8px;background:#eef2f7;border-radius:4px;overflow:hidden"><div style="width:'+w+'%;height:100%;background:#7c3aed"></div></div><span style="width:32px;text-align:right;font-size:11px;color:#94a3b8">'+share+'%</span></div></td></tr>'; }).join('')||'<tr><td colspan="'+(lead?6:5)+'" style="padding:16px;text-align:center;color:#cbd5e1">데이터 없음</td></tr>')+
     '</tbody></table></div></div>';
   // ── 거래처 TOP ──
   var topCl=clientsArr.slice(0,12);
@@ -4312,10 +4317,8 @@ function _renderPartView(part, rootId){
         '<div onclick="_pvGo(\''+part+'\',\'pending\')" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:9px 4px" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'"><span style="width:30px;height:30px;border-radius:8px;background:#f59e0b14;color:#f59e0b;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><i class="bi bi-hourglass-split"></i></span><div style="flex:1"><div style="font-size:11px;color:#64748b">회계 미반영</div><div style="font-size:14px;font-weight:800;color:#0f172a">'+pPend.length+'건</div></div><div style="font-size:11px;color:#94a3b8;text-align:right">'+(pendAmt?Math.round(pendAmt/1e8*10)/10+'억':'')+'</div><i class="bi bi-chevron-right" style="color:#cbd5e1;font-size:11px"></i></div>'+
       '</div></div>'+
     '</div>'+
-    '<div class="row g-2">'+
-      '<div class="col-lg-7">'+ctrTable+'</div>'+
-      '<div class="col-lg-5">'+prodTable+'</div>'+
-    '</div>'+
+    ctrTable+
+    prodTable+
     clTable;
 }
 // ── 파트 상세 모달 헬퍼 ──
