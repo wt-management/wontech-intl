@@ -70,6 +70,16 @@ body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:#f0f4f8;color
 .sw-item{border-radius:6px;padding:8px 12px;display:flex;align-items:center;gap:8px;color:#94a3b8;font-size:12px;cursor:pointer;transition:background .15s;margin-top:2px}
 .sw-item:hover{background:rgba(255,255,255,.08)}
 .sw-item .sw-badge{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:18px;color:#fff;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.03em;padding:0 5px;flex-shrink:0}
+/* ── 예쁜 탭/세그먼트 필 버튼 (전 사이트 공통 톤, 해외=틸) ── */
+.wt-tab{display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-size:12.5px;font-weight:600;color:#475569;background:#fff;border:1px solid #dfe6ee;border-radius:9px;padding:7px 15px;cursor:pointer;transition:all .15s;line-height:1;white-space:nowrap}
+.wt-tab:hover{background:#eef5f4;border-color:#9fd4cd;color:#0f766e}
+.wt-tab i{font-size:13px;color:#0f766e}
+.wt-tab.on{background:#0f766e;border-color:#0f766e;color:#fff;box-shadow:0 2px 6px rgba(15,118,110,.22)}
+.wt-tab.on i{color:#fff}
+/* 부트스트랩 기본 회색 버튼 톤업(전역) */
+.btn-outline-secondary{border-color:#dfe6ee;color:#475569;background:#fff;border-radius:8px;font-weight:600;transition:all .15s}
+.btn-outline-secondary:hover,.btn-outline-secondary:focus{background:#eef5f4;border-color:#9fd4cd;color:#0f766e}
+.btn-outline-secondary:active{background:#0f766e!important;border-color:#0f766e!important;color:#fff!important}
 </style>
 <script>/* WT_ERRLOG_V1 — 공통 오류수집+요청함 (자동주입 스니펫, 개별 수정 금지) */
 (function(){
@@ -4524,7 +4534,7 @@ function _scopeChip(){
       var root=document.getElementById(rootId); if(!root)return;
       var hdr=root.querySelector('.page-header'); if(!hdr || root.querySelector('.pv-links'))return;
       var pe=String(part).replace(/'/g,"\\'");
-      var btn=function(pg,ic,tx){ return '<button class="btn btn-sm btn-outline-secondary" style="font-size:12px" onclick="_setCrmPart(\''+pe+'\');showPage(\''+pg+'\',(typeof _wtNavEl===\'function\'?_wtNavEl(\''+pg+'\'):null))"><i class="bi '+ic+' me-1"></i>'+tx+'</button>'; };
+      var btn=function(pg,ic,tx){ return '<button class="wt-tab" onclick="_setCrmPart(\''+pe+'\');showPage(\''+pg+'\',(typeof _wtNavEl===\'function\'?_wtNavEl(\''+pg+'\'):null))"><i class="bi '+ic+'"></i>'+tx+'</button>'; };
       hdr.insertAdjacentHTML('afterend','<div class="pv-links" style="display:flex;flex-direction:row;gap:8px;flex-wrap:wrap;margin:-4px 0 14px">'+
         btn('dealers','bi-buildings','이 파트 딜러')+btn('sales','bi-kanban','파이프라인')+btn('activities','bi-journal-text','활동')+btn('schedule','bi-calendar-week','일정')+'</div>');
     }catch(e){}
