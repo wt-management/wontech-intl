@@ -2394,18 +2394,13 @@ function _setDefaultRanges(){
   }catch(e){}
 }
 function _ilboKey(p){ return encodeURIComponent([p.customer||'',p.product||'',p.amount||'',p.expectedDate||''].join('|')); }
-function _renderIlboRows(){
-  var tb=document.getElementById('ilbo-pend-tbody'),emp=document.getElementById('ilbo-pend-empty'),sum=document.getElementById('ilbo-pend-sum');
-  if(!tb)return;
-  var sc=(typeof _partScope==='function')?_partScope():'';
+function _ilboBodyHTML(scope){
   var _cp=function(p){ return p.country||(typeof _ctry==='function'?_ctry(p.customer):p.customer)||'기타'; };
-  var _in=function(p){ return !sc || _partOf(_cp(p),null)===sc; };
+  var _in=function(p){ return !scope || _partOf(_cp(p),null)===scope; };
   var active=(ILBO_PEND||[]).filter(_in);
   var done=((typeof ILBO_DOC!=='undefined'&&ILBO_DOC&&ILBO_DOC.rows)||[]).filter(function(p){return String(p.region||'')==='해외'&&String(p.status||'')==='반영됨'&&_in(p);});
-  if(!active.length&&!done.length){tb.innerHTML='';if(emp)emp.style.display='block';if(sum)sum.textContent='· 0건';return;}
-  if(emp)emp.style.display='none';
   var PL=(typeof PART_LIST!=='undefined')?PART_LIST:[];
-  var lead=(typeof _seeAllIntl==='function'&&_seeAllIntl())&&!sc;
+  var partHeaders=!scope && (typeof _seeAllIntl==='function'&&_seeAllIntl());
   var byC={}; active.forEach(function(p){ var c=_cp(p); (byC[c]=byC[c]||[]).push(p); });
   var ctot=function(c){ return byC[c].reduce(function(s,p){return s+(Number(p.amount)||0);},0); };
   var pIdx=function(c){ var i=PL.indexOf(_partOf(c,null)); return i<0?99:i; };
@@ -2413,7 +2408,7 @@ function _renderIlboRows(){
   var html='', grand=0, curPart=null;
   countries.forEach(function(c){
     var part=_partOf(c,null);
-    if(lead && part!==curPart){ curPart=part; var col=(typeof PART_COLOR!=='undefined'&&PART_COLOR[part])||'#64748b';
+    if(partHeaders && part!==curPart){ curPart=part; var col=(typeof PART_COLOR!=='undefined'&&PART_COLOR[part])||'#64748b';
       var ptot=countries.filter(function(x){return _partOf(x,null)===part;}).reduce(function(s,x){return s+ctot(x);},0);
       html+='<tr style="background:'+col+'12"><td colspan="8" style="padding:8px 12px;font-weight:800;color:'+col+';font-size:13px"><i class="bi bi-diagram-3 me-1"></i>'+part+' <span style="font-weight:400;color:#94a3b8;font-size:11px">· '+fmtW(ptot)+'</span></td></tr>'; }
     var t=ctot(c); grand+=t;
@@ -2430,8 +2425,23 @@ function _renderIlboRows(){
     html+='<tr><td colspan="8" style="padding:9px 12px 4px;font-size:11px;color:#94a3b8;font-weight:700"><i class="bi bi-check2-circle me-1" style="color:#16a34a"></i>회계반영 완료 '+done.length+'건 <span style="font-weight:400">· 잘못 눌렀으면 되돌리기</span></td></tr>';
     done.forEach(function(p){ html+='<tr style="opacity:.55"><td style="padding:6px 12px 6px 22px">'+_esc(p.customer)+'</td><td>'+_esc(p.product)+'</td><td style="text-align:center">'+(p.qty||'')+'</td><td style="text-align:right">'+(Number(p.amount)||0).toLocaleString()+'</td><td style="text-align:center;color:#16a34a;font-size:11px">✓반영</td><td></td><td></td><td style="text-align:center"><button class="btn btn-sm btn-link p-0 text-muted" style="font-size:11px;text-decoration:none" onclick="_markIlbo(this.dataset.id,\'예정\')" data-id="'+_esc(p.id)+'">되돌리기</button></td></tr>'; });
   }
-  tb.innerHTML=html;
-  if(sum)sum.textContent='· 미반영 '+active.length+'건 · '+grand.toLocaleString()+'원'+(done.length?(' · 반영완료 '+done.length+'건'):'');
+  return {html:html, count:active.length, total:grand, done:done.length};
+}
+function _renderIlboRows(){
+  var tb=document.getElementById('ilbo-pend-tbody'),emp=document.getElementById('ilbo-pend-empty'),sum=document.getElementById('ilbo-pend-sum');
+  if(!tb)return;
+  var sc=(typeof _partScope==='function')?_partScope():'';
+  var r=_ilboBodyHTML(sc);
+  if(!r.count&&!r.done){tb.innerHTML='';if(emp)emp.style.display='block';if(sum)sum.textContent='· 0건';return;}
+  if(emp)emp.style.display='none';
+  tb.innerHTML=r.html;
+  if(sum)sum.textContent='· 미반영 '+r.count+'건 · '+r.total.toLocaleString()+'원'+(r.done?(' · 반영완료 '+r.done+'건'):'');
+}
+// 미반영 편집 후 현재 활성 화면(회계미반영분/파트뷰/종합) 동기 재렌더 → 메뉴 간 연동
+function _ilboRerender(){
+  try{ var pp=document.getElementById('page-pending'); if(pp&&pp.classList.contains('active')) _renderIlboRows(); }catch(e){}
+  try{ ['pv-am','pv-cn','pv-eu'].forEach(function(k){ var pg=document.getElementById('page-'+k); if(pg&&pg.classList.contains('active')&&typeof _pvPart==='function'){ _renderPartView(_pvPart(k),k+'-root'); } }); }catch(e){}
+  try{ var ov=document.getElementById('page-overview'); if(ov&&ov.classList.contains('active')) renderOverview(); }catch(e){}
 }
 async function _markIlbo(id,status){
   try{
@@ -2441,9 +2451,8 @@ async function _markIlbo(id,status){
     row.status=status; row.updatedAt=new Date().toISOString();
     const {error}=await _sb.from('cons_cache').upsert({key:'ilbo_pending',data:ILBO_DOC},{onConflict:'key'}); if(error)throw error;
     await _loadIlboPending();
-    _renderIlboRows();
-    try{ if(document.getElementById('page-overview').classList.contains('active')) renderOverview(); }catch(e){}
-    if(typeof _pToast==='function')_pToast(status==='반영됨'?'회계반영 처리됨 · 종합에 즉시 반영':'되돌렸습니다');
+    _ilboRerender();
+    if(typeof _pToast==='function')_pToast(status==='반영됨'?'회계반영 처리됨 · 종합/파트에 즉시 반영':'되돌렸습니다');
   }catch(e){ if(typeof _pToast==='function')_pToast('실패: '+(e.message||e)); }
 }
 function _setIlboDate(key,field,val){
@@ -4343,6 +4352,9 @@ function _renderPartView(part, rootId){
       '<td style="color:#475569;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_esc(tp?tp[0]:'')+'</td>'+
       '<td style="padding-right:14px;color:#94a3b8;font-size:11px">'+_esc(c.last||'')+'</td></tr>'; }).join('')||'<tr><td colspan="5" style="padding:16px;text-align:center;color:#cbd5e1">데이터 없음</td></tr>')+
     '</tbody></table></div></div>';
+  // ── 회계 미반영분(이 파트) — 출고/선적예정 입력·반영처리, 회계미반영분 메뉴와 동일 데이터 연동 ──
+  var _ilboR=(typeof _ilboBodyHTML==='function')?_ilboBodyHTML(part):{html:'',count:0,total:0,done:0};
+  var pendTable=(_ilboR.count||_ilboR.done)?('<div class="card p-0 mb-2" id="pv-pend-'+_pvKey(part)+'" style="overflow:hidden"><div class="fw-bold" style="font-size:13px;padding:12px 16px 8px"><i class="bi bi-hourglass-split me-1" style="color:#f59e0b"></i>회계 미반영분 <span style="font-size:11px;font-weight:400;color:#94a3b8">'+_ilboR.count+'건 · '+fmtW(_ilboR.total)+' · 출고/선적예정 입력·반영처리 시 회계미반영분 메뉴와 즉시 연동</span></div><div style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12px;min-width:680px"><thead style="background:#f8fafc"><tr><th style="padding:7px 16px">거래처</th><th>제품</th><th style="text-align:center">수량</th><th style="text-align:right">금액</th><th style="text-align:center">예정일</th><th style="text-align:center">출고예정</th><th style="text-align:center">선적예정</th><th style="text-align:center">관리</th></tr></thead><tbody>'+_ilboR.html+'</tbody></table></div></div>'):'';
   root.innerHTML=
     '<div class="page-header"><h5><i class="bi bi-diagram-3" style="color:'+((typeof PART_COLOR!=='undefined'&&PART_COLOR[part])||'#0d9488')+'"></i>'+_esc(part)+' 현황 <span style="font-size:12px;font-weight:400;color:#9ca3af">1~'+lastM+'월 · 회계 기준</span></h5><span style="font-size:11px;color:#94a3b8">기준일 '+_esc(INTL.updatedAt||'')+'</span></div>'+
     '<div class="row g-2 mb-2">'+
@@ -4354,9 +4366,10 @@ function _renderPartView(part, rootId){
         crmRow('bi-kanban','#0891b2','진행 딜',openDeals.length+'건','가중 '+fmtW(wDeal),'sales')+
         crmRow('bi-journal-text','#16a34a','활동 기록',pActs.length+'건','','activities')+
         crmRow('bi-file-earmark-text','#7c3aed','견적',pQuotes.length+'건','','quotes')+
-        '<div onclick="_pvGo(\''+part+'\',\'pending\')" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:9px 4px" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'"><span style="width:30px;height:30px;border-radius:8px;background:#f59e0b14;color:#f59e0b;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><i class="bi bi-hourglass-split"></i></span><div style="flex:1"><div style="font-size:11px;color:#64748b">회계 미반영</div><div style="font-size:14px;font-weight:800;color:#0f172a">'+pPend.length+'건</div></div><div style="font-size:11px;color:#94a3b8;text-align:right">'+(pendAmt?Math.round(pendAmt/1e8*10)/10+'억':'')+'</div><i class="bi bi-chevron-right" style="color:#cbd5e1;font-size:11px"></i></div>'+
+        '<div onclick="var e=document.getElementById(\'pv-pend-'+_pvKey(part)+'\');if(e){e.scrollIntoView({behavior:\'smooth\',block:\'start\'});}else{_pvGo(\''+part+'\',\'pending\');}" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:9px 4px" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'"><span style="width:30px;height:30px;border-radius:8px;background:#f59e0b14;color:#f59e0b;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><i class="bi bi-hourglass-split"></i></span><div style="flex:1"><div style="font-size:11px;color:#64748b">회계 미반영</div><div style="font-size:14px;font-weight:800;color:#0f172a">'+pPend.length+'건</div></div><div style="font-size:11px;color:#94a3b8;text-align:right">'+(pendAmt?Math.round(pendAmt/1e8*10)/10+'억':'')+'</div><i class="bi bi-chevron-right" style="color:#cbd5e1;font-size:11px"></i></div>'+
       '</div></div>'+
     '</div>'+
+    pendTable+
     ctrTable+
     prodTable+
     clTable;
