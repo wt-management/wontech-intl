@@ -15,16 +15,15 @@
 *{box-sizing:border-box}
 html{color-scheme:light}
 body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:#f0f4f8;color:#1e293b;margin:0}
-.sidebar{position:fixed;top:0;left:0;width:220px;height:100vh;background:#f1f5f9;color:#334155;border-right:1px solid #d8e0ea;box-shadow:3px 0 16px rgba(16,42,67,.06);overflow-y:hidden;z-index:100;display:flex;flex-direction:column}
-.brand{padding:14px 18px 9px;border-bottom:1px solid #e4e8ef}
-.brand-name{font-size:16px;font-weight:800;color:#1c2534;letter-spacing:-0.5px}
+.sidebar{position:fixed;top:0;left:0;width:220px;height:100vh;background:#0f172a;color:#cbd5e1;overflow-y:hidden;z-index:100;display:flex;flex-direction:column}
+.brand{padding:20px 18px 12px;border-bottom:1px solid #1e293b}
+.brand-name{font-size:16px;font-weight:800;color:#fff;letter-spacing:-0.5px}
 .brand-sub{font-size:11px;color:#64748b;margin-top:2px}
-.nav-scroll{flex:1;overflow-y:auto;min-height:0}
-.nav-section{padding:4px 8px}
-.nav-label{font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.8px;padding:5px 10px 2px}
-.nav-link{display:flex;align-items:center;gap:9px;padding:4px 12px;border-radius:8px;color:#475569;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;text-decoration:none}
-.nav-link:hover{background:#eef2f7;color:#1c2534}
-.nav-link.active{background:#dbf0ec;color:#0f766e;font-weight:600}
+.nav-section{padding:12px 8px;flex:1;overflow-y:auto}
+.nav-label{font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.8px;padding:8px 10px 4px}
+.nav-link{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:8px;color:#94a3b8;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;text-decoration:none}
+.nav-link:hover{background:#1e293b;color:#e2e8f0}
+.nav-link.active{background:#0f766e;color:#fff}
 .nav-link i{font-size:15px;width:17px}
 .main{margin-left:220px;min-height:100vh;padding:24px}
 .page{display:none}.page.active{display:block}
@@ -52,8 +51,8 @@ body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:#f0f4f8;color
   .sidebar{transform:translateX(-100%);transition:transform .25s ease;width:min(84vw,290px);box-shadow:2px 0 22px rgba(0,0,0,.35);z-index:200}
   .sidebar.open{transform:translateX(0)}
   .main{margin-left:0;padding-top:64px}
-  #m-topbar{display:flex;align-items:center;gap:10px;position:fixed;top:0;left:0;right:0;height:52px;background:#fff;color:#1c2534;padding:0 10px;z-index:150;box-shadow:0 2px 10px rgba(16,42,67,.1);border-bottom:1px solid #e4e8ef}
-  #m-topbar .m-burger{background:none;border:none;color:#334155;font-size:25px;line-height:1;padding:4px 8px;cursor:pointer}
+  #m-topbar{display:flex;align-items:center;gap:10px;position:fixed;top:0;left:0;right:0;height:52px;background:#0f172a;color:#fff;padding:0 10px;z-index:150;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+  #m-topbar .m-burger{background:none;border:none;color:#fff;font-size:25px;line-height:1;padding:4px 8px;cursor:pointer}
   #m-topbar .m-title{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #m-backdrop.open{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:190}
   body{overflow-x:hidden}
@@ -68,8 +67,8 @@ body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:#f0f4f8;color
   .card,table{break-inside:avoid}
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 }
-.sw-item{border-radius:6px;padding:8px 12px;display:flex;align-items:center;gap:8px;color:#475569;font-size:12px;cursor:pointer;transition:background .15s;margin-top:2px}
-.sw-item:hover{background:#eef2f7}
+.sw-item{border-radius:6px;padding:8px 12px;display:flex;align-items:center;gap:8px;color:#94a3b8;font-size:12px;cursor:pointer;transition:background .15s;margin-top:2px}
+.sw-item:hover{background:rgba(255,255,255,.08)}
 .sw-item .sw-badge{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:18px;color:#fff;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.03em;padding:0 5px;flex-shrink:0}
 </style>
 <script>/* WT_ERRLOG_V1 — 공통 오류수집+요청함 (자동주입 스니펫, 개별 수정 금지) */
@@ -222,7 +221,6 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
     </div>
   </div>
 
-  <div class="nav-scroll">
   <div class="nav-section" id="sec-overview">
     <div class="nav-label">종합 현황</div>
     <ul class="nav flex-column gap-0">
@@ -266,20 +264,19 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
       <li><a class="nav-link" onclick="showPage('speech',this)"><i class="bi bi-chat-quote"></i>Sales Speech</a></li>
     </ul>
   </div>
-  </div>
   <!-- 계정 정보 (사이트 이동 위에) -->
-  <div style="padding:10px 10px 8px;border-top:1px solid #e4e8ef;margin-top:auto">
+  <div style="padding:10px 10px 8px;border-top:1px solid #1e293b;margin-top:auto">
     <div style="display:flex;flex-direction:row;align-items:center;gap:8px;margin-bottom:8px">
       <div id="intl-user-avatar" style="width:30px;height:30px;border-radius:50%;background:#0d9488;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">?</div>
       <div style="flex:1;min-width:0">
-        <div id="intl-user-name" style="font-size:12px;font-weight:700;color:#1c2534;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">-</div>
+        <div id="intl-user-name" style="font-size:12px;font-weight:700;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">-</div>
         <div id="intl-user-email" style="font-size:10px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">-</div>
       </div>
     </div>
     <div style="display:flex;flex-direction:row;gap:4px">
-      <button onclick="showPwModal()" style="flex:1;background:#f8fafc;border:1px solid #d5dde8;border-radius:6px;padding:5px 0;color:#475569;font-size:11px;cursor:pointer">
+      <button onclick="showPwModal()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid #334155;border-radius:6px;padding:5px 0;color:#94a3b8;font-size:11px;cursor:pointer">
         <i class="bi bi-key"></i> 비밀번호</button>
-      <button id="intl-logout-btn" onclick="doLogout()" style="flex:1;background:#f8fafc;border:1px solid #d5dde8;border-radius:6px;padding:5px 0;color:#475569;font-size:11px;cursor:pointer">
+      <button id="intl-logout-btn" onclick="doLogout()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid #334155;border-radius:6px;padding:5px 0;color:#94a3b8;font-size:11px;cursor:pointer">
         <i class="bi bi-box-arrow-right"></i> 로그아웃</button>
     </div>
   </div>
@@ -287,12 +284,12 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
   <div style="padding:0 8px 8px">
     <div style="position:relative">
       <button onclick="(()=>{var d=document.getElementById('intl-site-dd');d.style.display=d.style.display==='block'?'none':'block'})()"
-        style="width:100%;background:#fff;border:1px solid #d5dde8;border-radius:8px;padding:7px 10px;color:#475569;font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer">
+        style="width:100%;background:rgba(255,255,255,.05);border:1px solid #334155;border-radius:8px;padding:7px 10px;color:#94a3b8;font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer">
         <i class="bi bi-grid-3x3-gap" style="font-size:13px"></i>
         <span style="flex:1;text-align:left;font-weight:600">사이트 이동</span>
         <i class="bi bi-chevron-up" style="font-size:10px"></i>
       </button>
-      <div id="intl-site-dd" style="display:none;position:absolute;bottom:110%;left:0;right:0;background:#fff;border:1px solid #e4e8ef;border-radius:10px;overflow:hidden;box-shadow:0 -8px 24px rgba(16,42,67,.16);z-index:200;padding:6px">
+      <div id="intl-site-dd" style="display:none;position:absolute;bottom:110%;left:0;right:0;background:#1e293b;border:1px solid #334155;border-radius:10px;overflow:hidden;box-shadow:0 -8px 24px rgba(0,0,0,.5);z-index:200;padding:6px">
       </div>
     </div>
   </div>
@@ -1570,15 +1567,13 @@ function renderSales(){
   var now=new Date(), ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
   var closeThis=list.filter(function(d){return (d.expectedShip||'').indexOf(ym)===0 && d.stage!=='선적/납품';}).length;
   var won=list.filter(function(d){return d.stage==='계약/PO'||d.stage==='선적/납품';}).reduce(function(s,d){return s+Number(d.amount||0);},0);
-  var _wonCnt=list.filter(function(d){return d.stage==='계약/PO'||d.stage==='선적/납품';}).length;
-  var _avgW=active.length?weighted/active.length:0;
   var kpi=[
-    {l:'진행 딜',v:active.length+'건',c:'#0891b2',s:'파이프라인 활성'},
-    {l:'가중 예상(USD)',v:_fmtUSD(weighted),c:'#0d9488',s:'딜당 평균 '+_fmtUSD(_avgW)},
-    {l:'이달 선적예정',v:closeThis+'건',c:'#fd7e14',s:ym.slice(5)+'월 예정'},
-    {l:'계약/납품 누계(USD)',v:_fmtUSD(won),c:'#16a34a',s:_wonCnt+'건 확정'}
+    {l:'진행 딜',v:active.length+'건',c:'#0891b2'},
+    {l:'가중 예상(USD)',v:_fmtUSD(weighted),c:'#0d9488'},
+    {l:'이달 선적예정',v:closeThis+'건',c:'#fd7e14'},
+    {l:'계약/납품 누계(USD)',v:_fmtUSD(won),c:'#16a34a'}
   ];
-  document.getElementById('is-kpi').innerHTML=kpi.map(function(c){return '<div class="col-6 col-md-3"><div class="kpi-card" style="padding:10px 12px"><div class="kpi-label">'+c.l+'</div><div class="kpi-value" style="font-size:1.05rem;color:'+c.c+'">'+c.v+'</div><div style="font-size:10px;color:#9ca3af;margin-top:2px">'+c.s+'</div></div></div>';}).join('');
+  document.getElementById('is-kpi').innerHTML=kpi.map(function(c){return '<div class="col-6 col-md-3"><div class="kpi-card" style="padding:10px 12px"><div class="kpi-label">'+c.l+'</div><div class="kpi-value" style="font-size:1.05rem;color:'+c.c+'">'+c.v+'</div></div></div>';}).join('');
   var board=document.getElementById('is-board');
   board.innerHTML=STAGES_INTL.map(function(st){
     var cards=list.filter(function(d){return d.stage===st;}).sort(function(a,b){return Number(b.amount||0)-Number(a.amount||0);});
@@ -1671,9 +1666,8 @@ function renderCrmDash(){
   var total=deals.reduce(function(s,d){return s+Number(d.amount||0);},0);
   var won=deals.filter(function(d){return d.stage==='계약/PO'||d.stage==='선적/납품';});
   var winRate=deals.length?Math.round(won.length/deals.length*100):0;
-  var _avgW2=active.length?weighted/active.length:0;
-  var kpi=[['진행 딜',active.length+'건','#0891b2','전체 '+deals.length+'건'],['가중 예상(USD)',_fmtUSD(weighted),'#0d9488','딜당 '+_fmtUSD(_avgW2)],['파이프라인 총액',_fmtUSD(total),'#7c3aed','확정 '+won.length+'건'],['Win율',winRate+'%','#16a34a',won.length+'/'+deals.length+'건']];
-  var kpiH=kpi.map(function(c){return '<div class="col-6 col-md-3"><div class="kpi-card" style="padding:10px 12px"><div class="kpi-label">'+c[0]+'</div><div class="kpi-value" style="font-size:1.05rem;color:'+c[2]+'">'+c[1]+'</div><div style="font-size:10px;color:#9ca3af;margin-top:2px">'+c[3]+'</div></div></div>';}).join('');
+  var kpi=[['진행 딜',active.length+'건','#0891b2'],['가중 예상(USD)',_fmtUSD(weighted),'#0d9488'],['파이프라인 총액',_fmtUSD(total),'#7c3aed'],['Win율',winRate+'%','#16a34a']];
+  var kpiH=kpi.map(function(c){return '<div class="col-6 col-md-3"><div class="kpi-card" style="padding:10px 12px"><div class="kpi-label">'+c[0]+'</div><div class="kpi-value" style="font-size:1.05rem;color:'+c[2]+'">'+c[1]+'</div></div></div>';}).join('');
   var funnel=STAGES_INTL.map(function(st){var c=deals.filter(function(d){return d.stage===st;});return {st:st,n:c.length,amt:c.reduce(function(s,d){return s+Number(d.amount||0);},0)};});
   var fmax=Math.max.apply(null,funnel.map(function(f){return f.n;}).concat([1]));
   var funH=funnel.map(function(f){return _bar(f.st,f.n,fmax,SC_INTL[f.st],f.n+'건 · '+_fmtUSD(f.amt));}).join('');
@@ -2229,9 +2223,9 @@ function renderSales(){
   var won=list.filter(function(d){return d.stage==='계약/PO'||d.stage==='선적/납품';}).reduce(function(s,d){return s+Number(d.amount||0);},0);
   var rotCnt=active.filter(function(d){var v=_stageDays(d);return v!=null&&v>=30;}).length;
   var kpi=[
-    ['진행 딜',active.length+'건','#0891b2','파이프라인 활성'],['가중 예상(USD)',_fmtUSD(weighted),'#0d9488','확률 반영'],['이달 선적예정',closeThis+'건','#fd7e14',ym.slice(5)+'월 예정'],['정체 딜(30일+)',rotCnt+'건',rotCnt?'#dc2626':'#94a3b8',rotCnt?'점검 필요':'양호'],['계약/납품 누계',_fmtUSD(won),'#16a34a','확정 매출']
+    ['진행 딜',active.length+'건','#0891b2'],['가중 예상(USD)',_fmtUSD(weighted),'#0d9488'],['이달 선적예정',closeThis+'건','#fd7e14'],['정체 딜(30일+)',rotCnt+'건',rotCnt?'#dc2626':'#94a3b8'],['계약/납품 누계',_fmtUSD(won),'#16a34a']
   ];
-  document.getElementById('is-kpi').innerHTML=kpi.map(function(c){return '<div class="col-6 col-md" style="min-width:130px"><div class="kpi-card" style="padding:10px 12px"><div class="kpi-label">'+c[0]+'</div><div class="kpi-value" style="font-size:1.02rem;color:'+c[2]+'">'+c[1]+'</div><div style="font-size:10px;color:#9ca3af;margin-top:2px">'+c[3]+'</div></div></div>';}).join('');
+  document.getElementById('is-kpi').innerHTML=kpi.map(function(c){return '<div class="col-6 col-md" style="min-width:130px"><div class="kpi-card" style="padding:10px 12px"><div class="kpi-label">'+c[0]+'</div><div class="kpi-value" style="font-size:1.02rem;color:'+c[2]+'">'+c[1]+'</div></div></div>';}).join('');
   var board=document.getElementById('is-board');
   if(_salesView==='list'){
     var rows=list.slice().sort(_dealSortFn).map(function(d){
@@ -2390,15 +2384,13 @@ function renderQuotes(){
   var kw=(document.getElementById('q-kw')&&document.getElementById('q-kw').value||'').trim().toLowerCase();
   var all=INTL_QUOTES||[];
   var today=_today(); var week=new Date(Date.now()+7*864e5).toISOString().slice(0,10);
-  var _accCnt=all.filter(function(q){return q.status==='수락';}).length;
-  var _accR=all.length?Math.round(_accCnt/all.length*100):0;
   var kpi=[
-    ['전체 견적',all.length+'건','#64748b','수락률 '+_accR+'%'],
-    ['발송중',all.filter(function(q){return q.status==='발송';}).length+'건','#0891b2','응답 대기'],
-    ['수락',_accCnt+'건','#16a34a','계약 진행'],
-    ['만료 임박(7일)',all.filter(function(q){return q.validUntil&&q.validUntil>=today&&q.validUntil<=week&&q.status!=='수락'&&q.status!=='거절';}).length+'건','#dc2626','갱신 필요']
+    ['전체 견적',all.length+'건','#64748b'],
+    ['발송중',all.filter(function(q){return q.status==='발송';}).length+'건','#0891b2'],
+    ['수락',all.filter(function(q){return q.status==='수락';}).length+'건','#16a34a'],
+    ['만료 임박(7일)',all.filter(function(q){return q.validUntil&&q.validUntil>=today&&q.validUntil<=week&&q.status!=='수락'&&q.status!=='거절';}).length+'건','#dc2626']
   ];
-  var kpiH='<div class="row g-2 mb-2">'+kpi.map(function(c){return '<div class="col-6 col-md-3"><div class="kpi-card" style="padding:9px 12px"><div class="kpi-label">'+c[0]+'</div><div class="kpi-value" style="font-size:1rem;color:'+c[2]+'">'+c[1]+'</div><div style="font-size:10px;color:#9ca3af;margin-top:2px">'+c[3]+'</div></div></div>';}).join('')+'</div>';
+  var kpiH='<div class="row g-2 mb-2">'+kpi.map(function(c){return '<div class="col-6 col-md-3"><div class="kpi-card" style="padding:9px 12px"><div class="kpi-label">'+c[0]+'</div><div class="kpi-value" style="font-size:1rem;color:'+c[2]+'">'+c[1]+'</div></div></div>';}).join('')+'</div>';
   var arr=all.filter(function(q){return !kw||((q.dealer||'')+(q.country||'')).toLowerCase().indexOf(kw)>=0;}).sort(function(a,b){return (b.date||'')<(a.date||'')?-1:1;});
   el.innerHTML=kpiH+'<div class="card p-0" style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12px;min-width:760px"><thead style="background:#f8fafc"><tr><th style="padding:8px 12px">견적일</th><th>딜러/국가</th><th style="text-align:right">금액(USD)</th><th style="text-align:center">상태</th><th>유효기간</th><th>담당</th><th style="text-align:center">관리</th></tr></thead><tbody>'+
     (arr.map(function(q){var t=_qTot(q);var st=q.status||'임시';var expSoon=q.validUntil&&q.validUntil>=today&&q.validUntil<=week&&st!=='수락'&&st!=='거절';var expired=q.validUntil&&q.validUntil<today&&st!=='수락'&&st!=='거절';
@@ -2428,6 +2420,7 @@ function _setDefaultRanges(){
 function _ilboKey(p){ return encodeURIComponent([p.customer||'',p.product||'',p.amount||'',p.expectedDate||''].join('|')); }
 function _ilboBodyHTML(scope){
   var _cp=function(p){ return p.country||(typeof _ctry==='function'?_ctry(p.customer):p.customer)||'기타'; };
+  var _dn=function(s){ s=String(s||''); var i=s.indexOf('/'); return i>=0?s.slice(i+1).trim():s; };   // 거래처명만(국가/ 접두사 제거 — 국가는 그룹헤더에 이미 표시)
   var _in=function(p){ return !scope || _partOf(_cp(p),null)===scope; };
   var active=(ILBO_PEND||[]).filter(_in);
   var done=((typeof ILBO_DOC!=='undefined'&&ILBO_DOC&&ILBO_DOC.rows)||[]).filter(function(p){return String(p.region||'')==='해외'&&String(p.status||'')==='반영됨'&&_in(p);});
@@ -2446,7 +2439,7 @@ function _ilboBodyHTML(scope){
     var t=ctot(c); grand+=t;
     html+='<tr style="background:#f8fafc"><td colspan="8" style="padding:5px 12px 5px 22px;font-weight:700;font-size:12px;color:#334155"><i class="bi bi-geo-alt me-1" style="color:#0891b2"></i>'+_esc(c)+' <span style="font-weight:400;color:#94a3b8">'+byC[c].length+'건 · '+fmtW(t)+'</span></td></tr>';
     byC[c].forEach(function(p){ var k=_ilboKey(p);
-      html+='<tr><td style="padding:8px 12px 8px 22px">'+_esc(p.customer)+(p.type==='완료'?' <span style="font-size:9px;background:#16a34a1a;color:#16a34a;border-radius:3px;padding:0 4px">납품완료</span>':'')+'</td>'+
+      html+='<tr><td style="padding:8px 12px 8px 22px">'+_esc(_dn(p.customer))+(p.type==='완료'?' <span style="font-size:9px;background:#16a34a1a;color:#16a34a;border-radius:3px;padding:0 4px">납품완료</span>':'')+'</td>'+
         '<td>'+_esc(p.product)+'</td><td style="text-align:center">'+(p.qty||'')+'</td><td style="text-align:right;font-weight:600">'+(Number(p.amount)||0).toLocaleString()+'</td><td style="text-align:center">'+(p.expectedDate||'')+'</td>'+
         '<td style="text-align:center"><input type="date" value="'+(p.outDate||'')+'" onchange="_setIlboDate(\''+k+'\',\'outDate\',this.value)" style="font-size:11px;border:1px solid #bae6fd;border-radius:6px;padding:2px 5px;color:#0891b2"></td>'+
         '<td style="text-align:center"><input type="date" value="'+(p.shipDate||'')+'" onchange="_setIlboDate(\''+k+'\',\'shipDate\',this.value)" style="font-size:11px;border:1px solid #99f6e4;border-radius:6px;padding:2px 5px;color:#0d9488"></td>'+
@@ -2455,7 +2448,7 @@ function _ilboBodyHTML(scope){
   });
   if(done.length){
     html+='<tr><td colspan="8" style="padding:9px 12px 4px;font-size:11px;color:#94a3b8;font-weight:700"><i class="bi bi-check2-circle me-1" style="color:#16a34a"></i>회계반영 완료 '+done.length+'건 <span style="font-weight:400">· 잘못 눌렀으면 되돌리기</span></td></tr>';
-    done.forEach(function(p){ html+='<tr style="opacity:.55"><td style="padding:6px 12px 6px 22px">'+_esc(p.customer)+'</td><td>'+_esc(p.product)+'</td><td style="text-align:center">'+(p.qty||'')+'</td><td style="text-align:right">'+(Number(p.amount)||0).toLocaleString()+'</td><td style="text-align:center;color:#16a34a;font-size:11px">✓반영</td><td></td><td></td><td style="text-align:center"><button class="btn btn-sm btn-link p-0 text-muted" style="font-size:11px;text-decoration:none" onclick="_markIlbo(this.dataset.id,\'예정\')" data-id="'+_esc(p.id)+'">되돌리기</button></td></tr>'; });
+    done.forEach(function(p){ html+='<tr style="opacity:.55"><td style="padding:6px 12px 6px 22px">'+_esc(_dn(p.customer))+'</td><td>'+_esc(p.product)+'</td><td style="text-align:center">'+(p.qty||'')+'</td><td style="text-align:right">'+(Number(p.amount)||0).toLocaleString()+'</td><td style="text-align:center;color:#16a34a;font-size:11px">✓반영</td><td></td><td></td><td style="text-align:center"><button class="btn btn-sm btn-link p-0 text-muted" style="font-size:11px;text-decoration:none" onclick="_markIlbo(this.dataset.id,\'예정\')" data-id="'+_esc(p.id)+'">되돌리기</button></td></tr>'; });
   }
   return {html:html, count:active.length, total:grand, done:done.length};
 }
@@ -2607,10 +2600,8 @@ function renderByRep(){
   var arr=Object.entries(cur.reps||{}).map(function(e){ var n=e[0],r=e[1]; var pv=pre&&pre.reps&&pre.reps[n]?ytd(pre.reps[n].m||{},f,t):0;
     return {n:n,r:r,v:ytd(r.m||{},f,t),pv:pv}; }).filter(function(x){return x.v>0;}).sort(function(a,b){return b.v-a.v;});
   var tot=arr.reduce(function(s,x){return s+x.v;},0)||1, mx=arr.length?arr[0].v:1;
-  var _totPv=arr.reduce(function(s,x){return s+x.pv;},0);
-  var _topShare=arr.length?Math.round(arr[0].v/tot*100):0;
   var medals=['🥇','🥈','🥉'];
-  var chips='<div class="row g-2 mb-3">'+[['담당자',arr.length+'명','#0891b2','매출 발생 기준'],['합계',fmtW(tot),'#0f172a',_totPv>0?('전년 '+fmtW(_totPv)):'당기 누계'],['1인 평균',fmtW(tot/(arr.length||1)),'#7c3aed','균등 배분 시'],['최고',arr.length?arr[0].n+' '+fmtW(arr[0].v):'-','#16a34a',arr.length?('비중 '+_topShare+'%'):'-']].map(function(c){return '<div class="col-6 col-md-3"><div class="kpi-card" style="padding:9px 12px"><div class="kpi-label">'+c[0]+'</div><div class="kpi-value" style="font-size:0.98rem;color:'+c[2]+'">'+c[1]+'</div><div style="font-size:10px;color:#9ca3af;margin-top:2px">'+c[3]+'</div></div></div>';}).join('')+'</div>';
+  var chips='<div class="row g-2 mb-3">'+[['담당자',arr.length+'명','#0891b2'],['합계',fmtW(tot),'#0f172a'],['1인 평균',fmtW(tot/(arr.length||1)),'#7c3aed'],['최고',arr.length?arr[0].n+' '+fmtW(arr[0].v):'-','#16a34a']].map(function(c){return '<div class="col-6 col-md-3"><div class="kpi-card" style="padding:9px 12px"><div class="kpi-label">'+c[0]+'</div><div class="kpi-value" style="font-size:0.98rem;color:'+c[2]+'">'+c[1]+'</div></div></div>';}).join('')+'</div>';
   var cards='<div class="row g-2">'+arr.map(function(x,i){
     var y=pct(x.v,x.pv); var share=(x.v/tot*100).toFixed(1);
     var pm=x.r.m||{}; var pmax=Math.max.apply(null,Object.values(pm).concat([1]));
@@ -2807,9 +2798,9 @@ function renderSales(){
   var wonK=list.filter(function(d){return d.stage==='계약/PO'||d.stage==='선적/납품';}).reduce(function(s,d){return s+_dealKrw(d);},0);
   var rotCnt=active.filter(function(d){var v=_stageDays(d);return v!=null&&v>=30;}).length;
   var kpi=[
-    ['진행 딜',active.length+'건','#0891b2','파이프라인 활성'],['가중 예상(원화)',fmtW(weightedK),'#0d9488','확률 반영'],['이달 선적예정',closeThis+'건','#fd7e14',ym.slice(5)+'월 예정'],['정체 딜(30일+)',rotCnt+'건',rotCnt?'#dc2626':'#94a3b8',rotCnt?'점검 필요':'양호'],['계약/납품 누계',fmtW(wonK),'#16a34a','확정 매출']
+    ['진행 딜',active.length+'건','#0891b2'],['가중 예상(원화)',fmtW(weightedK),'#0d9488'],['이달 선적예정',closeThis+'건','#fd7e14'],['정체 딜(30일+)',rotCnt+'건',rotCnt?'#dc2626':'#94a3b8'],['계약/납품 누계',fmtW(wonK),'#16a34a']
   ];
-  document.getElementById('is-kpi').innerHTML=kpi.map(function(c){return '<div class="col-6 col-md" style="min-width:130px"><div class="kpi-card" style="padding:10px 12px"><div class="kpi-label">'+c[0]+'</div><div class="kpi-value" style="font-size:1.02rem;color:'+c[2]+'">'+c[1]+'</div><div style="font-size:10px;color:#9ca3af;margin-top:2px">'+c[3]+'</div></div></div>';}).join('');
+  document.getElementById('is-kpi').innerHTML=kpi.map(function(c){return '<div class="col-6 col-md" style="min-width:130px"><div class="kpi-card" style="padding:10px 12px"><div class="kpi-label">'+c[0]+'</div><div class="kpi-value" style="font-size:1.02rem;color:'+c[2]+'">'+c[1]+'</div></div></div>';}).join('');
   var board=document.getElementById('is-board');
   if(_salesView==='list'){
     var rows=list.slice().sort(_dealSortFn).map(function(d){
@@ -3245,9 +3236,8 @@ function renderByRep(){
   }).filter(function(x){return x.v>0||x.pipeN>0;}).sort(function(a,b){return b.v-a.v;});
   var tot=arr.reduce(function(s,x){return s+x.v;},0)||1, mx=arr.length?Math.max.apply(null,arr.map(function(x){return x.v;})):1;
   var mo=Math.max(1,t-f+1);
-  var _tPv=arr.reduce(function(s,x){return s+x.pv;},0);
-  var kpis=[['담당자',arr.length+'명','#0891b2','매출·파이프 기준'],['기간 합계',fmtW(tot),'#0f172a',_tPv>0?('전년 '+fmtW(_tPv)):('월평균 '+fmtW(tot/mo))],['1인 평균',fmtW(tot/(arr.length||1)),'#7c3aed','균등 배분 시'],['CRM 가중예상',fmtW(arr.reduce(function(s,x){return s+x.pipeK;},0)),'#0d9488','확률 반영']];
-  var kpiH='<div class="row g-2 mb-2">'+kpis.map(function(c){return '<div class="col-6 col-md-3"><div class="kpi-card" style="padding:9px 12px"><div class="kpi-label">'+c[0]+'</div><div class="kpi-value" style="font-size:1rem;color:'+c[2]+'">'+c[1]+'</div><div style="font-size:10px;color:#9ca3af;margin-top:2px">'+c[3]+'</div></div></div>';}).join('')+'</div>';
+  var kpis=[['담당자',arr.length+'명','#0891b2'],['기간 합계',fmtW(tot),'#0f172a'],['1인 평균',fmtW(tot/(arr.length||1)),'#7c3aed'],['CRM 가중예상',fmtW(arr.reduce(function(s,x){return s+x.pipeK;},0)),'#0d9488']];
+  var kpiH='<div class="row g-2 mb-2">'+kpis.map(function(c){return '<div class="col-6 col-md-3"><div class="kpi-card" style="padding:9px 12px"><div class="kpi-label">'+c[0]+'</div><div class="kpi-value" style="font-size:1rem;color:'+c[2]+'">'+c[1]+'</div></div></div>';}).join('')+'</div>';
   var medals=['🥇','🥈','🥉'];
   var rows=arr.map(function(x,i){
     var y=pct(x.v,x.pv); var share=(x.v/tot*100);
