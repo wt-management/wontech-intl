@@ -77,6 +77,8 @@ body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:#f0f4f8;color
 .is-card:hover,.dl-card:hover{transform:none!important;box-shadow:0 4px 12px rgba(2,6,23,.08)!important}
 .kpi-value{font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .page-header h5{font-size:19px;font-weight:800;color:#182230;letter-spacing:-.01em}
+.page-header{padding-bottom:11px;border-bottom:2px solid #0f766e}
+.page-header::before{content:'WONTECH GLOBAL';flex-basis:100%;font-size:10px;font-weight:700;letter-spacing:.14em;color:#94a3b8;line-height:1;margin-bottom:2px}
 .table{font-variant-numeric:tabular-nums}
 .table thead th{background:#fafbfc;color:#475569;font-weight:700;font-size:12px;border-top:2px solid #0f766e;border-bottom:1px solid #e4e8ef;text-transform:none;letter-spacing:0}
 .table tbody td{border-color:#eef1f5;color:#182230}
@@ -711,7 +713,7 @@ const fmtW = v => v>=1e8?(v/1e8).toFixed(1)+'억':v>=1e4?Math.round(v/1e4).toLoc
 const fmtU = v => '$'+(v/1e6).toFixed(2)+'M';
 const pct  = (a,b) => b>0?((a/b-1)*100).toFixed(1):null;
 const bdg  = v => v===null?'':'<span style="font-size:10px;font-weight:700;color:'+(parseFloat(v)>=0?'#16a34a':'#dc2626')+'">'+(parseFloat(v)>=0?'▲':'▼')+Math.abs(parseFloat(v))+'%</span>';
-const C7   = ['#0d9488','#2563eb','#7c3aed','#ea580c','#dc2626','#16a34a','#0891b2','#f59e0b','#64748b','#84cc16'];
+const C7   = ['#0f766e','#0f766e','#0f766e','#0f766e','#0f766e','#0f766e','#0f766e','#0f766e','#0f766e','#0f766e'];
 let _ch={}, _rch=null;
 const dch = id => { if(_ch[id]){_ch[id].destroy();delete _ch[id];} };
 const ytd = (mo, f, t) => { let s=0; for(let m=f;m<=t;m++) s+=(mo[m]||0); return s; };
@@ -808,7 +810,7 @@ function renderOverview(){
   dch('ov');
   const ctx=document.getElementById('ov-chart');
   if(ctx) _ch['ov']=new Chart(ctx,{type:'bar',data:{labels:m12.map(m=>m+'월'),datasets:[
-    {label:yr+'년',data:m12.map(m=>+((cur.monthly[m]||0)/1e8).toFixed(2)),backgroundColor:'rgba(13,148,136,0.7)',borderRadius:3,stack:'ov'},
+    {label:yr+'년',data:m12.map(m=>+((cur.monthly[m]||0)/1e8).toFixed(2)),backgroundColor:'rgba(15,118,110,0.7)',borderRadius:3,stack:'ov'},
     ...(yr===2026?[{label:'미반영',data:m12.map(m=>+(((pAgg.monthly&&pAgg.monthly[m])||0)/1e8).toFixed(2)),backgroundColor:'rgba(124,58,237,0.45)',borderRadius:3,stack:'ov'}]:[]),
     ...(pre?[{label:(yr-1)+'년',data:m12.map(m=>+((pre.monthly[m]||0)/1e8).toFixed(2)),type:'line',borderColor:'#94a3b8',backgroundColor:'transparent',borderWidth:2,borderDash:[5,3],pointRadius:2}]:[])
   ]},options:{responsive:true,maintainAspectRatio:false,onClick:function(e,el){if(el&&el.length){openMonthDetail(el[0].index+1);}},
@@ -880,7 +882,7 @@ function renderCtYoY(){
   const ctx=document.getElementById('ct-yoy-chart');
   const m12=Array.from({length:12},(_,i)=>i+1);
   if(ctx) _ch['ct-yoy-chart']=new Chart(ctx,{type:'bar',data:{labels:m12.map(m=>m+'월'),datasets:[
-    {label:yr+'년',data:m12.map(m=>+((c.m[m]||0)/1e8).toFixed(2)),backgroundColor:'rgba(8,145,178,0.75)',borderRadius:3},
+    {label:yr+'년',data:m12.map(m=>+((c.m[m]||0)/1e8).toFixed(2)),backgroundColor:'rgba(15,118,110,0.75)',borderRadius:3},
     ...(cp?[{label:(yr-1)+'년',data:m12.map(m=>+((cp.m[m]||0)/1e8).toFixed(2)),type:'line',borderColor:'#94a3b8',backgroundColor:'transparent',borderWidth:2,borderDash:[5,3],pointRadius:3}]:[]),
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:10}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y?.toFixed(2)+'억원'}}},scales:{y:{ticks:{callback:v=>v+'억'},grid:{color:'#f3f4f6'}}}}});
 
@@ -974,7 +976,7 @@ function renderCtClient(){
   if(_ch[chartId]) _ch[chartId].destroy();
   const ctx=document.getElementById(chartId);
   if(ctx) _ch[chartId]=new Chart(ctx,{type:'bar',data:{labels:m12.map(m=>m+'월'),datasets:[
-    {label:yr+'년',data:m12.map(m=>+((cd.m[m]||0)/1e8).toFixed(2)),backgroundColor:'rgba(8,145,178,0.8)',borderRadius:3},
+    {label:yr+'년',data:m12.map(m=>+((cd.m[m]||0)/1e8).toFixed(2)),backgroundColor:'rgba(15,118,110,0.8)',borderRadius:3},
     ...(cdp?[{label:(yr-1)+'년',data:m12.map(m=>+((cdp.m[m]||0)/1e8).toFixed(2)),type:'line',borderColor:'#94a3b8',backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,3],pointRadius:2}]:[]),
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:8,font:{size:9}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y?.toFixed(2)+'억원'}}},scales:{y:{ticks:{callback:v=>v+'억',font:{size:9}},grid:{color:'#f3f4f6'}},x:{ticks:{font:{size:9}}}}}});
 }
@@ -992,7 +994,7 @@ function renderPdTrend(){
   const pm25=pre?.prodMo?.[prod]||{};
   const ctx=document.getElementById('pd-trend');
   if(ctx) _ch['pd-trend']=new Chart(ctx,{type:'bar',data:{labels:m12.map(m=>m+'월'),datasets:[
-    {label:yr+'년',data:m12.map(m=>+((pm26[m]||0)/1e8).toFixed(2)),backgroundColor:'rgba(124,58,237,0.7)',borderRadius:3},
+    {label:yr+'년',data:m12.map(m=>+((pm26[m]||0)/1e8).toFixed(2)),backgroundColor:'rgba(15,118,110,0.7)',borderRadius:3},
     ...(pre?[{label:(yr-1)+'년',data:m12.map(m=>+((pm25[m]||0)/1e8).toFixed(2)),type:'line',borderColor:'#94a3b8',backgroundColor:'transparent',borderWidth:2,borderDash:[5,3],pointRadius:3}]:[])
   ]},options:{responsive:true,maintainAspectRatio:false,
     plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:10}}},
@@ -1050,7 +1052,7 @@ function showRepDetail(n,yr,f,t){
   document.getElementById('ovm-modal').style.display='flex';
   if(_rch){_rch.destroy();_rch=null;}
   const pre=yr===2026?INTL.data2025:null, m12=Array.from({length:12},(_,i)=>i+1);
-  requestAnimationFrame(()=>{const c=document.getElementById(cid);if(!c)return;_rch=new Chart(c,{type:'bar',data:{labels:m12.map(m=>m+'월'),datasets:[{label:yr+'년',data:m12.map(m=>+((r.m[m]||0)/1e8).toFixed(2)),backgroundColor:'rgba(13,148,136,0.7)',borderRadius:3},...(pre&&pre.reps[n]?[{label:(yr-1)+'년',data:m12.map(m=>+((pre.reps[n].m[m]||0)/1e8).toFixed(2)),type:'line',borderColor:'#94a3b8',backgroundColor:'transparent',borderWidth:2,borderDash:[5,3],pointRadius:2}]:[])]},...{options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:10}}}},scales:{y:{ticks:{callback:v=>v+'억'},grid:{color:'#f3f4f6'}}}}}});});
+  requestAnimationFrame(()=>{const c=document.getElementById(cid);if(!c)return;_rch=new Chart(c,{type:'bar',data:{labels:m12.map(m=>m+'월'),datasets:[{label:yr+'년',data:m12.map(m=>+((r.m[m]||0)/1e8).toFixed(2)),backgroundColor:'rgba(15,118,110,0.7)',borderRadius:3},...(pre&&pre.reps[n]?[{label:(yr-1)+'년',data:m12.map(m=>+((pre.reps[n].m[m]||0)/1e8).toFixed(2)),type:'line',borderColor:'#94a3b8',backgroundColor:'transparent',borderWidth:2,borderDash:[5,3],pointRadius:2}]:[])]},...{options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:10}}}},scales:{y:{ticks:{callback:v=>v+'억'},grid:{color:'#f3f4f6'}}}}}});});
 }
 
 function handleUpload(file){
@@ -1928,7 +1930,7 @@ function openProdModal(prodName, cat){
   const ctx = document.getElementById('prod-modal-chart');
   const m12 = Array.from({length:12},(_,i)=>i+1);
   if(ctx) _ch['prod-modal-chart']=new Chart(ctx,{type:'bar',data:{labels:m12.map(m=>m+'월'),datasets:[
-    {label:yr+'년',data:m12.map(m=>+((pm26[m]||0)/1e8).toFixed(2)),backgroundColor:'rgba(8,145,178,0.8)',borderRadius:3},
+    {label:yr+'년',data:m12.map(m=>+((pm26[m]||0)/1e8).toFixed(2)),backgroundColor:'rgba(15,118,110,0.8)',borderRadius:3},
     {label:(yr-1)+'년',data:m12.map(m=>+((pm25[m]||0)/1e8).toFixed(2)),type:'line',borderColor:'#94a3b8',backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,3],pointRadius:2},
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:8,font:{size:10}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y?.toFixed(2)+'억원'}}},scales:{y:{ticks:{callback:v=>v+'억',font:{size:9}},grid:{color:'#f3f4f6'}},x:{ticks:{font:{size:9}}}}}});
 
@@ -1969,7 +1971,7 @@ function renderCsTrend(){
   const pm25=pre?.prodMo?.[prod]||{};
   const ctx=document.getElementById('cs-trend');
   if(ctx) _ch['cs-trend']=new Chart(ctx,{type:'bar',data:{labels:m12.map(m=>m+'월'),datasets:[
-    {label:yr+'년',data:m12.map(m=>+((pm26[m]||0)/1e8).toFixed(3)),backgroundColor:'rgba(13,148,136,0.75)',borderRadius:3},
+    {label:yr+'년',data:m12.map(m=>+((pm26[m]||0)/1e8).toFixed(3)),backgroundColor:'rgba(15,118,110,0.75)',borderRadius:3},
     ...(pre?[{label:(yr-1)+'년',data:m12.map(m=>+((pm25[m]||0)/1e8).toFixed(3)),type:'line',borderColor:'#94a3b8',backgroundColor:'transparent',borderWidth:2,borderDash:[5,3],pointRadius:3}]:[])
   ]},options:{responsive:true,maintainAspectRatio:false,
     plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:10}}},
