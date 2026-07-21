@@ -70,16 +70,6 @@ body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:#f0f4f8;color
 .sw-item{border-radius:6px;padding:8px 12px;display:flex;align-items:center;gap:8px;color:#94a3b8;font-size:12px;cursor:pointer;transition:background .15s;margin-top:2px}
 .sw-item:hover{background:rgba(255,255,255,.08)}
 .sw-item .sw-badge{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:18px;color:#fff;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.03em;padding:0 5px;flex-shrink:0}
-/* ── 예쁜 탭/세그먼트 필 버튼 (전 사이트 공통 톤, 해외=틸) ── */
-.wt-tab{display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-size:12.5px;font-weight:600;color:#475569;background:#fff;border:1px solid #dfe6ee;border-radius:9px;padding:7px 15px;cursor:pointer;transition:all .15s;line-height:1;white-space:nowrap}
-.wt-tab:hover{background:#eef5f4;border-color:#9fd4cd;color:#0f766e}
-.wt-tab i{font-size:13px;color:#0f766e}
-.wt-tab.on{background:#0f766e;border-color:#0f766e;color:#fff;box-shadow:0 2px 6px rgba(15,118,110,.22)}
-.wt-tab.on i{color:#fff}
-/* 부트스트랩 기본 회색 버튼 톤업(전역) */
-.btn-outline-secondary{border-color:#dfe6ee;color:#475569;background:#fff;border-radius:8px;font-weight:600;transition:all .15s}
-.btn-outline-secondary:hover,.btn-outline-secondary:focus{background:#eef5f4;border-color:#9fd4cd;color:#0f766e}
-.btn-outline-secondary:active{background:#0f766e!important;border-color:#0f766e!important;color:#fff!important}
 </style>
 <script>/* WT_ERRLOG_V1 — 공통 오류수집+요청함 (자동주입 스니펫, 개별 수정 금지) */
 (function(){
@@ -231,6 +221,12 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
     </div>
   </div>
 
+  <div class="nav-section">
+    <div class="nav-label">내 업무</div>
+    <ul class="nav flex-column gap-0">
+      <li><a class="nav-link" onclick="showPage('my-work',this)"><i class="bi bi-check2-square"></i>내 업무 <span id="mw-nav-badge" style="display:none;background:#ef4444;color:#fff;border-radius:9px;font-size:10px;font-weight:700;padding:0 6px;margin-left:4px"></span></a></li>
+    </ul>
+  </div>
   <div class="nav-section" id="sec-overview">
     <div class="nav-label">종합 현황</div>
     <ul class="nav flex-column gap-0">
@@ -254,7 +250,9 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
       <li><a class="nav-link" onclick="showPage('crm-dash',this)"><i class="bi bi-speedometer2"></i>영업 현황판</a></li>
       <li><a class="nav-link" onclick="showPage('sales',this)"><i class="bi bi-kanban"></i>수주관리</a></li>
       <li><a class="nav-link" onclick="showPage('dealers',this)"><i class="bi bi-buildings"></i>딜러 관리</a></li>
-      <li><a class="nav-link" data-grp="actsch" onclick="showPage('activities',this)"><i class="bi bi-journal-text"></i>활동·일정</a></li>
+      <li><a class="nav-link" onclick="showPage('activities',this)"><i class="bi bi-journal-text"></i>활동일지</a></li>
+      <li><a class="nav-link" onclick="showPage('schedule',this)"><i class="bi bi-calendar-week"></i>일정</a></li>
+      <li><a class="nav-link" onclick="showPage('quotes',this)"><i class="bi bi-file-earmark-text"></i>견적서</a></li>
       <li><a class="nav-link" onclick="showPage('pending',this)"><i class="bi bi-hourglass-split"></i>회계미반영분</a></li>
     </ul>
   </div>
@@ -269,7 +267,6 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
   <div class="nav-section">
     <div class="nav-label">도구</div>
     <ul class="nav flex-column gap-0">
-      <li><a class="nav-link" onclick="showPage('quotes',this)"><i class="bi bi-file-earmark-text"></i>견적서</a></li>
       <li><a class="nav-link" onclick="showPage('speech',this)"><i class="bi bi-chat-quote"></i>Sales Speech</a></li>
     </ul>
   </div>
@@ -308,6 +305,30 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 <div id="m-backdrop" onclick="toggleNav(false)"></div>
 <div class="main">
 
+<div id="page-my-work" class="page">
+  <div class="page-header"><h5><i class="bi bi-check2-square" style="color:#0d9488"></i>내 업무 <span id="mw-sub" style="font-size:12px;font-weight:400;color:#9ca3af"></span></h5><button class="btn btn-sm" style="background:#0d9488;color:#fff" onclick="_qkOpen()"><i class="bi bi-lightning-charge-fill me-1"></i>빠른 기록</button></div>
+  <div id="mw-body"></div>
+</div>
+<!-- 빠른 기록 플로팅 버튼 -->
+<button id="qk-fab" onclick="_qkOpen()" style="display:none;position:fixed;right:22px;bottom:78px;z-index:590;width:56px;height:56px;border-radius:50%;border:none;background:#0d9488;color:#fff;box-shadow:0 4px 14px rgba(13,148,136,.45);cursor:pointer;font-size:24px" title="빠른 활동 기록">＋</button>
+<div id="qk-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:600;align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:16px 16px 0 0;padding:18px 20px 24px;width:520px;max-width:100vw">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span style="font-weight:800;font-size:15px"><i class="bi bi-lightning-charge-fill me-1" style="color:#0d9488"></i>빠른 활동 기록</span><span style="cursor:pointer;font-size:22px;color:#94a3b8" onclick="document.getElementById('qk-modal').style.display='none'">&times;</span></div>
+    <div class="row g-2" style="font-size:13px">
+      <div class="col-7"><label>거래처</label><input id="qk-dealer" class="form-control form-control-sm" list="crm-dealers" autocomplete="off" onchange="_autoCountry(this.value,'qk-country')" placeholder="딜러/거래처"></div>
+      <div class="col-5"><label>국가</label><input id="qk-country" class="form-control form-control-sm" list="d-country-list" autocomplete="off"></div>
+      <div class="col-12"><label>활동 유형</label><div id="qk-types" style="display:flex;gap:6px;flex-wrap:wrap"></div><input type="hidden" id="qk-type"></div>
+      <div class="col-12"><label>내용 (한 줄)</label><input id="qk-content" class="form-control form-control-sm" placeholder="예: 데모 진행, 견적 문의, 가격 협의…" autocomplete="off"></div>
+      <div class="col-7"><label>다음 액션</label><input id="qk-next" class="form-control form-control-sm" placeholder="팔로업콜/견적발송 등" autocomplete="off"></div>
+      <div class="col-5"><label>다음 액션일</label><input id="qk-nextdate" type="date" class="form-control form-control-sm"></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+      <button class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('qk-modal').style.display='none'">취소</button>
+      <button class="btn btn-sm" style="background:#0d9488;color:#fff" onclick="_qkSave()"><i class="bi bi-check-lg me-1"></i>기록</button>
+    </div>
+    <div style="font-size:10px;color:#94a3b8;margin-top:8px"><i class="bi bi-info-circle me-1"></i>거래처와 내용만 넣어도 기록됩니다. 다음 액션일을 넣으면 「내 업무」에 알림으로 뜹니다.</div>
+  </div>
+</div>
 <div id="page-overview" class="page active">
   <div class="page-header">
     <h5><i class="bi bi-globe-americas" style="color:#0d9488"></i>해외 종합 매출현황</h5>
@@ -548,10 +569,6 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 <div id="page-activities" class="page">
   <div class="page-header"><h5><i class="bi bi-journal-text" style="color:#16a34a"></i>활동일지 <span style="font-size:12px;font-weight:400;color:#9ca3af">딜러 미팅·데모·전시회</span></h5>
     <button class="btn btn-sm" style="background:#0d9488;color:#fff" onclick="openAct()"><i class="bi bi-plus-lg me-1"></i>활동 기록</button></div>
-  <div style="display:flex;gap:8px;margin:-2px 0 12px">
-    <button class="wt-tab on"><i class="bi bi-journal-text"></i>활동일지</button>
-    <button class="wt-tab" onclick="showPage('schedule',document.querySelector('.nav-link[data-grp=actsch]'))"><i class="bi bi-calendar-week"></i>일정</button>
-  </div>
   <div class="card p-2 mb-2" style="display:flex;flex-direction:row;flex-wrap:wrap;gap:10px;align-items:center">
     <input id="ac-kw" class="form-control form-control-sm" style="width:200px" placeholder="딜러·내용 검색" oninput="renderActivities()">
     <select id="ac-type" class="form-select form-select-sm" style="width:120px" onchange="renderActivities()"><option value="">전체 유형</option></select>
@@ -560,10 +577,6 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 </div>
 <div id="page-schedule" class="page">
   <div class="page-header"><h5><i class="bi bi-calendar-week" style="color:#f59e0b"></i>일정 <span style="font-size:12px;font-weight:400;color:#9ca3af">다음 액션 · 선적 ETA · 데모/전시회</span></h5></div>
-  <div style="display:flex;gap:8px;margin:-2px 0 12px">
-    <button class="wt-tab" onclick="showPage('activities',document.querySelector('.nav-link[data-grp=actsch]'))"><i class="bi bi-journal-text"></i>활동일지</button>
-    <button class="wt-tab on"><i class="bi bi-calendar-week"></i>일정</button>
-  </div>
   <div id="sc-body"></div>
 </div>
 <div id="ac-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:500;align-items:center;justify-content:center" onclick="if(event.target===this)closeAct()">
@@ -757,7 +770,7 @@ function showPage(n,el,noPush){
   if(noPush!==true){ try{ if(!(history.state&&history.state.p===n)) history.pushState({p:n},'','#'+n); }catch(_e){} }
   var _mt=document.getElementById('m-title'); if(_mt&&el) _mt.textContent=el.textContent.trim();
   if(window.innerWidth<=820) toggleNav(false);
-  ({overview:renderOverview,'pv-am':function(){_renderPartView('미주·아시아파트','pv-am-root');},'pv-cn':function(){_renderPartView('중화파트','pv-cn-root');},'pv-eu':function(){_renderPartView('유럽·중아파트','pv-eu-root');},'by-country':renderByCountry,'by-product':renderByProduct,'by-cons':renderByCons,'by-rep':renderByRep,unitprice:renderUnitPrice,'intl-users':renderIntlUsers,pending:renderPending,sales:renderSales,'crm-dash':renderCrmDash,dealers:renderDealers,activities:renderActivities,schedule:renderSchedule,quotes:renderQuotes,speech:function(){if(!window._speechInit){buildSpeechGrid();window._speechInit=1;}var _sd=document.getElementById('speech-detail-view'),_sg=document.getElementById('speech-grid-view');if(_sd&&_sg){_sd.style.display='none';_sg.style.display='';}}})[n]?.();
+  ({'my-work':renderMyWork,overview:renderOverview,'pv-am':function(){_renderPartView('미주·아시아파트','pv-am-root');},'pv-cn':function(){_renderPartView('중화파트','pv-cn-root');},'pv-eu':function(){_renderPartView('유럽·중아파트','pv-eu-root');},'by-country':renderByCountry,'by-product':renderByProduct,'by-cons':renderByCons,'by-rep':renderByRep,unitprice:renderUnitPrice,'intl-users':renderIntlUsers,pending:renderPending,sales:renderSales,'crm-dash':renderCrmDash,dealers:renderDealers,activities:renderActivities,schedule:renderSchedule,quotes:renderQuotes,speech:function(){if(!window._speechInit){buildSpeechGrid();window._speechInit=1;}var _sd=document.getElementById('speech-detail-view'),_sg=document.getElementById('speech-grid-view');if(_sd&&_sg){_sd.style.display='none';_sg.style.display='';}}})[n]?.();
 }
 
 function _ovPC(){ const f=+document.getElementById('ov-from').value,t=document.getElementById('ov-to'); if(+t.value<f)t.value=f; renderOverview(); }
@@ -1231,6 +1244,7 @@ async function _afterLogin(user) {
     if(_lead){ var _nb=document.getElementById('nav-byrep'); if(_nb)_nb.style.display=''; var _nu=document.getElementById('nav-unitprice'); if(_nu)_nu.style.display=''; }
     if(_canTeamMgmtIntl()){ var _ni=document.getElementById('nav-intl-users'); if(_ni)_ni.style.display=''; }
   }catch(_e){}
+  try{ var _fb=document.getElementById('qk-fab'); if(_fb)_fb.style.display=''; if(typeof _mwBadge==='function')_mwBadge(); }catch(_e){}   // 빠른기록 버튼 + 내업무 뱃지
   // 조회기간 종료월을 데이터 마지막월로 동적 세팅(하드코딩 5월 → 실제 마지막 데이터월, 종합사이트와 정합)
   try{
     var _im=Object.keys((INTL&&INTL.monthly)||{}).map(Number).filter(function(m){return m>=1&&m<=12;});
@@ -1243,7 +1257,7 @@ async function _afterLogin(user) {
   var _nav=(performance.getEntriesByType('navigation')[0]||{}).type;   // reload=새로고침 / back_forward=뒤로가기 / navigate=신규진입
   var _sv=sessionStorage.getItem('intl_page');
   var _hk=(location.hash||'').replace(/^#/,'');
-  var _saved=(!_seeAllIntl()&&_myPartIntl())?_pvKey(_myPartIntl()):'overview';
+  var _saved=(!_seeAllIntl()&&_myPartIntl())?'my-work':'overview';   // 파트원은 「내 업무」로 랜딩(매일 열 이유)
   if(_hk && _wtPageOk(_hk)) _saved=_hk;                                                             // 유효 딥링크 우선
   else if((_nav==='reload'||_nav==='back_forward') && _sv && _wtPageOk(_sv)) _saved=_sv;            // 새로고침·뒤로가기=머문 페이지
   showPage(_saved, _wtNavEl(_saved), true);
@@ -4541,7 +4555,7 @@ function _scopeChip(){
       var root=document.getElementById(rootId); if(!root)return;
       var hdr=root.querySelector('.page-header'); if(!hdr || root.querySelector('.pv-links'))return;
       var pe=String(part).replace(/'/g,"\\'");
-      var btn=function(pg,ic,tx){ return '<button class="wt-tab" onclick="_setCrmPart(\''+pe+'\');showPage(\''+pg+'\',(typeof _wtNavEl===\'function\'?_wtNavEl(\''+pg+'\'):null))"><i class="bi '+ic+'"></i>'+tx+'</button>'; };
+      var btn=function(pg,ic,tx){ return '<button class="btn btn-sm btn-outline-secondary" style="font-size:12px" onclick="_setCrmPart(\''+pe+'\');showPage(\''+pg+'\',(typeof _wtNavEl===\'function\'?_wtNavEl(\''+pg+'\'):null))"><i class="bi '+ic+' me-1"></i>'+tx+'</button>'; };
       hdr.insertAdjacentHTML('afterend','<div class="pv-links" style="display:flex;flex-direction:row;gap:8px;flex-wrap:wrap;margin:-4px 0 14px">'+
         btn('dealers','bi-buildings','이 파트 딜러')+btn('sales','bi-kanban','파이프라인')+btn('activities','bi-journal-text','활동')+btn('schedule','bi-calendar-week','일정')+'</div>');
     }catch(e){}
@@ -4763,6 +4777,85 @@ function _iuPw(id,n){ var np=prompt('['+n+'] 새 임시 비밀번호(6자 이상
   _intlUserApi({action:'setpw',user_id:id,password:np}).then(function(){ if(typeof _pToast==='function')_pToast(n+' 비밀번호 변경됨',true); renderIntlUsers(); }).catch(function(e){ alert('변경 실패: '+e.message); }); }
 function _iuUpdate(id,field,val){ var b={action:'update',user_id:id}; b[field]=val;
   _intlUserApi(b).then(function(){ if(typeof _pToast==='function')_pToast('수정됨',true); }).catch(function(e){ alert('수정 실패: '+e.message); renderIntlUsers(); }); }
+</script>
+<script>
+/* ══ 내 업무(개인 홈) + 빠른 기록 — 영업사원이 매일 열 이유 만들기 ══ */
+var _QK_TYPES=['방문','전화','이메일','데모','견적','미팅','기타'];
+function _mwMine(arr){ var me=_meName||''; return (arr||[]).filter(function(x){ return !me || (x.sales||'')===me; }); }
+function _mwBadge(){ try{ var t=_today(); var n=0;
+  _mwMine(INTL_ACT).forEach(function(a){ if(a.nextDate&&a.nextAction&&a.nextDate<=t)n++; });
+  _mwMine(INTL_PIPE).forEach(function(d){ if(d.nextDate&&d.nextAction&&d.stage!=='선적/납품'&&d.nextDate<=t)n++; });
+  var b=document.getElementById('mw-nav-badge'); if(b){ if(n){b.textContent=n;b.style.display='';}else b.style.display='none'; }
+}catch(e){} }
+function renderMyWork(){
+  var el=document.getElementById('mw-body'); if(!el)return;
+  var t=_today(), sub=document.getElementById('mw-sub');
+  if(sub) sub.textContent=(_meName||'')+'님 · '+t+' ('+['일','월','화','수','목','금','토'][new Date().getDay()]+')';
+  var myD=_mwMine(INTL_PIPE), myA=_mwMine(INTL_ACT), myQ=_mwMine(INTL_QUOTES);
+  var tasks=[];
+  myA.forEach(function(a){ if(a.nextDate&&a.nextAction) tasks.push({kind:'act',id:a.id,who:a.dealer||a.country||'',what:a.nextAction,date:a.nextDate,cc:'#16a34a',tl:'활동'}); });
+  myD.forEach(function(d){ if(d.nextDate&&d.nextAction&&d.stage!=='선적/납품') tasks.push({kind:'deal',id:d.id,who:d.dealer||d.country||'',what:d.nextAction,date:d.nextDate,cc:'#0891b2',tl:'딜',ex:_fmtCur(d)}); });
+  var by=function(a,b){return (a.date<b.date)?-1:1;};
+  var overdue=tasks.filter(function(x){return x.date<t;}).sort(by);
+  var todayT=tasks.filter(function(x){return x.date===t;}).sort(by);
+  var soon=tasks.filter(function(x){return x.date>t;}).sort(by).slice(0,10);
+  var stale=myD.filter(function(d){return d.stage!=='선적/납품'&&_stageDays(d)!=null&&_stageDays(d)>=30;}).sort(function(a,b){return _stageDays(b)-_stageDays(a);}).slice(0,8);
+  var q7=new Date(Date.now()+7*864e5).toISOString().slice(0,10);
+  var qExp=myQ.filter(function(q){return q.validUntil&&q.validUntil>=t&&q.validUntil<=q7&&q.status!=='수락'&&q.status!=='거절'&&q.status!=='취소';}).sort(function(a,b){return a.validUntil<b.validUntil?-1:1;});
+  var openD=myD.filter(function(d){return d.stage!=='선적/납품';});
+  var wk=openD.reduce(function(s,d){return s+_dealKrw(d)*(Number(d.prob||0)/100);},0);
+  var wkAgo=new Date(Date.now()-7*864e5).toISOString().slice(0,10);
+  var wkActs=myA.filter(function(a){return (a.date||'')>=wkAgo;}).length;
+  var stat=function(l,v,c,s){return '<div class="col-6 col-md-3"><div class="kpi-card" style="padding:12px 14px"><div class="kpi-label">'+l+'</div><div class="kpi-value" style="font-size:1.15rem;color:'+c+'">'+v+'</div><div style="font-size:10px;color:#9ca3af;margin-top:2px">'+(s||'')+'</div></div></div>';};
+  var strip='<div class="row g-2 mb-2">'+stat('오늘 할 일',todayT.length+'건','#0d9488','지금 처리')+stat('지연',overdue.length+'건',overdue.length?'#dc2626':'#94a3b8',overdue.length?'놓친 팔로업':'없음 👍')+stat('진행 딜',openD.length+'건','#0891b2','가중 '+fmtW(wk))+stat('이번주 내 활동',wkActs+'건','#7c3aed','최근 7일')+'</div>';
+  var taskRow=function(x){ var od=x.date<t; var dd=Math.round((new Date(x.date)-new Date(t))/864e5); var ref=x.kind==='deal'?"openDeal('"+x.id+"')":"openAct('"+x.id+"')";
+    return '<div style="display:flex;align-items:center;gap:9px;padding:9px 4px;border-bottom:1px solid #f4f6f9;font-size:13px">'+
+      '<span style="font-size:10px;color:#fff;background:'+x.cc+';border-radius:5px;padding:2px 7px;min-width:32px;text-align:center;flex:0 0 auto">'+x.tl+'</span>'+
+      '<div style="flex:1;min-width:0;cursor:pointer" onclick="'+ref+'"><div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+_esc(x.who)+(x.ex?' <span style="font-size:11px;color:#94a3b8">'+x.ex+'</span>':'')+'</div><div style="color:#475569;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><i class="bi bi-arrow-right-short"></i>'+_esc(x.what)+'</div></div>'+
+      '<span style="font-size:11px;font-weight:700;color:'+(od?'#dc2626':(dd===0?'#0d9488':'#94a3b8'))+';flex:0 0 auto">'+(od?'D+'+Math.abs(dd):(dd===0?'오늘':x.date.slice(5)))+'</span>'+
+      '<button class="btn btn-sm btn-outline-success p-0 px-2" style="font-size:11px;flex:0 0 auto" onclick="_mwDone(\''+x.kind+'\',\''+x.id+'\')" title="완료 처리">완료</button></div>';
+  };
+  var todoCard='<div class="card p-3 h-100"><div class="fw-bold mb-2" style="font-size:14px"><i class="bi bi-check2-square me-1" style="color:#0d9488"></i>오늘 할 일</div>';
+  if(!overdue.length&&!todayT.length&&!soon.length){ todoCard+='<div style="text-align:center;padding:26px 10px;color:#94a3b8"><div style="font-size:30px">🎯</div><div style="font-size:13px;margin-top:8px;font-weight:600">예정된 액션이 없어요</div><div style="font-size:12px;margin-top:4px">고객과 통화·미팅했다면 <b style="color:#0d9488">빠른 기록</b>으로 남겨두세요.<br>다음 할 일이 여기 자동으로 떠요.</div><button class="btn btn-sm mt-3" style="background:#0d9488;color:#fff" onclick="_qkOpen()"><i class="bi bi-lightning-charge-fill me-1"></i>지금 기록</button></div>'; }
+  else{
+    if(overdue.length) todoCard+='<div style="font-size:11px;font-weight:700;color:#dc2626;margin:4px 0 2px"><i class="bi bi-exclamation-triangle-fill me-1"></i>지연 '+overdue.length+'</div>'+overdue.map(taskRow).join('');
+    if(todayT.length) todoCard+='<div style="font-size:11px;font-weight:700;color:#0d9488;margin:8px 0 2px">오늘 '+todayT.length+'</div>'+todayT.map(taskRow).join('');
+    if(soon.length) todoCard+='<div style="font-size:11px;font-weight:700;color:#64748b;margin:8px 0 2px">다가오는 일정</div>'+soon.map(taskRow).join('');
+  }
+  todoCard+='</div>';
+  var staleCard='<div class="card p-3 mb-2"><div class="fw-bold mb-2" style="font-size:13px"><i class="bi bi-hourglass-bottom me-1" style="color:#f59e0b"></i>정체된 딜 <span style="font-size:11px;font-weight:400;color:#94a3b8">30일+ 미진행</span></div>'+(stale.length?stale.map(function(d){return '<div style="display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid #f4f6f9;font-size:12px;cursor:pointer" onclick="openDeal(\''+d.id+'\')"><div style="flex:1;min-width:0"><div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+_esc(d.dealer||d.country||'')+'</div><div style="color:#64748b;font-size:11px">'+_esc(d.stage||'')+' · '+_esc(d.product||'')+'</div></div><span style="font-size:11px;color:#dc2626;font-weight:700;flex:0 0 auto">'+_stageDays(d)+'일</span><button class="btn btn-sm btn-outline-primary p-0 px-2" style="font-size:11px;flex:0 0 auto" onclick="event.stopPropagation();openDeal(\''+d.id+'\')">팔로업</button></div>';}).join(''):'<div style="font-size:12px;color:#cbd5e1;padding:8px 0;text-align:center">정체된 딜 없음 👍</div>')+'</div>';
+  var qCard='<div class="card p-3"><div class="fw-bold mb-2" style="font-size:13px"><i class="bi bi-file-earmark-text me-1" style="color:#7c3aed"></i>견적 만료 임박 <span style="font-size:11px;font-weight:400;color:#94a3b8">7일 내</span></div>'+(qExp.length?qExp.map(function(q){return '<div style="display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid #f4f6f9;font-size:12px;cursor:pointer" onclick="openQuote(\''+q.id+'\')"><div style="flex:1;min-width:0"><div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+_esc(q.dealer||q.country||'')+'</div><div style="color:#64748b;font-size:11px">유효 '+_esc(q.validUntil||'')+'</div></div><button class="btn btn-sm btn-outline-secondary p-0 px-2" style="font-size:11px;flex:0 0 auto" onclick="event.stopPropagation();openQuote(\''+q.id+'\')">확인</button></div>';}).join(''):'<div style="font-size:12px;color:#cbd5e1;padding:8px 0;text-align:center">임박 견적 없음</div>')+'</div>';
+  el.innerHTML=strip+'<div class="row g-2"><div class="col-lg-7">'+todoCard+'</div><div class="col-lg-5">'+staleCard+qCard+'</div></div>';
+  _mwBadge();
+}
+function _qkOpen(){ if(typeof _currentUser==='undefined'||!_currentUser)return;
+  var st=document.getElementById('qk-types'); if(st) st.innerHTML=_QK_TYPES.map(function(tp,i){return '<button type="button" onclick="_qkPick(this,\''+tp+'\')" style="border:1px solid #e2e8f0;background:'+(i===0?'#0d9488':'#fff')+';color:'+(i===0?'#fff':'#475569')+';border-radius:8px;padding:4px 11px;font-size:12px;cursor:pointer">'+tp+'</button>';}).join('');
+  var qt=document.getElementById('qk-type'); if(qt)qt.value=_QK_TYPES[0];
+  ['qk-dealer','qk-country','qk-content','qk-next'].forEach(function(k){var e=document.getElementById(k);if(e)e.value='';});
+  var nd=document.getElementById('qk-nextdate'); if(nd)nd.value='';
+  try{ _syncCrmLists(); }catch(e){}
+  document.getElementById('qk-modal').style.display='flex';
+  setTimeout(function(){var d=document.getElementById('qk-dealer');if(d)d.focus();},60);
+}
+function _qkPick(btn,tp){ var e=document.getElementById('qk-type'); if(e)e.value=tp; var p=btn.parentNode; if(p)p.querySelectorAll('button').forEach(function(b){b.style.background='#fff';b.style.color='#475569';}); btn.style.background='#0d9488';btn.style.color='#fff'; }
+function _qkSave(){
+  var g=function(k){var e=document.getElementById(k);return e?e.value.trim():'';};
+  var dealer=g('qk-dealer'), content=g('qk-content');
+  if(!dealer&&!content){ alert('거래처나 내용을 입력하세요.'); return; }
+  var a={id:'ia_'+Date.now()+Math.random().toString(36).slice(2,6),date:_today(),type:g('qk-type')||'기타',dealer:dealer,country:g('qk-country'),product:'',content:content,nextAction:g('qk-next'),nextDate:g('qk-nextdate'),sales:_meName||''};
+  INTL_ACT.push(a); _saveActs();
+  document.getElementById('qk-modal').style.display='none';
+  if(typeof _pToast==='function')_pToast('기록 완료 · 수고하셨어요');
+  try{ if(document.getElementById('page-my-work').classList.contains('active'))renderMyWork(); else _mwBadge(); }catch(e){}
+  try{ if(document.getElementById('page-activities').classList.contains('active'))renderActivities(); }catch(e){}
+}
+function _mwDone(kind,id){
+  try{ if(kind==='deal'){ var d=INTL_PIPE.find(function(x){return x.id===id;}); if(d){d.nextAction='';d.nextDate='';_saveDeals();} }
+    else{ var a=INTL_ACT.find(function(x){return x.id===id;}); if(a){a.nextAction='';a.nextDate='';_saveActs();} }
+    if(typeof _pToast==='function')_pToast('완료 처리됨');
+    renderMyWork();
+  }catch(e){}
+}
 </script>
 </body>
 </html>
