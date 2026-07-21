@@ -2111,11 +2111,11 @@ function renderCrmDash(){
   var stays=active.map(_stageDays).filter(function(v){return v!=null;});
   var avgStay=stays.length?Math.round(stays.reduce(function(a,b){return a+b;},0)/stays.length):0;
   var kpi=[
-    ['진행 딜',active.length+'건','#0891b2','bi-kanban','파이프라인 활성'],
-    ['가중 예상',_fmtUSD(weighted),'#0d9488','bi-graph-up-arrow','확률 반영'],
-    ['계약/납품',_fmtUSD(wonAmt),'#16a34a','bi-check2-circle',wonArr.length+'건 확정'],
-    ['Win율',winRate+'%','#7c3aed','bi-trophy','전체 딜 대비'],
-    ['평균 딜 규모',_fmtUSD(avgDeal),'#f59e0b','bi-cash-stack','딜당 평균'],
+    ['진행 딜',active.length+'건','#16324f','bi-kanban','파이프라인 활성'],
+    ['가중 예상',_fmtUSD(weighted),'#16324f','bi-graph-up-arrow','확률 반영'],
+    ['계약/납품',_fmtUSD(wonAmt),'#16324f','bi-check2-circle',wonArr.length+'건 확정'],
+    ['Win율',winRate+'%','#16324f','bi-trophy','전체 딜 대비'],
+    ['평균 딜 규모',_fmtUSD(avgDeal),'#16324f','bi-cash-stack','딜당 평균'],
     ['평균 체류',avgStay+'일',(avgStay>=30?'#dc2626':'#64748b'),'bi-hourglass-split','현 단계 기준']
   ];
   var kpiH=kpi.map(function(c){return '<div class="col-6 col-md-4 col-xl-2"><div class="kpi-card" style="padding:11px 13px"><div class="kpi-label"><i class="bi '+c[3]+' me-1" style="color:'+c[2]+'"></i>'+c[0]+'</div><div class="kpi-value" style="font-size:1.02rem;color:'+c[2]+'">'+c[1]+'</div><div style="font-size:10px;color:#64748b;margin-top:2px">'+c[4]+'</div></div></div>';}).join('');
