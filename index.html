@@ -85,6 +85,18 @@ body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:#f0f4f8;color
 .period-bar{background:#f8fafc;border-color:#e4e8ef}
 .pmodal-box{box-shadow:0 12px 34px rgba(2,6,23,.12)!important;border:1px solid #e4e8ef}
 #iu-modal>div,#q-modal>div,#ovm-modal>div,#ac-modal>div,#dl-modal>div,#is-modal>div,#prod-modal>div,#pw-modal>div,#sp-pdf-modal>div{box-shadow:0 12px 34px rgba(2,6,23,.12)!important;border:1px solid #e4e8ef}
+.wt-band{display:flex;align-items:stretch;background:#fff;border:1px solid #e4e8ef;border-radius:12px;padding:16px 20px;margin-bottom:16px}
+.wt-hero{flex:1.5;padding-right:22px;display:flex;flex-direction:column;justify-content:center;min-width:0}
+.wt-hero .l{font-size:11.5px;font-weight:700;color:#64748b}
+.wt-hero b{font-size:32px;font-weight:800;color:#182230;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
+.wt-hero .s{font-size:12px;color:#64748b;margin-top:3px}
+.wt-fact{flex:1;padding:2px 18px;border-left:1px solid #e4e8ef;display:flex;flex-direction:column;justify-content:center;min-width:0}
+.wt-fact .l{font-size:11px;font-weight:700;color:#64748b;white-space:nowrap}
+.wt-fact b{font-size:20px;font-weight:800;color:#182230;font-variant-numeric:tabular-nums;white-space:nowrap;margin-top:2px}
+.wt-fact .s{font-size:10.5px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wt-fact b.rd{color:#dc2626}.wt-fact b.gr{color:#15803d}
+.wt-st{font-size:14px;font-weight:800;color:#182230;padding-bottom:8px;border-bottom:2px solid #0f766e;margin-bottom:12px}
+@media(max-width:720px){.wt-band{display:grid;grid-template-columns:1fr 1fr;gap:14px}.wt-hero{grid-column:1/-1;padding-right:0;border-bottom:1px solid #e4e8ef;padding-bottom:12px}.wt-fact{border-left:0!important;padding:0}}
 </style>
 <script>/* WT_ERRLOG_V1 — 공통 오류수집+요청함 (자동주입 스니펫, 개별 수정 금지) */
 (function(){
@@ -874,10 +886,11 @@ function renderCtYoY(){
   const cp=pre?.countries[n];
   const curV=ytd(c.m,f,t), preV=cp?ytd(cp.m,f,t):0;
   const yoy=pct(curV,preV);
-  document.getElementById('ct-yoy-kpi').innerHTML=`
-    <div class="col-4"><div class="kpi-card" style="padding:10px 12px"><div class="kpi-label">${yr}년 YTD</div><div class="kpi-value" style="font-size:1.1rem;color:#16324f">${fmtW(curV)}</div></div></div>
-    <div class="col-4"><div class="kpi-card" style="padding:10px 12px"><div class="kpi-label">${yr-1}년 YTD</div><div class="kpi-value" style="font-size:1.1rem;color:#94a3b8">${fmtW(preV)}</div></div></div>
-    <div class="col-4"><div class="kpi-card" style="padding:10px 12px"><div class="kpi-label">YoY</div><div class="kpi-value" style="font-size:1.1rem;color:${yoy===null?'#6b7280':parseFloat(yoy)>=0?'#16a34a':'#dc2626'}">${yoy===null?'신규':(parseFloat(yoy)>=0?'▲':'▼')+Math.abs(parseFloat(yoy))+'%'}</div></div></div>`;
+  document.getElementById('ct-yoy-kpi').innerHTML=`<div class="col-12"><div class="wt-band">
+    <div class="wt-hero"><div class="l">${n} · ${yr}년 YTD</div><b>${fmtW(curV)}</b><div class="s">전년 ${fmtW(preV)} 대비</div></div>
+    <div class="wt-fact"><div class="l">${yr-1}년 YTD</div><b>${fmtW(preV)}</b><div class="s">전년 동기간</div></div>
+    <div class="wt-fact"><div class="l">YoY</div><b class="${yoy===null?'':parseFloat(yoy)>=0?'gr':'rd'}">${yoy===null?'신규':(parseFloat(yoy)>=0?'▲':'▼')+Math.abs(parseFloat(yoy))+'%'}</b><div class="s">전년 대비 성장</div></div>
+  </div></div>`;
   dch('ct-yoy-chart');
   const ctx=document.getElementById('ct-yoy-chart');
   const m12=Array.from({length:12},(_,i)=>i+1);
@@ -2110,15 +2123,15 @@ function renderCrmDash(){
   var avgDeal=deals.length?total/deals.length:0;
   var stays=active.map(_stageDays).filter(function(v){return v!=null;});
   var avgStay=stays.length?Math.round(stays.reduce(function(a,b){return a+b;},0)/stays.length):0;
-  var kpi=[
-    ['진행 딜',active.length+'건','#16324f','bi-kanban','파이프라인 활성'],
-    ['가중 예상',_fmtUSD(weighted),'#16324f','bi-graph-up-arrow','확률 반영'],
-    ['계약/납품',_fmtUSD(wonAmt),'#16324f','bi-check2-circle',wonArr.length+'건 확정'],
-    ['Win율',winRate+'%','#16324f','bi-trophy','전체 딜 대비'],
-    ['평균 딜 규모',_fmtUSD(avgDeal),'#16324f','bi-cash-stack','딜당 평균'],
-    ['평균 체류',avgStay+'일',(avgStay>=30?'#dc2626':'#64748b'),'bi-hourglass-split','현 단계 기준']
-  ];
-  var kpiH=kpi.map(function(c){return '<div class="col-6 col-md-4 col-xl-2"><div class="kpi-card" style="padding:11px 13px"><div class="kpi-label"><i class="bi '+c[3]+' me-1" style="color:'+c[2]+'"></i>'+c[0]+'</div><div class="kpi-value" style="font-size:1.02rem;color:'+c[2]+'">'+c[1]+'</div><div style="font-size:10px;color:#64748b;margin-top:2px">'+c[4]+'</div></div></div>';}).join('');
+  var bandH=
+    '<div class="wt-band">'+
+      '<div class="wt-hero"><div class="l">가중 예상 매출</div><b>'+_fmtUSD(weighted)+'</b><div class="s">확률 반영 · 진행 '+active.length+'건 기준</div></div>'+
+      '<div class="wt-fact"><div class="l">진행 딜</div><b>'+active.length+'건</b><div class="s">파이프라인 활성</div></div>'+
+      '<div class="wt-fact"><div class="l">계약/납품</div><b>'+_fmtUSD(wonAmt)+'</b><div class="s">'+wonArr.length+'건 확정</div></div>'+
+      '<div class="wt-fact"><div class="l">Win율</div><b>'+winRate+'%</b><div class="s">전체 딜 대비</div></div>'+
+      '<div class="wt-fact"><div class="l">평균 딜 규모</div><b>'+_fmtUSD(avgDeal)+'</b><div class="s">딜당 평균</div></div>'+
+      '<div class="wt-fact"><div class="l">평균 체류</div><b'+(avgStay>=30?' class="rd"':'')+'>'+avgStay+'일</b><div class="s">현 단계 기준</div></div>'+
+    '</div>';
   // 퍼널 + 단계 통과율
   var reach=STAGES_INTL.map(function(st,i){return deals.filter(function(d){return STAGES_INTL.indexOf(d.stage)>=i;}).length;});
   var fmax=Math.max.apply(null,reach.concat([1]));
@@ -2162,7 +2175,7 @@ function renderCrmDash(){
   var shipH=ship.map(function(d){return '<div onclick="openDeal(\''+d.id+'\')" style="cursor:pointer;display:flex;gap:8px;padding:6px 4px;border-bottom:1px solid #f1f5f9;font-size:12px;border-radius:6px" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'"><span style="width:52px;font-weight:600;color:'+_ddayColor(d.expectedShip)+'">'+_dday(d.expectedShip)+'</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_esc(d.dealer||'')+' <span style="color:#94a3b8">'+_esc(d.country||'')+'</span></span><span style="font-weight:700;color:#0d9488">'+_fmtUSD(d.amount)+'</span></div>';}).join('')||'<div style="font-size:12px;color:#64748b">선적 예정 없음</div>';
   el.innerHTML=
     _alertStripHTML()+
-    '<div class="row g-2 mb-3">'+kpiH+'</div>'+
+    bandH+
     '<div class="row g-2 mb-2">'+
       '<div class="col-md-7"><div class="card p-3 h-100"><div class="fw-bold mb-2" style="font-size:13px"><i class="bi bi-funnel me-1" style="color:#0f766e"></i>파이프라인 퍼널 <span style="font-size:10px;font-weight:400;color:#94a3b8">누적 도달 기준 · ↓통과율</span></div>'+funH+'</div></div>'+
       '<div class="col-md-5"><div class="card p-3 h-100"><div class="fw-bold mb-2" style="font-size:13px"><i class="bi bi-globe me-1" style="color:#0d9488"></i>국가별 딜 규모</div>'+cH+'</div></div>'+
@@ -2375,13 +2388,16 @@ function renderQuotes(){
   var kw=(document.getElementById('q-kw')&&document.getElementById('q-kw').value||'').trim().toLowerCase();
   var all=INTL_QUOTES||[];
   var today=_today(); var week=new Date(Date.now()+7*864e5).toISOString().slice(0,10);
-  var kpi=[
-    ['전체 견적',all.length+'건','#64748b'],
-    ['발송중',all.filter(function(q){return q.status==='발송';}).length+'건','#16324f'],
-    ['수락',all.filter(function(q){return q.status==='수락';}).length+'건','#16a34a'],
-    ['만료 임박(7일)',all.filter(function(q){return q.validUntil&&q.validUntil>=today&&q.validUntil<=week&&q.status!=='수락'&&q.status!=='거절';}).length+'건','#dc2626']
-  ];
-  var kpiH='<div class="row g-2 mb-2">'+kpi.map(function(c){return '<div class="col-6 col-md-3"><div class="kpi-card" style="padding:9px 12px"><div class="kpi-label">'+c[0]+'</div><div class="kpi-value" style="font-size:1rem;color:'+c[2]+'">'+c[1]+'</div></div></div>';}).join('')+'</div>';
+  var _qSent=all.filter(function(q){return q.status==='발송';}).length;
+  var _qAcc=all.filter(function(q){return q.status==='수락';}).length;
+  var _qExp=all.filter(function(q){return q.validUntil&&q.validUntil>=today&&q.validUntil<=week&&q.status!=='수락'&&q.status!=='거절';}).length;
+  var kpiH=
+    '<div class="wt-band">'+
+      '<div class="wt-hero"><div class="l">전체 견적</div><b>'+all.length+'건</b><div class="s">발송 '+_qSent+'건 · 수락 '+_qAcc+'건</div></div>'+
+      '<div class="wt-fact"><div class="l">발송중</div><b>'+_qSent+'건</b><div class="s">응답 대기</div></div>'+
+      '<div class="wt-fact"><div class="l">수락</div><b class="gr">'+_qAcc+'건</b><div class="s">수주 전환</div></div>'+
+      '<div class="wt-fact"><div class="l">만료 임박(7일)</div><b class="rd">'+_qExp+'건</b><div class="s">유효기간 마감 임박</div></div>'+
+    '</div>';
   var arr=all.filter(function(q){return !kw||((q.dealer||'')+(q.country||'')).toLowerCase().indexOf(kw)>=0;}).sort(function(a,b){return (b.date||'')<(a.date||'')?-1:1;});
   el.innerHTML=kpiH+'<div class="card p-0" style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12px;min-width:760px"><thead style="background:#f8fafc"><tr><th style="padding:8px 12px">견적일</th><th>딜러/국가</th><th style="text-align:right">금액(USD)</th><th style="text-align:center">상태</th><th>유효기간</th><th>담당</th><th style="text-align:center">관리</th></tr></thead><tbody>'+
     (arr.map(function(q){var t=_qTot(q);var st=q.status||'임시';var expSoon=q.validUntil&&q.validUntil>=today&&q.validUntil<=week&&st!=='수락'&&st!=='거절';var expired=q.validUntil&&q.validUntil<today&&st!=='수락'&&st!=='거절';
@@ -3175,8 +3191,15 @@ function renderByRep(){
   }).filter(function(x){return x.v>0||x.pipeN>0;}).sort(function(a,b){return b.v-a.v;});
   var tot=arr.reduce(function(s,x){return s+x.v;},0)||1, mx=arr.length?Math.max.apply(null,arr.map(function(x){return x.v;})):1;
   var mo=Math.max(1,t-f+1);
-  var kpis=[['담당자',arr.length+'명','#16324f'],['기간 합계',fmtW(tot),'#0f172a'],['1인 평균',fmtW(tot/(arr.length||1)),'#16324f'],['CRM 가중예상',fmtW(arr.reduce(function(s,x){return s+x.pipeK;},0)),'#16324f']];
-  var kpiH='<div class="row g-2 mb-2">'+kpis.map(function(c){return '<div class="col-6 col-md-3"><div class="kpi-card" style="padding:9px 12px"><div class="kpi-label">'+c[0]+'</div><div class="kpi-value" style="font-size:1rem;color:'+c[2]+'">'+c[1]+'</div></div></div>';}).join('')+'</div>';
+  var _rpAvg=fmtW(tot/(arr.length||1));
+  var _rpPipe=fmtW(arr.reduce(function(s,x){return s+x.pipeK;},0));
+  var kpiH=
+    '<div class="wt-band">'+
+      '<div class="wt-hero"><div class="l">기간 합계 매출 ('+f+'~'+t+'월)</div><b>'+fmtW(tot)+'</b><div class="s">담당자 '+arr.length+'명 · 1인 평균 '+_rpAvg+'</div></div>'+
+      '<div class="wt-fact"><div class="l">담당자</div><b>'+arr.length+'명</b><div class="s">실적·진행 보유</div></div>'+
+      '<div class="wt-fact"><div class="l">1인 평균</div><b>'+_rpAvg+'</b><div class="s">담당자당 매출</div></div>'+
+      '<div class="wt-fact"><div class="l">CRM 가중예상</div><b>'+_rpPipe+'</b><div class="s">진행딜 확률반영</div></div>'+
+    '</div>';
   var medals=['🥇','🥈','🥉'];
   var rows=arr.map(function(x,i){
     var y=pct(x.v,x.pv); var share=(x.v/tot*100);
@@ -4322,8 +4345,13 @@ function _renderPartView(part, rootId){
     '</tbody></table></div></div>';
   root.innerHTML=
     '<div class="page-header"><h5><i class="bi bi-diagram-3" style="color:'+((typeof PART_COLOR!=='undefined'&&PART_COLOR[part])||'#0d9488')+'"></i>'+_esc(part)+' 현황 <span style="font-size:12px;font-weight:400;color:#64748b">1~'+lastM+'월 · 회계 기준</span></h5><span style="font-size:11px;color:#94a3b8">기준일 '+_esc(INTL.updatedAt||'')+'</span></div>'+
-    '<div class="row g-2 mb-2">'+
-      [['파트 합계',fmtW(tot),'#0f172a',bdg(yoy)],['전년 동기',fmtW(prev),'#94a3b8',''],['거래 국가',cArr.length+'개국','#16324f',''],['거래처',nClients+'개사','#16324f',''],['진행 딜',openDeals.length+'건','#16324f',''],['가중 예상',fmtW(wDeal),'#16a34a','']].map(function(k){ return '<div class="col-6 col-md-4 col-xl-2"><div class="kpi-card" style="padding:11px 13px"><div class="kpi-label">'+k[0]+'</div><div class="kpi-value" style="font-size:1.05rem;color:'+k[2]+'">'+k[1]+' <span style="font-size:11px">'+(k[3]||'')+'</span></div></div></div>'; }).join('')+
+    '<div class="wt-band">'+
+      '<div class="wt-hero"><div class="l">파트 합계 매출</div><b>'+fmtW(tot)+'</b><div class="s">전년 대비 '+(bdg(yoy)||'–')+' · 전년 '+fmtW(prev)+'</div></div>'+
+      '<div class="wt-fact"><div class="l">전년 동기</div><b>'+fmtW(prev)+'</b><div class="s">동기간 실적</div></div>'+
+      '<div class="wt-fact"><div class="l">거래 국가</div><b>'+cArr.length+'개국</b><div class="s">매출 발생국</div></div>'+
+      '<div class="wt-fact"><div class="l">거래처</div><b>'+nClients+'개사</b><div class="s">거래 거래처수</div></div>'+
+      '<div class="wt-fact"><div class="l">진행 딜</div><b>'+openDeals.length+'건</b><div class="s">CRM 파이프라인</div></div>'+
+      '<div class="wt-fact"><div class="l">가중 예상</div><b class="gr">'+fmtW(wDeal)+'</b><div class="s">확률 반영</div></div>'+
     '</div>'+
     '<div class="row g-2 mb-2">'+
       '<div class="col-lg-8"><div class="card p-3 h-100"><div class="fw-bold mb-2" style="font-size:13px"><i class="bi bi-bar-chart me-1" style="color:#0d9488"></i>월별 추이 <span style="font-size:10px;font-weight:400;color:#94a3b8;margin-left:4px"><span style="display:inline-block;width:8px;height:8px;background:#0d9488;border-radius:2px"></span> 올해 <span style="display:inline-block;width:8px;height:8px;background:#e2e8f0;border-radius:2px;margin-left:6px"></span> 전년 · 막대 클릭 시 월 상세</span></div><div style="display:flex;gap:5px;align-items:flex-end">'+moBars+'</div><div style="display:flex;margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9">'+qRow+'</div></div></div>'+
