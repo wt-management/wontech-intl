@@ -15,15 +15,16 @@
 *{box-sizing:border-box}
 html{color-scheme:light}
 body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:#f0f4f8;color:#1e293b;margin:0}
-.sidebar{position:fixed;top:0;left:0;width:220px;height:100vh;background:#0f172a;color:#cbd5e1;overflow-y:hidden;z-index:100;display:flex;flex-direction:column}
-.brand{padding:20px 18px 12px;border-bottom:1px solid #1e293b}
-.brand-name{font-size:16px;font-weight:800;color:#fff;letter-spacing:-0.5px}
+.sidebar{position:fixed;top:0;left:0;width:220px;height:100vh;background:#f1f5f9;color:#334155;border-right:1px solid #d8e0ea;box-shadow:3px 0 16px rgba(16,42,67,.06);overflow-y:hidden;z-index:100;display:flex;flex-direction:column}
+.brand{padding:14px 18px 9px;border-bottom:1px solid #e4e8ef}
+.brand-name{font-size:16px;font-weight:800;color:#1c2534;letter-spacing:-0.5px}
 .brand-sub{font-size:11px;color:#64748b;margin-top:2px}
-.nav-section{padding:12px 8px;flex:1;overflow-y:auto}
-.nav-label{font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.8px;padding:8px 10px 4px}
-.nav-link{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:8px;color:#94a3b8;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;text-decoration:none}
-.nav-link:hover{background:#1e293b;color:#e2e8f0}
-.nav-link.active{background:#0f766e;color:#fff}
+.nav-scroll{flex:1;overflow-y:auto;min-height:0}
+.nav-section{padding:4px 8px}
+.nav-label{font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.8px;padding:5px 10px 2px}
+.nav-link{display:flex;align-items:center;gap:9px;padding:4px 12px;border-radius:8px;color:#475569;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;text-decoration:none}
+.nav-link:hover{background:#eef2f7;color:#1c2534}
+.nav-link.active{background:#dbf0ec;color:#0f766e;font-weight:600}
 .nav-link i{font-size:15px;width:17px}
 .main{margin-left:220px;min-height:100vh;padding:24px}
 .page{display:none}.page.active{display:block}
@@ -51,8 +52,8 @@ body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:#f0f4f8;color
   .sidebar{transform:translateX(-100%);transition:transform .25s ease;width:min(84vw,290px);box-shadow:2px 0 22px rgba(0,0,0,.35);z-index:200}
   .sidebar.open{transform:translateX(0)}
   .main{margin-left:0;padding-top:64px}
-  #m-topbar{display:flex;align-items:center;gap:10px;position:fixed;top:0;left:0;right:0;height:52px;background:#0f172a;color:#fff;padding:0 10px;z-index:150;box-shadow:0 2px 10px rgba(0,0,0,.15)}
-  #m-topbar .m-burger{background:none;border:none;color:#fff;font-size:25px;line-height:1;padding:4px 8px;cursor:pointer}
+  #m-topbar{display:flex;align-items:center;gap:10px;position:fixed;top:0;left:0;right:0;height:52px;background:#fff;color:#1c2534;padding:0 10px;z-index:150;box-shadow:0 2px 10px rgba(16,42,67,.1);border-bottom:1px solid #e4e8ef}
+  #m-topbar .m-burger{background:none;border:none;color:#334155;font-size:25px;line-height:1;padding:4px 8px;cursor:pointer}
   #m-topbar .m-title{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #m-backdrop.open{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:190}
   body{overflow-x:hidden}
@@ -67,9 +68,19 @@ body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:#f0f4f8;color
   .card,table{break-inside:avoid}
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 }
-.sw-item{border-radius:6px;padding:8px 12px;display:flex;align-items:center;gap:8px;color:#94a3b8;font-size:12px;cursor:pointer;transition:background .15s;margin-top:2px}
-.sw-item:hover{background:rgba(255,255,255,.08)}
+.sw-item{border-radius:6px;padding:8px 12px;display:flex;align-items:center;gap:8px;color:#475569;font-size:12px;cursor:pointer;transition:background .15s;margin-top:2px}
+.sw-item:hover{background:#eef2f7}
 .sw-item .sw-badge{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:18px;color:#fff;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.03em;padding:0 5px;flex-shrink:0}
+/* ── 예쁜 탭/세그먼트 필 버튼 (해외=틸) ── */
+.wt-tab{display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-size:12.5px;font-weight:600;color:#475569;background:#fff;border:1px solid #dfe6ee;border-radius:9px;padding:7px 15px;cursor:pointer;transition:all .15s;line-height:1;white-space:nowrap}
+.wt-tab:hover{background:#eef5f4;border-color:#9fd4cd;color:#0f766e}
+.wt-tab i{font-size:13px;color:#0f766e}
+.wt-tab.on{background:#0f766e;border-color:#0f766e;color:#fff;box-shadow:0 2px 6px rgba(15,118,110,.22)}
+.wt-tab.on i{color:#fff}
+/* 부트스트랩 기본 회색 버튼 톤업(전역) */
+.btn-outline-secondary{border-color:#dfe6ee;color:#475569;background:#fff;border-radius:8px;font-weight:600;transition:all .15s}
+.btn-outline-secondary:hover,.btn-outline-secondary:focus{background:#eef5f4;border-color:#9fd4cd;color:#0f766e}
+.btn-outline-secondary:active{background:#0f766e!important;border-color:#0f766e!important;color:#fff!important}
 </style>
 <script>/* WT_ERRLOG_V1 — 공통 오류수집+요청함 (자동주입 스니펫, 개별 수정 금지) */
 (function(){
@@ -221,6 +232,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
     </div>
   </div>
 
+  <div class="nav-scroll">
   <div class="nav-section">
     <div class="nav-label">내 업무</div>
     <ul class="nav flex-column gap-0">
@@ -250,9 +262,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
       <li><a class="nav-link" onclick="showPage('crm-dash',this)"><i class="bi bi-speedometer2"></i>영업 현황판</a></li>
       <li><a class="nav-link" onclick="showPage('sales',this)"><i class="bi bi-kanban"></i>수주관리</a></li>
       <li><a class="nav-link" onclick="showPage('dealers',this)"><i class="bi bi-buildings"></i>딜러 관리</a></li>
-      <li><a class="nav-link" onclick="showPage('activities',this)"><i class="bi bi-journal-text"></i>활동일지</a></li>
-      <li><a class="nav-link" onclick="showPage('schedule',this)"><i class="bi bi-calendar-week"></i>일정</a></li>
-      <li><a class="nav-link" onclick="showPage('quotes',this)"><i class="bi bi-file-earmark-text"></i>견적서</a></li>
+      <li><a class="nav-link" data-grp="actsch" onclick="showPage('activities',this)"><i class="bi bi-journal-text"></i>활동·일정</a></li>
       <li><a class="nav-link" onclick="showPage('pending',this)"><i class="bi bi-hourglass-split"></i>회계미반영분</a></li>
     </ul>
   </div>
@@ -267,22 +277,24 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
   <div class="nav-section">
     <div class="nav-label">도구</div>
     <ul class="nav flex-column gap-0">
+      <li><a class="nav-link" onclick="showPage('quotes',this)"><i class="bi bi-file-earmark-text"></i>견적서</a></li>
       <li><a class="nav-link" onclick="showPage('speech',this)"><i class="bi bi-chat-quote"></i>Sales Speech</a></li>
     </ul>
   </div>
+  </div>
   <!-- 계정 정보 (사이트 이동 위에) -->
-  <div style="padding:10px 10px 8px;border-top:1px solid #1e293b;margin-top:auto">
+  <div style="padding:10px 10px 8px;border-top:1px solid #e4e8ef;margin-top:auto">
     <div style="display:flex;flex-direction:row;align-items:center;gap:8px;margin-bottom:8px">
       <div id="intl-user-avatar" style="width:30px;height:30px;border-radius:50%;background:#0d9488;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">?</div>
       <div style="flex:1;min-width:0">
-        <div id="intl-user-name" style="font-size:12px;font-weight:700;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">-</div>
+        <div id="intl-user-name" style="font-size:12px;font-weight:700;color:#1c2534;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">-</div>
         <div id="intl-user-email" style="font-size:10px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">-</div>
       </div>
     </div>
     <div style="display:flex;flex-direction:row;gap:4px">
-      <button onclick="showPwModal()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid #334155;border-radius:6px;padding:5px 0;color:#94a3b8;font-size:11px;cursor:pointer">
+      <button onclick="showPwModal()" style="flex:1;background:#f8fafc;border:1px solid #d5dde8;border-radius:6px;padding:5px 0;color:#475569;font-size:11px;cursor:pointer">
         <i class="bi bi-key"></i> 비밀번호</button>
-      <button id="intl-logout-btn" onclick="doLogout()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid #334155;border-radius:6px;padding:5px 0;color:#94a3b8;font-size:11px;cursor:pointer">
+      <button id="intl-logout-btn" onclick="doLogout()" style="flex:1;background:#f8fafc;border:1px solid #d5dde8;border-radius:6px;padding:5px 0;color:#475569;font-size:11px;cursor:pointer">
         <i class="bi bi-box-arrow-right"></i> 로그아웃</button>
     </div>
   </div>
@@ -290,12 +302,12 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
   <div style="padding:0 8px 8px">
     <div style="position:relative">
       <button onclick="(()=>{var d=document.getElementById('intl-site-dd');d.style.display=d.style.display==='block'?'none':'block'})()"
-        style="width:100%;background:rgba(255,255,255,.05);border:1px solid #334155;border-radius:8px;padding:7px 10px;color:#94a3b8;font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer">
+        style="width:100%;background:#fff;border:1px solid #d5dde8;border-radius:8px;padding:7px 10px;color:#475569;font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer">
         <i class="bi bi-grid-3x3-gap" style="font-size:13px"></i>
         <span style="flex:1;text-align:left;font-weight:600">사이트 이동</span>
         <i class="bi bi-chevron-up" style="font-size:10px"></i>
       </button>
-      <div id="intl-site-dd" style="display:none;position:absolute;bottom:110%;left:0;right:0;background:#1e293b;border:1px solid #334155;border-radius:10px;overflow:hidden;box-shadow:0 -8px 24px rgba(0,0,0,.5);z-index:200;padding:6px">
+      <div id="intl-site-dd" style="display:none;position:absolute;bottom:110%;left:0;right:0;background:#fff;border:1px solid #e4e8ef;border-radius:10px;overflow:hidden;box-shadow:0 -8px 24px rgba(16,42,67,.16);z-index:200;padding:6px">
       </div>
     </div>
   </div>
@@ -569,6 +581,10 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 <div id="page-activities" class="page">
   <div class="page-header"><h5><i class="bi bi-journal-text" style="color:#16a34a"></i>활동일지 <span style="font-size:12px;font-weight:400;color:#9ca3af">딜러 미팅·데모·전시회</span></h5>
     <button class="btn btn-sm" style="background:#0d9488;color:#fff" onclick="openAct()"><i class="bi bi-plus-lg me-1"></i>활동 기록</button></div>
+  <div style="display:flex;gap:8px;margin:-2px 0 12px">
+    <button class="wt-tab on"><i class="bi bi-journal-text"></i>활동일지</button>
+    <button class="wt-tab" onclick="showPage('schedule',document.querySelector('.nav-link[data-grp=actsch]'))"><i class="bi bi-calendar-week"></i>일정</button>
+  </div>
   <div class="card p-2 mb-2" style="display:flex;flex-direction:row;flex-wrap:wrap;gap:10px;align-items:center">
     <input id="ac-kw" class="form-control form-control-sm" style="width:200px" placeholder="딜러·내용 검색" oninput="renderActivities()">
     <select id="ac-type" class="form-select form-select-sm" style="width:120px" onchange="renderActivities()"><option value="">전체 유형</option></select>
@@ -577,6 +593,10 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 </div>
 <div id="page-schedule" class="page">
   <div class="page-header"><h5><i class="bi bi-calendar-week" style="color:#f59e0b"></i>일정 <span style="font-size:12px;font-weight:400;color:#9ca3af">다음 액션 · 선적 ETA · 데모/전시회</span></h5></div>
+  <div style="display:flex;gap:8px;margin:-2px 0 12px">
+    <button class="wt-tab" onclick="showPage('activities',document.querySelector('.nav-link[data-grp=actsch]'))"><i class="bi bi-journal-text"></i>활동일지</button>
+    <button class="wt-tab on"><i class="bi bi-calendar-week"></i>일정</button>
+  </div>
   <div id="sc-body"></div>
 </div>
 <div id="ac-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:500;align-items:center;justify-content:center" onclick="if(event.target===this)closeAct()">
@@ -799,6 +819,7 @@ function pbars(obj, cols){
   const mx=Math.max(...Object.values(obj))||1;
   return Object.entries(obj).sort((a,b)=>b[1]-a[1]).map(([p,v],i)=>`<div style="padding:5px 0;border-bottom:1px solid #f3f4f6"><div style="display:flex;flex-direction:row;justify-content:space-between;margin-bottom:3px"><span style="font-size:12px;font-weight:600">${p}</span><span style="font-size:12px;font-weight:700;color:${cols[i%cols.length]}">${fmtW(v)}</span></div><div style="background:#f3f4f6;border-radius:3px;height:5px"><div style="width:${(v/mx*100).toFixed(1)}%;height:100%;background:${cols[i%cols.length]};border-radius:3px"></div></div></div>`).join('');
 }
+
 // ── 분석형 랭킹 테이블: 집중도·급증/급감·신규 인사이트 + 순위·매출·비중바·전년·YoY(가로바 낭비 대체) ──
 function _rankTable(rows, opts){
   opts=opts||{}; var col=opts.color||'#0d9488';
@@ -831,7 +852,6 @@ function _rankTable(rows, opts){
   var more=(rows.length>lim)?('<tr><td colspan="'+(opts.metaHead?7:6)+'" style="text-align:center;color:#cbd5e1;font-size:11px;padding:5px">외 '+(rows.length-lim)+'개 · 상세에서 전체</td></tr>'):'';
   return ins+'<div style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12px"><thead style="background:#f8fafc"><tr><th style="text-align:right;padding:5px 8px">#</th><th>이름</th><th style="text-align:right">매출</th><th style="padding-right:6px">비중</th><th style="text-align:right">전년</th><th style="text-align:right">YoY</th>'+(opts.metaHead?'<th style="text-align:right;padding-right:8px">'+opts.metaHead+'</th>':'')+'</tr></thead><tbody>'+body+more+'</tbody></table></div>';
 }
-
 function renderOverview(){
   if(!_seeAllIntl()){ _partLock(document.getElementById('ov-kpi')); return; }
   const yr=+document.getElementById('ov-year').value, f=+document.getElementById('ov-from').value, t=+document.getElementById('ov-to').value;
@@ -2955,7 +2975,7 @@ function renderSchedule(){
   var todayS=dstr(base);
   var seg='<div style="display:inline-flex;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">'+[['day','오늘'],['week','주간'],['month','월간']].map(function(m,i){return '<button onclick="scMode(\''+m[0]+'\')" style="border:none;'+(i?'border-left:1px solid #e2e8f0;':'')+'padding:5px 13px;font-size:12px;cursor:pointer;background:'+(_scMode===m[0]?'#0d9488':'#fff')+';color:'+(_scMode===m[0]?'#fff':'#475569')+'">'+m[1]+'</button>';}).join('')+'</div>';
   var overdue=items.filter(function(it){return it.date<todayS;}).sort(function(a,b){return (a.date||'')<(b.date||'')?-1:1;});
-  var odCard=overdue.length?'<div class="card p-3 mb-2" style="border-left:3px solid #dc2626"><div class="fw-bold mb-1" style="font-size:12px;color:#dc2626"><i class="bi bi-exclamation-triangle me-1"></i>지연 ('+overdue.length+')</div>'+overdue.map(_scRow).join('')+'</div>':'';
+  var odCard=overdue.length?'<div class="card p-3 mb-2" style="border-left:3px solid #dc2626"><div onclick="var b=this.nextElementSibling;var o=b.style.display===\'none\';b.style.display=o?\'block\':\'none\';this.querySelector(\'.od-cv\').style.transform=o?\'rotate(90deg)\':\'none\'" class="fw-bold" style="font-size:12px;color:#dc2626;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none"><span><i class="bi bi-exclamation-triangle me-1"></i>지연 ('+overdue.length+') <span style="font-weight:400;color:#94a3b8;font-size:11px">클릭 시 조회</span></span><i class="bi bi-chevron-right od-cv" style="transition:transform .15s;font-size:11px"></i></div><div style="display:none;margin-top:8px">'+overdue.map(_scRow).join('')+'</div></div>':'';
   var body='',navLbl='';
   if(_scMode==='day'){
     var todays=items.filter(function(it){return it.date===todayS;});
