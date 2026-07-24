@@ -4674,6 +4674,14 @@ function _setUpView(v){ _upView=v; renderUnitPrice(); }
 function _setUpCat(c){ _upCat=c; renderUnitPrice(); }
 function _setUpMin(){ var e=document.getElementById('up-min'); _upMinQty=Number(e&&e.value||0)||0; renderUnitPrice(); }
 function _upCatOk(c){ return _upCat==='전체'||c===_upCat; }
+function _upByCountry(p){
+  var Y6=(_UPRICE&&_UPRICE.y2026)||{ctry:{}}, Y5=(_UPRICE&&_UPRICE.y2025)||{ctry:{}}; var rows=[];
+  Object.keys(Y6.ctry||{}).forEach(function(c){ var a=Y6.ctry[c][p]; if(a&&a.qty>0){ var b=(Y5.ctry[c]&&Y5.ctry[c][p]);
+    rows.push({c:c,qty:a.qty,amt:a.amt,u:a.amt/a.qty,u5:(b&&b.qty>0)?b.amt/b.qty:null,part:(typeof _partOf==='function'?_partOf(c,null):'')}); } });
+  return rows;
+}
+function _upSpread(p){ var bc=_upByCountry(p); if(bc.length<2)return null; var us=bc.map(function(x){return x.u;}); var mn=Math.min.apply(null,us); return mn>0?(Math.max.apply(null,us)/mn):null; }
+function _upShow(title,html){ var t=document.getElementById('ovm-title'),b=document.getElementById('ovm-body'),m=document.getElementById('ovm-modal'); if(t)t.innerHTML=title; if(b)b.innerHTML=html; if(m)m.style.display='flex'; }
 function renderUnitPrice(){
   var el=document.getElementById('up-body'); if(!el)return;
   if(typeof _isLeaderIntl==='function' && !_isLeaderIntl()){ el.innerHTML='<div class="card p-4 text-center" style="font-size:13px;color:#94a3b8"><i class="bi bi-lock d-block mb-2" style="font-size:22px"></i>단가 현황은 팀장·관리자만 열람할 수 있습니다.</div>'; return; }
@@ -4685,45 +4693,80 @@ function renderUnitPrice(){
     seg(_upView,[['product','제품별'],['region','지역별']],'_setUpView')+
     seg(_upCat,[['장비','장비'],['소모품','소모품'],['전체','전체']],'_setUpCat')+
     '<span style="font-size:12px;color:#64748b">최소 판매 <input id="up-min" type="number" value="'+_upMinQty+'" onchange="_setUpMin()" style="width:52px;font-size:12px;padding:2px 5px;border:1px solid #e2e8f0;border-radius:6px">대↑</span>'+
-    '<span style="font-size:11px;color:#94a3b8;margin-left:auto"><i class="bi bi-info-circle me-1"></i>단가=판매금액÷판매대수 · 수량 미기재 제품 제외</span></div>';
+    '<span style="font-size:11px;color:#94a3b8;margin-left:auto"><i class="bi bi-info-circle me-1"></i>제품 클릭 → 지역별 단가 비교·인상여지 분석</span></div>';
   var body='';
   if(_upView==='product'){
     var rows=Object.keys(Y6.prod).map(function(p){ var a=Y6.prod[p], b=Y5.prod[p]||{amt:0,qty:0};
-      return {p:p,cat:a.cat,q6:a.qty,u6:_upUnit(a.amt,a.qty),u5:_upUnit(b.amt,b.qty),amt6:a.amt}; })
+      return {p:p,cat:a.cat,q6:a.qty,u6:_upUnit(a.amt,a.qty),u5:_upUnit(b.amt,b.qty),amt6:a.amt,sp:_upSpread(p)}; })
       .filter(function(r){ return _upCatOk(r.cat) && r.u6!=null && r.q6>=_upMinQty; }).sort(function(a,b){ return b.amt6-a.amt6; });
-    body='<div class="card p-0" style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12.5px;min-width:620px"><thead style="background:#fef2f2"><tr>'+
-      '<th style="padding:8px 12px">제품</th><th style="text-align:center">구분</th><th style="text-align:right">올해 단가</th><th style="text-align:right">작년 단가</th><th style="text-align:right">증감</th><th style="text-align:right;padding-right:12px">올해 판매</th></tr></thead><tbody>'+
+    var big=rows.filter(function(r){return r.sp&&r.sp>=1.5;}).sort(function(a,b){return b.sp-a.sp;}).slice(0,4);
+    var ins=big.length?('<div class="card p-2 px-3 mb-2" style="font-size:12px;background:#fffbeb;border-color:#fde68a"><b style="color:#b45309"><i class="bi bi-lightbulb-fill me-1"></i>지역별 가격 편차 큰 제품</b> <span style="color:#78716c">— 가격 정책 검토 대상(클릭):</span> '+big.map(function(r){return '<a onclick="openUnitPriceProduct(this.dataset.p)" data-p="'+_esc(r.p)+'" style="cursor:pointer;text-decoration:underline;color:#b45309">'+_esc(r.p)+' <b style="color:#dc2626">'+r.sp.toFixed(1)+'배</b></a>';}).join(' · ')+'</div>'):'';
+    body=ins+'<div class="card p-0" style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12.5px;min-width:660px"><thead style="background:#fef2f2"><tr>'+
+      '<th style="padding:8px 12px">제품</th><th style="text-align:center">구분</th><th style="text-align:right">올해 단가</th><th style="text-align:right">작년 단가</th><th style="text-align:center">증감</th><th style="text-align:center">지역편차</th><th style="text-align:right;padding-right:12px">올해 판매</th></tr></thead><tbody>'+
       (rows.map(function(r){ var chg=(r.u5?(r.u6/r.u5-1)*100:null);
         var chgH=chg==null?'<span style="color:#cbd5e1">신규</span>':'<span style="color:'+(chg>=0?'#dc2626':'#2563eb')+'">'+(chg>=0?'▲':'▼')+Math.abs(chg).toFixed(1)+'%</span>';
-        return '<tr style="border-top:1px solid #f1f5f9"><td style="padding:7px 12px;font-weight:600">'+_esc(r.p)+'</td>'+
+        var spH=r.sp?('<span style="font-weight:700;color:'+(r.sp>=2?'#dc2626':(r.sp>=1.4?'#ea580c':'#94a3b8'))+'">'+r.sp.toFixed(1)+'배</span>'):'<span style="color:#cbd5e1">—</span>';
+        return '<tr style="border-top:1px solid #f1f5f9;cursor:pointer" onclick="openUnitPriceProduct(this.dataset.p)" data-p="'+_esc(r.p)+'" onmouseover="this.style.background=\'#fafafa\'" onmouseout="this.style.background=\'\'"><td style="padding:7px 12px;font-weight:600">'+_esc(r.p)+' <i class="bi bi-chevron-right" style="font-size:9px;color:#cbd5e1"></i></td>'+
           '<td style="text-align:center"><span style="font-size:10px;background:'+(r.cat==='장비'?'#eff6ff;color:#2563eb':'#f0fdf4;color:#16a34a')+';border-radius:4px;padding:1px 6px">'+r.cat+'</span></td>'+
           '<td style="text-align:right;font-weight:700">'+_upUF(r.u6)+'</td><td style="text-align:right;color:#94a3b8">'+_upUF(r.u5)+'</td>'+
-          '<td style="text-align:right">'+chgH+'</td><td style="text-align:right;color:#64748b;padding-right:12px">'+r.q6+'대·'+_upFmt(r.amt6)+'</td></tr>'; }).join('')||'<tr><td colspan="6" style="padding:20px;text-align:center;color:#94a3b8">조건에 맞는 제품이 없습니다(최소 판매대수↓)</td></tr>')+
+          '<td style="text-align:center">'+chgH+'</td><td style="text-align:center">'+spH+'</td><td style="text-align:right;color:#64748b;padding-right:12px">'+r.q6+'대·'+_upFmt(r.amt6)+'</td></tr>'; }).join('')||'<tr><td colspan="7" style="padding:20px;text-align:center;color:#94a3b8">조건에 맞는 제품이 없습니다(최소 판매대수↓)</td></tr>')+
       '</tbody></table></div>';
   } else {
     var byPart={}; Object.keys(Y6.ctry).forEach(function(c){ var pt=(typeof _partOf==='function')?_partOf(c,null):'기타'; (byPart[pt]=byPart[pt]||[]).push(c); });
     var order=(typeof PART_LIST!=='undefined')?PART_LIST.concat(['기타']):Object.keys(byPart);
-    body=order.filter(function(pt){return byPart[pt];}).map(function(pt){
-      var col=(typeof PART_COLOR!=='undefined'&&PART_COLOR[pt])||'#64748b';
-      var cards=byPart[pt].sort(function(a,b){ return Object.keys(Y6.ctry[b]).reduce(function(s,p){return s+Y6.ctry[b][p].amt;},0)-Object.keys(Y6.ctry[a]).reduce(function(s,p){return s+Y6.ctry[a][p].amt;},0); }).map(function(c){
+    var ctotOf=function(c){ return Object.keys(Y6.ctry[c]).reduce(function(s,p){return s+(Y6.ctry[c][p].amt||0);},0); };
+    var h='<div class="card p-0" style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12px"><thead style="background:#fef2f2"><tr><th style="padding:7px 14px">국가 / 제품</th><th style="text-align:right">대수</th><th style="text-align:right">단가</th><th style="text-align:center">YoY</th><th style="text-align:right;padding-right:14px">매출</th></tr></thead><tbody>';
+    var any=false;
+    order.filter(function(pt){return byPart[pt];}).forEach(function(pt){
+      var col=(typeof PART_COLOR!=='undefined'&&PART_COLOR[pt])||'#64748b'; var cs=byPart[pt].slice().sort(function(a,b){return ctotOf(b)-ctotOf(a);});
+      var partRows='';
+      cs.forEach(function(c){
         var prods=Object.keys(Y6.ctry[c]).map(function(p){ var a=Y6.ctry[c][p]; var cat=(Y6.prod[p]&&Y6.prod[p].cat)||'장비'; var b=(Y5.ctry[c]&&Y5.ctry[c][p])||null;
             return {p:p,cat:cat,q:a.qty,u:_upUnit(a.amt,a.qty),u5:b?_upUnit(b.amt,b.qty):null,amt:a.amt}; })
-          .filter(function(r){ return _upCatOk(r.cat) && r.u!=null && r.q>=_upMinQty; }).sort(function(a,b){ return b.amt-a.amt; });
-        if(!prods.length)return '';
-        var tot=Object.keys(Y6.ctry[c]).reduce(function(s,p){return s+(Y6.ctry[c][p].amt||0);},0);
-        return '<div style="border:1px solid #eef2f7;border-left:3px solid '+col+';border-radius:10px;padding:10px 13px;margin-bottom:8px">'+
-          '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px"><span style="font-weight:800;font-size:13px">'+_esc(c)+'</span><span style="font-size:11px;color:#94a3b8">'+_upFmt(tot)+'</span></div>'+
-          '<table style="width:100%;font-size:12px;border-collapse:collapse">'+prods.map(function(r){ var chg=(r.u5?(r.u/r.u5-1)*100:null);
-            return '<tr><td style="padding:2px 0">'+_esc(r.p)+'</td><td style="text-align:right;color:#64748b;padding:2px 8px">'+r.q+'대</td>'+
-              '<td style="text-align:right;font-weight:700;padding:2px 0">'+_upUF(r.u)+'</td>'+
-              '<td style="text-align:right;padding:2px 0 2px 8px;font-size:11px">'+(chg==null?'<span style="color:#cbd5e1">—</span>':'<span style="color:'+(chg>=0?'#dc2626':'#2563eb')+'">'+(chg>=0?'▲':'▼')+Math.abs(chg).toFixed(0)+'%</span>')+'</td></tr>'; }).join('')+'</table></div>';
-      }).filter(Boolean).join('');
-      if(!cards)return '';
-      return '<div class="mb-2"><div style="font-size:12px;font-weight:800;color:'+col+';margin:4px 2px 6px"><i class="bi bi-diagram-3 me-1"></i>'+pt+'</div>'+cards+'</div>';
-    }).filter(Boolean).join('')||'<div class="card p-4 text-center" style="color:#94a3b8;font-size:12px">조건에 맞는 데이터가 없습니다(최소 판매대수↓)</div>';
+          .filter(function(r){ return _upCatOk(r.cat)&&r.u!=null&&r.q>=_upMinQty; }).sort(function(a,b){return b.amt-a.amt;});
+        if(!prods.length)return;
+        partRows+='<tr style="background:#f8fafc"><td colspan="5" style="padding:5px 14px 5px 22px;font-weight:700;font-size:12px;color:#334155"><i class="bi bi-geo-alt me-1" style="color:#0891b2"></i>'+_esc(c)+' <span style="font-weight:400;color:#94a3b8">'+_upFmt(ctotOf(c))+'</span></td></tr>';
+        prods.forEach(function(r){ var y=(r.u5?(r.u/r.u5-1)*100:null);
+          partRows+='<tr style="cursor:pointer;border-top:1px solid #f4f6f9" onclick="openUnitPriceProduct(this.dataset.p)" data-p="'+_esc(r.p)+'" onmouseover="this.style.background=\'#fafafa\'" onmouseout="this.style.background=\'\'"><td style="padding:5px 14px 5px 30px">'+_esc(r.p)+'</td>'+
+            '<td style="text-align:right;color:#64748b">'+r.q+'대</td><td style="text-align:right;font-weight:700;color:#dc2626">'+_upUF(r.u)+'</td>'+
+            '<td style="text-align:center;font-size:11px">'+(y==null?'<span style="color:#cbd5e1">—</span>':'<span style="color:'+(y>=0?'#16a34a':'#2563eb')+'">'+(y>=0?'▲':'▼')+Math.abs(y).toFixed(0)+'%</span>')+'</td>'+
+            '<td style="text-align:right;color:#94a3b8;padding-right:14px">'+_upFmt(r.amt)+'</td></tr>'; });
+      });
+      if(partRows){ any=true; h+='<tr style="background:'+col+'12"><td colspan="5" style="padding:8px 14px;font-weight:800;color:'+col+';font-size:13px"><i class="bi bi-diagram-3 me-1"></i>'+pt+'</td></tr>'+partRows; }
+    });
+    h+='</tbody></table></div>';
+    body=any?h:'<div class="card p-4 text-center" style="color:#94a3b8;font-size:12px">조건에 맞는 데이터가 없습니다(최소 판매대수↓)</div>';
   }
   var note=(_UPRICE.updatedAt?'<div style="font-size:10px;color:#cbd5e1;text-align:right;margin-top:6px">기준 '+_esc(_UPRICE.updatedAt)+' · 작년 지역별 단가는 원본 수량 재집계 기반</div>':'');
   el.innerHTML=ctrl+body+note;
+}
+// ── 제품 클릭: 지역별 단가 비교 + 가격 인사이트(인상여지/프로모션) ──
+function openUnitPriceProduct(p){
+  var rows=_upByCountry(p);
+  var cat=(_UPRICE.y2026.prod[p]&&_UPRICE.y2026.prod[p].cat)||'';
+  if(!rows.length){ _upShow('<i class="bi bi-tags me-1" style="color:#dc2626"></i>'+_esc(p),'<div style="padding:24px;text-align:center;color:#94a3b8">판매 대수 데이터가 없어 단가를 낼 수 없습니다.</div>'); return; }
+  rows.sort(function(a,b){return b.u-a.u;});
+  var totQ=rows.reduce(function(s,r){return s+r.qty;},0), totA=rows.reduce(function(s,r){return s+r.amt;},0);
+  var avg=totQ>0?totA/totQ:0; var hi=rows[0], lo=rows[rows.length-1]; var maxU=hi.u, minU=lo.u; var spread=minU>0?maxU/minU:null;
+  var raise=rows.filter(function(r){return r.u<avg*0.92;}).sort(function(a,b){return b.qty-a.qty;})[0];
+  var promo=rows.filter(function(r){return r.u>avg*1.08;}).sort(function(a,b){return a.qty-b.qty;})[0];
+  var kpi=function(l,v,c){return '<div style="flex:1;min-width:100px;border:1px solid #eef2f7;border-radius:10px;padding:8px 12px"><div style="font-size:10px;color:#94a3b8">'+l+'</div><div style="font-size:14px;font-weight:800;color:'+(c||'#0f172a')+'">'+v+'</div></div>';};
+  var head='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">'+
+    kpi('평균 단가(가중)',_upUF(avg))+kpi('최고 · '+_esc(hi.c),_upUF(maxU),'#dc2626')+kpi('최저 · '+_esc(lo.c),_upUF(minU),'#2563eb')+kpi('지역 편차',spread?spread.toFixed(1)+'배':'—','#ea580c')+kpi('총 판매',totQ+'대')+'</div>';
+  var insH='';
+  if(raise) insH+='<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:9px 13px;font-size:12.5px;color:#166534;margin-bottom:6px">💡 <b>'+_esc(raise.c)+'</b>는 평균보다 낮은 <b>'+_upUF(raise.u)+'</b>에 <b>'+raise.qty+'대</b> 판매 — 수요가 있으니 <b>가격 인상 여지</b>가 있습니다.</div>';
+  if(promo) insH+='<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:9px 13px;font-size:12.5px;color:#991b1b;margin-bottom:6px">⚠️ <b>'+_esc(promo.c)+'</b>는 높은 <b>'+_upUF(promo.u)+'</b>인데 <b>'+promo.qty+'대</b>만 판매 — 가격 부담일 수 있어 <b>프로모션·인하 검토</b>가 필요합니다.</div>';
+  if(!raise&&!promo) insH='<div style="font-size:12px;color:#94a3b8;margin-bottom:6px">지역 간 단가가 비교적 고른 편입니다.</div>';
+  var tbl='<div style="font-size:12px;font-weight:800;color:#334155;margin:8px 0 5px">국가별 단가 비교 <span style="font-size:10px;font-weight:400;color:#cbd5e1">· 높은 순 · 막대=단가, 색=평균 대비</span></div>'+
+    '<div style="border:1px solid #eef2f7;border-radius:10px;overflow:hidden"><table style="width:100%;font-size:12px;border-collapse:collapse"><thead style="background:#f8fafc"><tr><th style="text-align:left;padding:6px 10px">국가</th><th style="text-align:right">대수</th><th style="text-align:left;padding-left:8px;width:42%">단가</th><th style="text-align:right">평균대비</th><th style="text-align:right;padding-right:10px">작년·YoY</th></tr></thead><tbody>'+
+    rows.map(function(r){ var dev=Math.round((r.u/avg-1)*100); var w=Math.round(r.u/maxU*100); var above=r.u>=avg; var bc=above?'#dc2626':'#2563eb'; var y=r.u5?((r.u/r.u5-1)*100):null;
+      return '<tr style="border-top:1px solid #f4f6f9"><td style="padding:6px 10px"><b>'+_esc(r.c)+'</b> <span style="font-size:10px;color:#cbd5e1">'+_esc((r.part||'').replace('파트',''))+'</span></td>'+
+        '<td style="text-align:right;color:#64748b">'+r.qty+'대</td>'+
+        '<td style="padding-left:8px"><div style="display:flex;align-items:center;gap:7px"><div style="flex:1;height:9px;background:#f1f5f9;border-radius:4px;overflow:hidden"><div style="width:'+w+'%;height:100%;background:'+bc+'"></div></div><span style="width:52px;text-align:right;font-weight:700;color:'+bc+'">'+_upUF(r.u)+'</span></div></td>'+
+        '<td style="text-align:right;font-weight:700;color:'+(dev>=0?'#dc2626':'#2563eb')+'">'+(dev>=0?'+':'')+dev+'%</td>'+
+        '<td style="text-align:right;color:#94a3b8;padding-right:10px;font-size:11px">'+(r.u5?_upUF(r.u5):'—')+(y==null?'':' <span style="color:'+(y>=0?'#16a34a':'#2563eb')+'">'+(y>=0?'▲':'▼')+Math.abs(y).toFixed(0)+'%</span>')+'</td></tr>'; }).join('')+
+    '</tbody></table></div>';
+  _upShow('<i class="bi bi-tags me-1" style="color:#dc2626"></i>'+_esc(p)+' <span style="font-size:12px;font-weight:400;color:#94a3b8">· '+_esc(cat)+' 지역별 단가</span>', head+insH+tbl);
 }
 </script>
 <script>
