@@ -7,16 +7,7 @@
 <title>wontech - 해외</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%230d9488'/><g transform='translate(13,36) scale(0.144)' fill='%23fff'><rect width='110' height='110' rx='28'/><rect x='204' width='110' height='110' rx='28'/><rect x='408' width='110' height='110' rx='28'/><rect x='102' y='97' width='110' height='110' rx='28'/><rect x='306' y='97' width='110' height='110' rx='28'/></g></svg>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"><style>#page-crm-dash .card,#page-sales .card,#page-dealers .card,#page-quotes .card,#page-activities .card{border:1px solid #eef2f7;box-shadow:0 1px 3px rgba(2,6,23,.05)}.is-card{transition:transform .12s,box-shadow .12s}.is-card:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(2,6,23,.12)!important}.dl-card{transition:transform .12s,box-shadow .12s}.dl-card:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(2,6,23,.12)!important;border-color:#cbd5e1!important}.is-col{transition:background .15s}#page-activities .table tbody tr:hover,#page-quotes .table tbody tr:hover{background:#f8fafc}.kpi-card{border:1px solid #eef2f7}/* == WT-DESIGN-POLISH-v1 : 공통 디자인 정제(안전 패스) == */
-.card,.kpi-card,.stat-card{border-radius:16px!important;box-shadow:none!important;border:1px solid var(--line,#e6e9ef)!important} /*WT-DEEP-v2*/
-.modal-content{border-radius:18px}
-table{font-variant-numeric:tabular-nums}
-.kpi-value,.kpi-num,.stat-num,.stat-value,.big-num,.num-lg{font-variant-numeric:tabular-nums;letter-spacing:-.015em}
-.form-control:focus,.form-select:focus{border-color:var(--brand,#2563eb);box-shadow:0 0 0 3px rgba(37,99,235,.12);outline:none}
-.btn{border-radius:8px}
-/* WT-DEEP-v3 프리미엄 타이포 일관 */
-.kpi-value,.lux-num,.stat-num,.stat-value,.metric-value,.metric-num,.big-num,.num-lg,.hero-num,.summary-num,.card-num{font-variant-numeric:tabular-nums;letter-spacing:-.018em}
-</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"><style>#page-crm-dash .card,#page-sales .card,#page-dealers .card,#page-quotes .card,#page-activities .card{border:1px solid #eef2f7;box-shadow:0 1px 3px rgba(2,6,23,.05)}.is-card{transition:transform .12s,box-shadow .12s}.is-card:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(2,6,23,.12)!important}.dl-card{transition:transform .12s,box-shadow .12s}.dl-card:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(2,6,23,.12)!important;border-color:#cbd5e1!important}.is-col{transition:background .15s}#page-activities .table tbody tr:hover,#page-quotes .table tbody tr:hover{background:#f8fafc}.kpi-card{border:1px solid #eef2f7}</style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -4679,14 +4670,22 @@ function _loadUprice(cb){ if(_UPRICE){if(cb)cb();return;} if(_upLoading)return; 
 function _upFmt(v){ return v>=1e8?(v/1e8).toFixed(1)+'억':v>=1e4?Math.round(v/1e4).toLocaleString()+'만':Math.round(v).toLocaleString(); }
 function _upUnit(a,q){ return q>0?a/q:null; }
 function _upUF(u){ return u==null?'—':(u>=1e8?(u/1e8).toFixed(2)+'억':Math.round(u/1e4).toLocaleString()+'만'); }
+/* ══ 단가 데이터 정제(회계원본 오염 방어) ══
+   회계 원본에 소모품 오분류·0원 더미·음수 반품행이 섞여 장비 단가를 오염시킴.
+   장비 단가는 물리적으로 500만↑ → 그 미만/음수는 단가분석에서 제외. 알려진 소모품 코드는 재분류. */
+var _UP_DEVFLOOR=5000000;                                  // 장비 단가 하한(원): 이 미만은 소모품·더미·반품
+var _UP_CATFIX={'BA 400 R':'소모품','BA 600 R':'소모품'};   // 회계원본 오분류 보정(BA 카트리지=소모품)
+function _upCatOf(p){ if(_UP_CATFIX[p])return _UP_CATFIX[p]; var pr=_UPRICE&&_UPRICE.y2026&&_UPRICE.y2026.prod[p]; return (pr&&pr.cat)||'장비'; }
+function _upValid(cat,q,a){ if(!(q>0))return false; var u=a/q; return cat==='소모품'?(u>0):(u>=_UP_DEVFLOOR); }  // 음수반품·0원더미 제외, 장비는 하한 적용
+function _upProdAgg(p,Y){ var cat=_upCatOf(p); var q=0,a=0,drop=0; var C=(Y&&Y.ctry)||{}; Object.keys(C).forEach(function(c){ var x=C[c]&&C[c][p]; if(!x)return; if(_upValid(cat,x.qty,x.amt)){ q+=x.qty; a+=x.amt; } else if(x.qty>0){ drop++; } }); return {cat:cat,qty:q,amt:a,u:q>0?a/q:null,drop:drop}; }
 function _setUpView(v){ _upView=v; renderUnitPrice(); }
 function _setUpCat(c){ _upCat=c; renderUnitPrice(); }
 function _setUpMin(){ var e=document.getElementById('up-min'); _upMinQty=Number(e&&e.value||0)||0; renderUnitPrice(); }
 function _upCatOk(c){ return _upCat==='전체'||c===_upCat; }
 function _upByCountry(p){
-  var Y6=(_UPRICE&&_UPRICE.y2026)||{ctry:{}}, Y5=(_UPRICE&&_UPRICE.y2025)||{ctry:{}}; var rows=[];
-  Object.keys(Y6.ctry||{}).forEach(function(c){ var a=Y6.ctry[c][p]; if(a&&a.qty>0){ var b=(Y5.ctry[c]&&Y5.ctry[c][p]);
-    rows.push({c:c,qty:a.qty,amt:a.amt,u:a.amt/a.qty,u5:(b&&b.qty>0)?b.amt/b.qty:null,q5:(b?b.qty:0),a5:(b?b.amt:0),part:(typeof _partOf==='function'?_partOf(c,null):'')}); } });
+  var Y6=(_UPRICE&&_UPRICE.y2026)||{ctry:{}}, Y5=(_UPRICE&&_UPRICE.y2025)||{ctry:{}}; var rows=[]; var cat=_upCatOf(p);
+  Object.keys(Y6.ctry||{}).forEach(function(c){ var a=Y6.ctry[c][p]; if(a&&_upValid(cat,a.qty,a.amt)){ var b=(Y5.ctry[c]&&Y5.ctry[c][p]); var b5ok=(b&&_upValid(cat,b.qty,b.amt));
+    rows.push({c:c,qty:a.qty,amt:a.amt,u:a.amt/a.qty,u5:b5ok?b.amt/b.qty:null,q5:b5ok?b.qty:0,a5:b5ok?b.amt:0,part:(typeof _partOf==='function'?_partOf(c,null):'')}); } });
   return rows;
 }
 function _upSpread(p){ var bc=_upByCountry(p); if(bc.length<2)return null; var us=bc.map(function(x){return x.u;}).filter(function(u){return u>0;}); if(us.length<2)return null; var mx=Math.max.apply(null,us); us=us.filter(function(u){return u>=mx*0.05;}); if(us.length<2)return null; var mn=Math.min.apply(null,us); return mn>0?(mx/mn):null; }   // 단가 이상치(<최고5%) 제외 후 편차
@@ -4705,8 +4704,8 @@ function renderUnitPrice(){
     '<span style="font-size:11px;color:#94a3b8;margin-left:auto"><i class="bi bi-info-circle me-1"></i>제품 클릭 → 지역별 단가 비교·인상여지 분석</span></div>';
   var body='';
   if(_upView==='product'){
-    var rows=Object.keys(Y6.prod).map(function(p){ var a=Y6.prod[p], b=Y5.prod[p]||{amt:0,qty:0};
-      return {p:p,cat:a.cat,q6:a.qty,u6:_upUnit(a.amt,a.qty),u5:_upUnit(b.amt,b.qty),amt6:a.amt,sp:_upSpread(p)}; })
+    var rows=Object.keys(Y6.prod).map(function(p){ var a=_upProdAgg(p,Y6), b=_upProdAgg(p,Y5);
+      return {p:p,cat:a.cat,q6:a.qty,u6:a.u,u5:b.u,amt6:a.amt,sp:_upSpread(p)}; })
       .filter(function(r){ return _upCatOk(r.cat) && r.u6!=null && r.q6>=_upMinQty; }).sort(function(a,b){ return b.amt6-a.amt6; });
     var big=rows.filter(function(r){return r.sp&&r.sp>=1.5&&r.sp<=8;}).sort(function(a,b){return b.sp-a.sp;}).slice(0,6);
     var ins=big.length?('<div class="card p-2 px-3 mb-2" style="background:#fffbeb;border-color:#fde68a"><div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12px"><b style="color:#b45309;white-space:nowrap"><i class="bi bi-lightbulb-fill me-1"></i>지역별 편차 큰 제품</b>'+big.map(function(r){return '<span onclick="openUnitPriceProduct(this.dataset.p)" data-p="'+_esc(r.p)+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid #fcd34d;border-radius:14px;padding:2px 10px;white-space:nowrap"><span style="color:#78350f">'+_esc(r.p)+'</span><b style="color:#dc2626">'+r.sp.toFixed(1)+'배</b></span>';}).join('')+'</div></div>'):'';
@@ -4730,9 +4729,9 @@ function renderUnitPrice(){
       var col=(typeof PART_COLOR!=='undefined'&&PART_COLOR[pt])||'#64748b'; var cs=byPart[pt].slice().sort(function(a,b){return ctotOf(b)-ctotOf(a);});
       var partRows='';
       cs.forEach(function(c){
-        var prods=Object.keys(Y6.ctry[c]).map(function(p){ var a=Y6.ctry[c][p]; var cat=(Y6.prod[p]&&Y6.prod[p].cat)||'장비'; var b=(Y5.ctry[c]&&Y5.ctry[c][p])||null;
-            return {p:p,cat:cat,q:a.qty,u:_upUnit(a.amt,a.qty),u5:b?_upUnit(b.amt,b.qty):null,amt:a.amt}; })
-          .filter(function(r){ return _upCatOk(r.cat)&&r.u!=null&&r.q>=_upMinQty; }).sort(function(a,b){return b.amt-a.amt;});
+        var prods=Object.keys(Y6.ctry[c]).map(function(p){ var a=Y6.ctry[c][p]; var cat=_upCatOf(p); var b=(Y5.ctry[c]&&Y5.ctry[c][p])||null; var b5ok=(b&&_upValid(cat,b.qty,b.amt));
+            return {p:p,cat:cat,q:a.qty,amt:a.amt,u:a.amt/a.qty,u5:b5ok?b.amt/b.qty:null,_ok:_upValid(cat,a.qty,a.amt)}; })
+          .filter(function(r){ return _upCatOk(r.cat)&&r._ok&&r.q>=_upMinQty; }).sort(function(a,b){return b.amt-a.amt;});
         if(!prods.length)return;
         partRows+='<tr style="background:#f8fafc"><td colspan="5" style="padding:5px 14px 5px 22px;font-weight:700;font-size:12px;color:#334155"><i class="bi bi-geo-alt me-1" style="color:#0891b2"></i>'+_esc(c)+' <span style="font-weight:400;color:#94a3b8">'+_upFmt(ctotOf(c))+'</span></td></tr>';
         prods.forEach(function(r){ var y=(r.u5?(r.u/r.u5-1)*100:null);
@@ -4752,7 +4751,7 @@ function renderUnitPrice(){
 // ── 제품 클릭: 지역별 단가 비교 + 가격 인사이트(인상여지/프로모션) ──
 function openUnitPriceProduct(p){
   var rows=_upByCountry(p);
-  var cat=(_UPRICE.y2026.prod[p]&&_UPRICE.y2026.prod[p].cat)||'';
+  var cat=_upCatOf(p);
   if(!rows.length){ _upShow('<i class="bi bi-tags me-1" style="color:#dc2626"></i>'+_esc(p),'<div style="padding:24px;text-align:center;color:#94a3b8">판매 대수 데이터가 없어 단가를 낼 수 없습니다.</div>'); return; }
   rows.sort(function(a,b){return b.u-a.u;});
   var totQ=rows.reduce(function(s,r){return s+r.qty;},0), totA=rows.reduce(function(s,r){return s+r.amt;},0);
