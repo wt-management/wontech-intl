@@ -3829,7 +3829,7 @@ function _dealerAcct(name){
   var hit=map[_norm2(name)];
   if(hit&&(hit.krw>0||hit.prev>0))return hit;
   var dn=_norm2(name); var best=null;
-  if(dn&&dn.length>=3){ Object.keys(map).forEach(function(k){ if(k==='__jp'||k==='__cn')return; if(k.indexOf(dn)>=0||dn.indexOf(k)>=0){ if(!best||map[k].krw>best.krw)best=map[k]; } }); }
+  if(dn&&dn.length>=4){ Object.keys(map).forEach(function(k){ if(k==='__jp'||k==='__cn'||k.length<4)return; if(k.indexOf(dn)>=0||dn.indexOf(k)>=0){ if(!best||map[k].krw>best.krw)best=map[k]; } }); }
   return best||{krw:0,m:{},prev:0,pm:{},prods:{},cnt:0,last:'',who:'',country:''};
 }
 // 집계: 에스준의원 제외 · 더마케이→러시아 · 중국→SBT-WON · 일본→일본법인
