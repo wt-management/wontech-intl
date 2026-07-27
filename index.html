@@ -2606,8 +2606,8 @@ function _renderRegionTable(yr,f,t){
   var sums={};
   function add(rg,k,v){ if(!sums[rg])sums[rg]={cur:0,prev:0}; sums[rg][k]+=v; }
   function acc(src,k){ Object.entries((src&&src.countries)||{}).forEach(function(e){ var c=e[0],obj=e[1]; var cd=obj.clientData||{}; var names=Object.keys(cd);
-    if(names.length){ names.forEach(function(nm){ add(_regOf(c,nm),k,ytd((cd[nm]&&cd[nm].m)||{},f,t)); }); }
-    else add(_regOf(c,null),k,ytd(obj.m||{},f,t)); }); }
+    if(names.length){ names.forEach(function(nm){ add(_regOvr(c,nm),k,ytd((cd[nm]&&cd[nm].m)||{},f,t)); }); }
+    else add(_regOvr(c,null),k,ytd(obj.m||{},f,t)); }); }
   acc(cur,'cur'); if(pre)acc(pre,'prev');
   var CORP=['태국법인','미국법인','일본법인'];
   var regs=Object.keys(sums).filter(function(r){return CORP.indexOf(r)<0;}).sort(function(a,b){return (sums[b].cur)-(sums[a].cur);});
@@ -2632,12 +2632,14 @@ function _renderRegionTable(yr,f,t){
   h+='</tbody></table>';
   body.innerHTML=h;
 }
+// 종합 지역·법인 분류: 종속법인(WONTECH LLC 등)만 해당 법인으로 분리, 그 외 미국 거래처는 미주 유지
+function _regOvr(c,nm){ if(nm&&typeof _isCorp==='function'&&_isCorp(nm)){ if(c==='미국'||c==='미국법인')return '미국법인'; if(c==='태국'||c==='태국법인')return '태국법인'; if(c==='일본'||c==='일본법인')return '일본법인'; } return _regOf(c,nm); }
 function openRegionDetail(rg,yr,f,t){
   var cur=yr===2026?INTL:(INTL.data2025||{});
   var rows=[];
   Object.entries(cur.countries||{}).forEach(function(e){ var c=e[0],obj=e[1]; var cd=obj.clientData||{}; var names=Object.keys(cd);
-    if(names.length){ names.forEach(function(nm){ if(_regOf(c,nm)===rg){ var v=ytd((cd[nm]&&cd[nm].m)||{},f,t); if(v>0)rows.push([nm,v]); } }); }
-    else if(_regOf(c,null)===rg){ var v=ytd(obj.m||{},f,t); if(v>0)rows.push([c+' (전체)',v]); } });
+    if(names.length){ names.forEach(function(nm){ if(_regOvr(c,nm)===rg){ var v=ytd((cd[nm]&&cd[nm].m)||{},f,t); if(v>0)rows.push([nm,v]); } }); }
+    else if(_regOvr(c,null)===rg){ var v=ytd(obj.m||{},f,t); if(v>0)rows.push([c+' (전체)',v]); } });
   rows.sort(function(a,b){return b[1]-a[1];});
   var mx=rows.length?rows[0][1]:1, sum=rows.reduce(function(s,r){return s+r[1];},0);
   document.getElementById('ovm-title').textContent=rg+' 상세 ('+f+'~'+t+'월)';
