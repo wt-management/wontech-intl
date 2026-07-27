@@ -1105,7 +1105,8 @@ function renderByProduct(){
 
   // 장비만 표시 (소모품 제외)
   const devs=cur.prods_dev||{};
-  const arr=Object.entries(devs).map(([n,v])=>({n,v,pv:(pre?.prods_dev||{})[n]||0})).sort((a,b)=>b.v-a.v);
+  const cpm=cur.prodMo||{}, ppm=(pre&&pre.prodMo)||{};
+  const arr=Object.keys(devs).map(n=>({n, v:ytd(cpm[n]||{},f,t), pv:ytd(ppm[n]||{},f,t)})).filter(x=>x.v>0||x.pv>0).sort((a,b)=>b.v-a.v);
   const maxV=arr[0]?.v||1;
 
   // 드롭다운 채우기
@@ -1984,25 +1985,26 @@ function openProdModal(prodName, cat){
   const t  = +(document.getElementById(cat==='cons'?'cs-to':'pd-to')?.value||5);
   const cur= yr===2026?INTL:INTL.data2025, pre=yr===2026?INTL.data2025:null;
 
-  // Aggregate country breakdown for this product (merge both years)
-  const allCts = new Set([
-    ...Object.keys(cur.countries||{}),
-    ...Object.keys(pre?.countries||{})
-  ]);
-  const ctArr = [...allCts].map(ctName=>({
-    n: ctName,
-    v:  cur.countries?.[ctName]?.prods?.[prodName]||0,
-    pv: pre?.countries?.[ctName]?.prods?.[prodName]||0
-  })).filter(x=>x.v>0||x.pv>0).sort((a,b)=>b.v-a.v);
-
-  const tot26 = ctArr.reduce((s,x)=>s+x.v,0);
-  // Get product monthly data from prodMo
+  // 제품 월별 데이터(기간 필터) — 국가별 표도 같은 기간에 맞추려 먼저 계산
   const pm26 = cur.prodMo?.[prodName]||{};
   const pm25 = pre?.prodMo?.[prodName]||{};
   const tot25 = Object.values(pm25).reduce((s,v)=>s+v,0);
   const ytdV  = Object.entries(pm26).filter(([m])=>+m>=f&&+m<=t).reduce((s,[,v])=>s+v,0);
   const ytdP  = Object.entries(pm25).filter(([m])=>+m>=f&&+m<=t).reduce((s,[,v])=>s+v,0);
   const yoy   = pct(ytdV, ytdP);
+  // 국가별 breakdown — 국가별 월데이터가 없어 연간 점유율을 기간 비율로 환산(합계가 상단 YTD와 정합)
+  const _annV=ytd(pm26,1,12)||0, _rV=_annV>0?ytdV/_annV:1;
+  const _annP=ytd(pm25,1,12)||0, _rP=_annP>0?ytdP/_annP:1;
+  const allCts = new Set([
+    ...Object.keys(cur.countries||{}),
+    ...Object.keys(pre?.countries||{})
+  ]);
+  const ctArr = [...allCts].map(ctName=>({
+    n: ctName,
+    v:  Math.round((cur.countries?.[ctName]?.prods?.[prodName]||0)*_rV),
+    pv: Math.round((pre?.countries?.[ctName]?.prods?.[prodName]||0)*_rP)
+  })).filter(x=>x.v>0||x.pv>0).sort((a,b)=>b.v-a.v);
+  const tot26 = ctArr.reduce((s,x)=>s+x.v,0);
 
   document.getElementById('prod-modal-title').innerHTML =
     `<i class="bi bi-${cat==='cons'?'capsule':'box-seam'}" style="color:${cat==='cons'?'#0d9488':'#7c3aed'};margin-right:6px"></i>${prodName}`;
@@ -2112,8 +2114,8 @@ function renderByCons(){
   const yr=+document.getElementById('cs-year').value, f=+document.getElementById('cs-from').value, t=+document.getElementById('cs-to').value;
   const cur=yr===2026?INTL:INTL.data2025, pre=yr===2026?INTL.data2025:null;
   const prods = cur.prods_cons||{};
-  const pPre  = pre?.prods_cons||{};
-  const arr = Object.entries(prods).map(([n,v])=>({n,v,pv:pPre[n]||0})).sort((a,b)=>b.v-a.v);
+  const cpm=cur.prodMo||{}, ppm=(pre&&pre.prodMo)||{};
+  const arr = Object.keys(prods).map(n=>({n, v:ytd(cpm[n]||{},f,t), pv:ytd(ppm[n]||{},f,t)})).filter(x=>x.v>0||x.pv>0).sort((a,b)=>b.v-a.v);
   const maxV = arr[0]?.v||1;
   document.getElementById('cs-rank').innerHTML=_rankTable(arr.map(function(x){return {name:x.n,v:x.v,prev:x.pv,click:"openProdModal('"+String(x.n).replace(/'/g,"\\'")+"','cons')"};}),{color:'#0d9488'});
 
