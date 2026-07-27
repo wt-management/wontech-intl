@@ -1664,7 +1664,7 @@ function renderSales(){
   }).join('');
 }
 function _dealCard(d){
-  var today=new Date().toISOString().slice(0,10);
+  var today=_todayS();
   var days=d.stageUpdatedAt?Math.floor((Date.now()-new Date(d.stageUpdatedAt).getTime())/864e5):null;
   var overdue=d.expectedShip&&d.expectedShip<today&&d.stage!=='선적/납품';
   return '<div class="is-card" draggable="true" ondragstart="_dragId=\''+d.id+'\'" onclick="openDeal(\''+d.id+'\')" style="background:#fff;border:1px solid #f1f5f9;border-radius:8px;padding:9px 11px;margin-bottom:7px;cursor:pointer;box-shadow:0 1px 2px rgba(2,6,23,.05)">'+
@@ -1725,7 +1725,7 @@ async function _loadIntlCrm(){
 }
 async function _saveActs(){ try{ const {error}=await _sb.from('cons_cache').upsert({key:'intl_activities',data:{activities:INTL_ACT,updatedAt:new Date().toISOString()}},{onConflict:'key'}); if(error)throw error; }catch(e){ alert('저장 실패: '+e.message); } }
 async function _saveDealers(){ try{ const {error}=await _sb.from('cons_cache').upsert({key:'intl_dealers',data:{dealers:INTL_DEALERS,updatedAt:new Date().toISOString()}},{onConflict:'key'}); if(error)throw error; }catch(e){ alert('저장 실패: '+e.message); } }
-function _today(){ return new Date().toISOString().slice(0,10); }
+function _today(){ return _todayS(); }
 function _bar(label,v,max,col,valtxt){ return '<div style="display:flex;flex-direction:row;align-items:center;gap:8px;margin-bottom:5px;font-size:12px"><span style="width:96px;color:#475569;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+label+'</span><div style="flex:1;height:8px;background:#eef2f7;border-radius:4px;overflow:hidden"><div style="width:'+(max>0?Math.round(v/max*100):0)+'%;height:100%;background:'+col+'"></div></div><span style="width:78px;text-align:right;font-weight:600">'+valtxt+'</span></div>'; }
 
 // 딜러 집계 (pipeline + activities + dealer info)
@@ -2170,7 +2170,7 @@ function renderByCons(){
 // ═══ CRM v2 — 6개 메뉴 고도화 (Salesforce/Pipedrive/HubSpot 리서치 기반 재정의 블록) ═══
 var _salesView='kanban', _salesSort='amount', _scOffset=0, _dlSort='health';
 function _dday(ds){ if(!ds)return ''; var t=new Date(); t.setHours(0,0,0,0); var d=new Date(ds+'T00:00:00'); var diff=Math.round((d-t)/864e5); return diff===0?'D-DAY':(diff>0?'D-'+diff:'D+'+(-diff)); }
-function _ddayColor(ds){ if(!ds)return '#94a3b8'; var t=new Date().toISOString().slice(0,10); return ds<t?'#dc2626':(ds===t?'#d97706':'#64748b'); }
+function _ddayColor(ds){ if(!ds)return '#94a3b8'; var t=_todayS(); return ds<t?'#dc2626':(ds===t?'#d97706':'#64748b'); }
 function _stageDays(d){ return d.stageUpdatedAt?Math.floor((Date.now()-new Date(d.stageUpdatedAt).getTime())/864e5):null; }
 
 // ── 영업 현황판 v2: KPI 6종 + 퍼널(통과율) + 국가별 + 리더보드 + 액션/선적(클릭 오픈) ──
@@ -2253,7 +2253,7 @@ function renderCrmDash(){
 // ── 수주관리 v2: 칸반/리스트 토글 + 정렬 + 로팅 틴트 + 확률바 ──
 function _dealCard(d){
   var days=_stageDays(d); var rot=days!=null&&days>=30;
-  var today=new Date().toISOString().slice(0,10);
+  var today=_todayS();
   var overdue=d.expectedShip&&d.expectedShip<today&&d.stage!=='선적/납품';
   return '<div class="is-card" draggable="true" ondragstart="_dragId=\''+d.id+'\'" onclick="openDeal(\''+d.id+'\')" style="background:'+(rot?'#fef2f2':'#fff')+';border:1px solid '+(rot?'#fecaca':'#f1f5f9')+';border-radius:8px;padding:9px 11px;margin-bottom:7px;cursor:pointer;box-shadow:0 1px 2px rgba(2,6,23,.05)">'+
     '<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:start;gap:6px"><div style="font-size:12px;font-weight:700">'+_esc(d.dealer||'-')+' <span style="font-size:10px;color:#94a3b8">'+_esc(d.country||'')+'</span></div>'+(days!=null?'<span style="font-size:9px;color:'+(rot?'#dc2626':'#94a3b8')+';white-space:nowrap;font-weight:'+(rot?'700':'400')+'" title="단계 체류일">'+days+'일'+(rot?' 🔥':'')+'</span>':'')+'</div>'+
@@ -2731,7 +2731,7 @@ function renderActivities(){
   var base=new Date(); base.setDate(1); base.setMonth(base.getMonth()+_acOff); base.setHours(0,0,0,0);
   var Y=base.getFullYear(),M=base.getMonth();
   var first=new Date(Y,M,1), start=(first.getDay()+6)%7, dim=new Date(Y,M+1,0).getDate();
-  var todayS=new Date().toISOString().slice(0,10);
+  var todayS=_todayS();
   var byDay={}, upDay={};
   acts.forEach(function(a){ if(a.date)(byDay[a.date]=byDay[a.date]||[]).push(a); if(a.nextDate&&a.nextAction)(upDay[a.nextDate]=upDay[a.nextDate]||[]).push(a); });
   var head='<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;margin-bottom:10px"><button class="btn btn-sm btn-outline-secondary" style="font-size:11px;padding:3px 10px" onclick="acNav(-1)"><i class="bi bi-chevron-left"></i></button><span style="font-size:14px;font-weight:800">'+Y+'년 '+(M+1)+'월</span><button class="btn btn-sm btn-outline-secondary" style="font-size:11px;padding:3px 10px" onclick="acNav(1)"><i class="bi bi-chevron-right"></i></button></div>';
@@ -2833,7 +2833,7 @@ function _fxBadge(){ var n=function(v){ v=Number(v); return isFinite(v)?v.toLoca
 // ── 수주관리 v6: 다통화 카드/리스트/KPI(KRW 환산) ──
 function _dealCard(d){
   var days=_stageDays(d); var rot=days!=null&&days>=30;
-  var today=new Date().toISOString().slice(0,10);
+  var today=_todayS();
   var overdue=d.expectedShip&&d.expectedShip<today&&d.stage!=='선적/납품';
   return '<div class="is-card" draggable="true" ondragstart="_dragId=\''+d.id+'\'" onclick="openDeal(\''+d.id+'\')" style="background:'+(rot?'#fef2f2':'#fff')+';border:1px solid '+(rot?'#fecaca':'#f1f5f9')+';border-radius:8px;padding:9px 11px;margin-bottom:7px;cursor:pointer;box-shadow:0 1px 2px rgba(2,6,23,.05)">'+
     '<div style="display:flex;justify-content:space-between;align-items:start;gap:6px"><div style="font-size:12px;font-weight:700">'+_esc(d.dealer||'-')+' <span style="font-size:10px;color:#94a3b8">'+_esc(d.country||'')+'</span></div>'+(days!=null?'<span style="font-size:9px;color:'+(rot?'#dc2626':'#94a3b8')+';white-space:nowrap;font-weight:'+(rot?'700':'400')+'" title="단계 체류일">'+days+'일'+(rot?' 🔥':'')+'</span>':'')+'</div>'+
@@ -3461,7 +3461,7 @@ function renderDealers(){
 <script>
 // ═══ CRM v10 — 딜러 종합 프로필(계정 페이지) ═══
 var REL_COLOR={'대리점':'#0d9488','딜러':'#0891b2','에이전트':'#7c3aed','직판':'#f59e0b','기타':'#64748b'};
-function _dlDday(dend){ if(!dend)return ''; var t=new Date().toISOString().slice(0,10); if(dend<t)return '<span style="color:#dc2626;font-weight:700">만료</span>'; var d=Math.round((new Date(dend+'T00:00:00')-new Date(t+'T00:00:00'))/864e5); return d<=90?'<span style="color:#d97706;font-weight:700">D-'+d+'</span>':'<span style="color:#16a34a">유효</span>'; }
+function _dlDday(dend){ if(!dend)return ''; var t=_todayS(); if(dend<t)return '<span style="color:#dc2626;font-weight:700">만료</span>'; var d=Math.round((new Date(dend+'T00:00:00')-new Date(t+'T00:00:00'))/864e5); return d<=90?'<span style="color:#d97706;font-weight:700">D-'+d+'</span>':'<span style="color:#16a34a">유효</span>'; }
 function _dlInfoRow(ic,label,val,ph){ return '<div style="display:flex;gap:8px;font-size:12px;padding:5px 0;border-bottom:1px solid #f8fafc"><span style="color:#94a3b8;min-width:74px"><i class="bi '+ic+' me-1"></i>'+label+'</span><span style="flex:1;color:'+(val?'#334155':'#cbd5e1')+';font-weight:'+(val?'600':'400')+'">'+(val?_esc(val):(ph||'미입력'))+'</span></div>'; }
 function openDealer(name){
   _dealerCur=name;
