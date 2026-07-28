@@ -695,6 +695,8 @@ window.addEventListener('pageshow', function(e){
       <div class="col-4"><label>단계</label><select id="d-stage" class="form-select form-select-sm"></select></div>
       <div class="col-4"><label>확률 %</label><input id="d-prob" type="number" class="form-control form-control-sm"></div>
       <div class="col-4"><label>담당</label><input id="d-sales" class="form-control form-control-sm" list="crm-sales" autocomplete="off"></div>
+      <div class="col-6"><label>확약 구분</label><select id="d-commit" class="form-select form-select-sm"><option value="Pipeline">Pipeline (일반)</option><option value="Best Case">Best Case (유력)</option><option value="Commit">Commit (확약)</option></select></div>
+      <div class="col-6"><label>유입 경로</label><select id="d-src" class="form-select form-select-sm"><option value="">-</option><option>전시회</option><option>딜러문의</option><option>기존딜러</option><option>웹/이메일 문의</option><option>소개</option><option>재구매</option><option>기타</option></select></div>
       <div class="col-6"><label>예상 선적일</label><input id="d-ship" type="date" class="form-control form-control-sm"></div>
       <div class="col-6"><label>다음 액션일</label><input id="d-nextdate" type="date" class="form-control form-control-sm"></div>
       <div class="col-12"><label>다음 액션</label><input id="d-next" class="form-control form-control-sm" placeholder="데모/견적발송/딜러미팅/선적준비 등" autocomplete="off"></div>
@@ -1691,6 +1693,7 @@ function openDeal(id){
   var set=function(k,v){var el=document.getElementById(k);if(el)el.value=(v==null?'':v);};
   set('d-country',d.country);set('d-dealer',d.dealer);set('d-product',d.product);set('d-amount',d.amount);
   set('d-prob',d.prob);set('d-sales',d.sales!=null?d.sales:_meName);set('d-ship',d.expectedShip);set('d-nextdate',d.nextDate);set('d-next',d.nextAction);set('d-note',d.note);
+  var cm=document.getElementById('d-commit');if(cm)cm.value=d.commit||'Pipeline';set('d-src',d.source);
   set('d-po',d.poNo);set('d-inv',d.invoiceNo);var ss=document.getElementById('d-shipstat');if(ss)ss.value=d.shipStatus||'';var dc=d.docs||{};['co','ci','pl','ip'].forEach(function(k){var e=document.getElementById('doc-'+k);if(e)e.checked=!!dc[k];});var cu=document.getElementById('d-cur');if(cu)cu.value=d.currency||'USD';if(typeof _updDealKrw==='function')_updDealKrw();
   document.getElementById('d-del').style.display=id?'inline-block':'none';
   document.getElementById('is-modal').style.display='flex';
@@ -1705,6 +1708,7 @@ function saveDeal(){
   d.channel='intl'; d.country=g('d-country').trim(); d.dealer=dealer; d.product=g('d-product').trim();
   d.amount=Number(g('d-amount'))||0; d.prob=Number(g('d-prob'))||0; d.stage=g('d-stage');
   d.expectedShip=g('d-ship'); d.nextDate=g('d-nextdate'); d.nextAction=g('d-next').trim(); d.note=g('d-note').trim(); d.sales=g('d-sales').trim();
+  d.commit=(document.getElementById('d-commit')||{}).value||'Pipeline'; d.source=(document.getElementById('d-src')||{}).value||'';
   d.currency=(document.getElementById('d-cur')||{}).value||'USD'; d.poNo=g('d-po').trim(); d.invoiceNo=g('d-inv').trim(); d.shipStatus=document.getElementById('d-shipstat').value; d.docs={co:document.getElementById('doc-co').checked,ci:document.getElementById('doc-ci').checked,pl:document.getElementById('doc-pl').checked,ip:document.getElementById('doc-ip').checked};
   if(d.stage!==prevStage||!d.stageUpdatedAt) d.stageUpdatedAt=new Date().toISOString();
   if(!_dealEdit) INTL_PIPE.push(d);
@@ -2179,6 +2183,7 @@ function renderCrmDash(){
   var deals=INTL_PIPE||[];
   var active=deals.filter(function(d){return d.stage!=='선적/납품';});
   var weighted=active.reduce(function(s,d){return s+Number(d.amount||0)*(Number(d.prob||0)/100);},0);
+  var commitAmt=active.filter(function(d){return d.commit==='Commit';}).reduce(function(s,d){return s+Number(d.amount||0);},0);
   var total=deals.reduce(function(s,d){return s+Number(d.amount||0);},0);
   var wonArr=deals.filter(function(d){return d.stage==='계약/PO'||d.stage==='선적/납품';});
   var wonAmt=wonArr.reduce(function(s,d){return s+Number(d.amount||0);},0);
@@ -2188,7 +2193,7 @@ function renderCrmDash(){
   var avgStay=stays.length?Math.round(stays.reduce(function(a,b){return a+b;},0)/stays.length):0;
   var kpi=[
     ['진행 딜',active.length+'건','#0891b2','bi-kanban','파이프라인 활성'],
-    ['가중 예상',_fmtUSD(weighted),'#0d9488','bi-graph-up-arrow','확률 반영'],
+    ['가중 예상',_fmtUSD(weighted),'#0d9488','bi-graph-up-arrow','확약 '+_fmtUSD(commitAmt)],
     ['계약/납품',_fmtUSD(wonAmt),'#16a34a','bi-check2-circle',wonArr.length+'건 확정'],
     ['Win율',winRate+'%','#7c3aed','bi-trophy','전체 딜 대비'],
     ['평균 딜 규모',_fmtUSD(avgDeal),'#f59e0b','bi-cash-stack','딜당 평균'],
@@ -2258,6 +2263,7 @@ function _dealCard(d){
   return '<div class="is-card" draggable="true" ondragstart="_dragId=\''+d.id+'\'" onclick="openDeal(\''+d.id+'\')" style="background:'+(rot?'#fef2f2':'#fff')+';border:1px solid '+(rot?'#fecaca':'#f1f5f9')+';border-radius:8px;padding:9px 11px;margin-bottom:7px;cursor:pointer;box-shadow:0 1px 2px rgba(2,6,23,.05)">'+
     '<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:start;gap:6px"><div style="font-size:12px;font-weight:700">'+_esc(d.dealer||'-')+' <span style="font-size:10px;color:#94a3b8">'+_esc(d.country||'')+'</span></div>'+(days!=null?'<span style="font-size:9px;color:'+(rot?'#dc2626':'#94a3b8')+';white-space:nowrap;font-weight:'+(rot?'700':'400')+'" title="단계 체류일">'+days+'일'+(rot?' 🔥':'')+'</span>':'')+'</div>'+
     (d.product?'<div style="font-size:11px;color:#475569">'+_esc(d.product)+'</div>':'')+
+    ((d.commit==='Commit'||d.commit==='Best Case'||d.source)?'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:3px">'+(d.commit==='Commit'?'<span style="font-size:9px;font-weight:700;color:#15803d;background:#dcfce7;border-radius:4px;padding:1px 5px">✓ 확약</span>':d.commit==='Best Case'?'<span style="font-size:9px;font-weight:700;color:#2563eb;background:#dbeafe;border-radius:4px;padding:1px 5px">유력</span>':'')+(d.source?'<span style="font-size:9px;color:#64748b;background:#f1f5f9;border-radius:4px;padding:1px 5px">'+_esc(d.source)+'</span>':'')+'</div>':'')+
     '<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;margin-top:3px"><span style="font-size:12px;font-weight:700;color:#0d9488">'+_fmtUSD(d.amount)+'</span><span style="font-size:10px;color:#64748b">'+_esc(d.sales||'')+(d.prob?' · '+d.prob+'%':'')+'</span></div>'+
     '<div style="height:3px;background:#f1f5f9;border-radius:2px;margin-top:5px;overflow:hidden"><div style="width:'+(Number(d.prob)||0)+'%;height:100%;background:'+(SC_INTL[d.stage]||'#94a3b8')+'"></div></div>'+
     (d.nextAction?'<div style="font-size:10px;color:#16a34a;margin-top:4px"><i class="bi bi-arrow-right-short"></i>'+_esc(d.nextAction)+(d.nextDate?' <b style="color:'+_ddayColor(d.nextDate)+'">'+_dday(d.nextDate)+'</b>':'')+'</div>':'')+
@@ -2289,8 +2295,9 @@ function renderSales(){
   var closeThis=list.filter(function(d){return (d.expectedShip||'').indexOf(ym)===0 && d.stage!=='선적/납품';}).length;
   var won=list.filter(function(d){return d.stage==='계약/PO'||d.stage==='선적/납품';}).reduce(function(s,d){return s+Number(d.amount||0);},0);
   var rotCnt=active.filter(function(d){var v=_stageDays(d);return v!=null&&v>=30;}).length;
+  var commitAmt=active.filter(function(d){return d.commit==='Commit';}).reduce(function(s,d){return s+Number(d.amount||0);},0);
   var kpi=[
-    ['진행 딜',active.length+'건','#0891b2'],['가중 예상(USD)',_fmtUSD(weighted),'#0d9488'],['이달 선적예정',closeThis+'건','#fd7e14'],['정체 딜(30일+)',rotCnt+'건',rotCnt?'#dc2626':'#94a3b8'],['계약/납품 누계',_fmtUSD(won),'#16a34a']
+    ['진행 딜',active.length+'건','#0891b2'],['확약(Commit)',_fmtUSD(commitAmt),'#15803d'],['가중 예상(USD)',_fmtUSD(weighted),'#0d9488'],['이달 선적예정',closeThis+'건','#fd7e14'],['정체 딜(30일+)',rotCnt+'건',rotCnt?'#dc2626':'#94a3b8'],['계약/납품 누계',_fmtUSD(won),'#16a34a']
   ];
   document.getElementById('is-kpi').innerHTML=kpi.map(function(c){return '<div class="col-6 col-md" style="min-width:130px"><div class="kpi-card" style="padding:10px 12px"><div class="kpi-label">'+c[0]+'</div><div class="kpi-value" style="font-size:1.02rem;color:'+c[2]+'">'+c[1]+'</div></div></div>';}).join('');
   var board=document.getElementById('is-board');
