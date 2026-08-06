@@ -1287,7 +1287,10 @@ async function _afterLogin(user) {
   await _loadIntlCrm();
   _loadQuotes();
   if(typeof _loadFx==="function")_loadFx(function(){});
-  _setDefaultRanges();
+  // 조회기간 기본값 = 데이터 최종월. 정의가 다른 <script> 블록에 있어 이 시점 호출이 실패할 수 있으므로 지연 재시도(멱등)
+  try{ if(typeof _setDefaultRanges==='function') _setDefaultRanges(); }catch(e){}
+  setTimeout(function(){ try{ if(typeof _setDefaultRanges==='function') _setDefaultRanges(); }catch(e){} },0);
+  setTimeout(function(){ try{ if(typeof _setDefaultRanges==='function') _setDefaultRanges(); }catch(e){} },600);
   try{ var _mp=_myPartIntl(), _all=_seeAllIntl(), _lead=_isLeaderIntl();
     // 섹션 단위 표시: 종합(팀장/관리자만) · 팀장·관리(팀장/관리자만)
     var _secOv=document.getElementById('sec-overview'); if(_secOv)_secOv.style.display=_all?'':'none';
@@ -2492,9 +2495,14 @@ function renderQuotes(){
 <script>
 // ═══ 종합 v3: 월 상세 드릴다운 + 예정분 출고/선적예정일(일보 공유) ═══
 var ILBO_DOC=null;
+var _rangesApplied=false;
 function _setDefaultRanges(){
   try{
+    if(_rangesApplied) return;                      // 사용자가 기간을 바꾼 뒤 덮어쓰지 않도록 1회만 적용
+    if(!(typeof INTL!=='undefined'&&INTL&&INTL.monthly)) return;   // 데이터 로드 전이면 다음 재시도에 맡김
     var last=1; for(var m=1;m<=12;m++){ if(INTL&&INTL.monthly&&Number(INTL.monthly[m])>0) last=m; }
+    if(last<=1) return;                             // 유효 데이터 없으면 적용 보류
+    _rangesApplied=true;
     var cm=Math.min(12,new Date().getMonth()+1);
     ['ct-to','pd-to','cs-to','rp-to'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=String(last); });
     var ov=document.getElementById('ov-to'); if(ov) ov.value=String(Math.max(last,cm));
