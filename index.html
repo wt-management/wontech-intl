@@ -876,7 +876,7 @@ function _rankTable(rows, opts){
   return ins+'<div style="'+wrapS+'"><table class="table table-sm mb-0" style="font-size:12px">'+thead+'<tbody>'+rowArr.join('')+more+'</tbody></table></div>';
 }
 function renderOverview(){
-  if(!_seeAllIntl()){ _partLock(document.getElementById('ov-kpi')); return; }
+  if((typeof _seeAllIntl!=='function'||!_seeAllIntl())){ _partLock(document.getElementById('ov-kpi')); return; }
   const yr=+document.getElementById('ov-year').value, f=+document.getElementById('ov-from').value, t=+document.getElementById('ov-to').value;
   const cur=yr===2026?INTL:INTL.data2025, pre=yr===2026?INTL.data2025:null;
   const tot=ytd(cur.monthly,f,t), totU=ytd(cur.monthly_usd,f,t);
@@ -937,7 +937,7 @@ function renderOverview(){
 }
 
 function renderByCountry(){
-  if(!_seeAllIntl()){ _partLock(document.getElementById('ct-rank')); return; }
+  if((typeof _seeAllIntl!=='function'||!_seeAllIntl())){ _partLock(document.getElementById('ct-rank')); return; }
   const yr=+document.getElementById('ct-year').value, f=+document.getElementById('ct-from').value, t=+document.getElementById('ct-to').value;
   const cur=yr===2026?INTL:INTL.data2025, pre=yr===2026?INTL.data2025:null;
   const cq=_intlCtryQty(cur,f,t), cqP=pre?_intlCtryQty(pre,f,t):{};
@@ -1114,7 +1114,7 @@ function renderPdTrend(){
     scales:{y:{ticks:{callback:v=>v+'억',font:{size:9}},grid:{color:'#f3f4f6'}},x:{ticks:{font:{size:9}}}}}});
 }
 function renderByProduct(){
-  if(!_seeAllIntl()){ var _e=document.querySelector('#page-by-product .card, #page-by-product'); _partLock(_e); return; }
+  if((typeof _seeAllIntl!=='function'||!_seeAllIntl())){ var _e=document.querySelector('#page-by-product .card, #page-by-product'); _partLock(_e); return; }
   const yr=+document.getElementById('pd-year').value, f=+document.getElementById('pd-from').value, t=+document.getElementById('pd-to').value;
   const cur=yr===2026?INTL:INTL.data2025, pre=yr===2026?INTL.data2025:null;
 
@@ -1320,7 +1320,7 @@ async function _afterLogin(user) {
   var _nav=(performance.getEntriesByType('navigation')[0]||{}).type;   // reload=새로고침 / back_forward=뒤로가기 / navigate=신규진입
   var _sv=sessionStorage.getItem('intl_page');
   var _hk=(location.hash||'').replace(/^#/,'');
-  var _saved=(!_seeAllIntl()&&_myPartIntl())?'my-work':'overview';   // 파트원은 「내 업무」로 랜딩(매일 열 이유)
+  var _saved=((typeof _seeAllIntl!=='function'||!_seeAllIntl())&&typeof _myPartIntl==='function'&&_myPartIntl())?'my-work':'overview';   // 파트원은 「내 업무」로 랜딩(매일 열 이유)
   if(_hk && _wtPageOk(_hk)) _saved=_hk;                                                             // 유효 딥링크 우선
   else if((_nav==='reload'||_nav==='back_forward') && _sv && _wtPageOk(_sv)) _saved=_sv;            // 새로고침·뒤로가기=머문 페이지
   showPage(_saved, _wtNavEl(_saved), true);
@@ -2123,7 +2123,7 @@ function renderConsDetail(){
   document.getElementById('cs-detail').innerHTML=tbl;
 }
 function renderByCons(){
-  if(!_seeAllIntl()){ var _e=document.querySelector('#page-by-cons .card, #page-by-cons'); _partLock(_e); return; }
+  if((typeof _seeAllIntl!=='function'||!_seeAllIntl())){ var _e=document.querySelector('#page-by-cons .card, #page-by-cons'); _partLock(_e); return; }
   const yr=+document.getElementById('cs-year').value, f=+document.getElementById('cs-from').value, t=+document.getElementById('cs-to').value;
   const cur=yr===2026?INTL:INTL.data2025, pre=yr===2026?INTL.data2025:null;
   const valC=_intlProdVal(cur,f,t), valP=pre?_intlProdVal(pre,f,t):{}, qC=_intlProdAgg(cur,f,t), qP=pre?_intlProdAgg(pre,f,t):{};
