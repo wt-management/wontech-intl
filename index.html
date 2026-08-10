@@ -836,9 +836,13 @@ function _intlCtryQty(src,f,t){ var out={}; if(!src||!src.countries) return out;
   return out; }
 function _rankTable(rows, opts){
   opts=opts||{}; var col=opts.color||'#0d9488';
+  // 비중 분모는 음수(반품·매출충당)까지 포함한 총액이어야 회계와 맞음.
+  // 목록에서만 음수를 감추고 분모로는 살린다(감추고 분모에서도 빼면 합계가 부풀려짐).
+  var _totAll=(rows||[]).reduce(function(s,r){return s+(Number(r.v)||0);},0);
+  var _negSum=(rows||[]).reduce(function(s,r){var v=Number(r.v)||0;return s+(v<0?v:0);},0);
   rows=(rows||[]).filter(function(r){return (Number(r.v)||0)>0;}).sort(function(a,b){return b.v-a.v;});
   if(!rows.length) return '<div class="text-muted" style="font-size:12px;padding:8px">데이터 없음</div>';
-  var tot=rows.reduce(function(s,r){return s+(Number(r.v)||0);},0)||1, mx=rows[0].v||1;
+  var tot=(opts.total!=null?Number(opts.total):_totAll)||1, mx=rows[0].v||1;
   var conc=Math.round(rows.slice(0,3).reduce(function(s,r){return s+r.v;},0)/tot*100);
   var mv=rows.filter(function(r){return (Number(r.prev)||0)>0;}).map(function(r){return {n:r.name,y:(r.v/r.prev-1)*100};});
   var up=mv.filter(function(m){return m.y>0;}).sort(function(a,b){return b.y-a.y;})[0];
@@ -1123,6 +1127,7 @@ function renderByProduct(){
 
   // 장비만 표시 (소모품 제외) — 값·전년=prodMo(정합), 대수=txn 집계
   const valC=_intlProdVal(cur,f,t), valP=pre?_intlProdVal(pre,f,t):{}, qC=_intlProdAgg(cur,f,t), qP=pre?_intlProdAgg(pre,f,t):{};
+  const _pdTotAll=Object.keys(valC).filter(function(p){return !_intlIsCons(p,cur);}).reduce(function(a,p){return a+(valC[p]||0);},0);   // 음수 포함 총액(비중 분모)
   const arr=Object.keys(valC).filter(function(p){return !_intlIsCons(p,cur);}).map(function(n){return {n:n,v:valC[n]||0,pv:valP[n]||0,q:(qC[n]||{}).q||0,pq:(qP[n]||{}).q||0};}).filter(function(x){return x.v>0;}).sort(function(a,b){return b.v-a.v;});
   const maxV=arr[0]?.v||1;
 
@@ -1634,7 +1639,7 @@ async function _loadIntlPipe(){
   var pg=document.getElementById('page-sales'); if(pg&&pg.classList.contains('active')) renderSales();
 }
 async function _saveDeals(){
-  try{ const {error}=await _sb.from('cons_cache').upsert({key:'intl_pipeline',data:{deals:INTL_PIPE,updatedAt:new Date().toISOString()}},{onConflict:'key'}); if(error) throw error; }
+  try{ const {error}=await _sb.from('cons_cache').upsert({key:'intl_pipeline',data:{deals:INTL_PIPE,updatedAt:new Date().toISOString()}},{total:tot,total:_pdTotAll,onConflict:'key'}); if(error) throw error; }
   catch(e){ alert('저장 실패: '+e.message); }
 }
 function _dealMatch(d){
@@ -2132,6 +2137,7 @@ function renderByCons(){
   const yr=+document.getElementById('cs-year').value, f=+document.getElementById('cs-from').value, t=+document.getElementById('cs-to').value;
   const cur=yr===2026?INTL:INTL.data2025, pre=yr===2026?INTL.data2025:null;
   const valC=_intlProdVal(cur,f,t), valP=pre?_intlProdVal(pre,f,t):{}, qC=_intlProdAgg(cur,f,t), qP=pre?_intlProdAgg(pre,f,t):{};
+  const _csTotAll=Object.keys(valC).filter(function(p){return _intlIsCons(p,cur);}).reduce(function(a,p){return a+(valC[p]||0);},0);   // 음수 포함 총액(비중 분모)
   const arr=Object.keys(valC).filter(function(p){return _intlIsCons(p,cur);}).map(function(n){return {n:n,v:valC[n]||0,pv:valP[n]||0,q:(qC[n]||{}).q||0,pq:(qP[n]||{}).q||0};}).filter(function(x){return x.v>0;}).sort(function(a,b){return b.v-a.v;});
   const maxV = arr[0]?.v||1;
   document.getElementById('cs-rank').innerHTML=_rankTable(arr.map(function(x){return {name:x.n,v:x.v,prev:x.pv,q:x.q,prevQ:x.pq,click:"openProdModal('"+String(x.n).replace(/'/g,"\\'")+"','cons')"};}),{color:'#0d9488',qty:true,cols:2});
@@ -2566,7 +2572,7 @@ async function _markIlbo(id,status){
     var row=ILBO_DOC.rows.find(function(r){return String(r.id)===String(id);});
     if(!row){ if(typeof _pToast==='function')_pToast('항목을 찾지 못했습니다'); return; }
     row.status=status; row.updatedAt=new Date().toISOString();
-    const {error}=await _sb.from('cons_cache').upsert({key:'ilbo_pending',data:ILBO_DOC},{onConflict:'key'}); if(error)throw error;
+    const {error}=await _sb.from('cons_cache').upsert({key:'ilbo_pending',data:ILBO_DOC},{total:_csTotAll,onConflict:'key'}); if(error)throw error;
     await _loadIlboPending();
     _ilboRerender();
     if(typeof _pToast==='function')_pToast(status==='반영됨'?'회계반영 처리됨 · 종합/파트에 즉시 반영':'되돌렸습니다');
