@@ -1,0 +1,32 @@
+{
+  "_설명": "한 번 고친 로직이 다른 작업에 밀려 사라지는 사고를 막기 위한 회귀 검사 목록입니다. 각 항목은 '이 코드가 파일에 남아 있어야 한다'는 뜻이며, push 할 때마다 GitHub Actions가 확인합니다. 화면을 바꾸다 항목이 깨지면 여기 사유를 적고 함께 수정하세요.",
+  "files": {
+    "index.html": [
+      {
+        "id": "ranges-guard",
+        "must": "var _rangesApplied=false;",
+        "why": "분석 메뉴 조회기간을 데이터 최종월로 맞추는 멱등 가드. 2026-08-06 수정 후 3개 커밋 만에 사라져 전 분석이 다시 1~5월만 집계됐음(2026-08-10 재발)"
+      },
+      {
+        "id": "ranges-retry",
+        "must": "setTimeout(function(){ try{ _setDefaultRanges(); }catch(e){} },600);",
+        "why": "호출부와 정의부가 다른 <script> 블록이라 첫 호출이 실패한다. 지연 재시도가 빠지면 조회기간이 기본값 그대로 남음"
+      },
+      {
+        "id": "ranktable-total",
+        "must": "var tot=(opts.total!=null?Number(opts.total):_totAll)||1",
+        "why": "순위표 비중 분모에 반품·충당(음수)을 포함. 빠지면 모든 순위표의 비중이 과소 표시되고 합계가 회계와 어긋남"
+      },
+      {
+        "id": "rep-total-with-neg",
+        "must": "var totAll=arr.reduce(function(s,x){return s+x.v;},0);",
+        "why": "담당자별 기간 합계를 음수 포함으로 계산. 빠지면 738.9억이 763.3억으로 24.4억 부풀려짐"
+      },
+      {
+        "id": "gate-fail-closed",
+        "must": "typeof _seeAllIntl!=='function'||!_seeAllIntl()",
+        "why": "권한 판정 함수가 정의 전에 호출돼도 화면이 통째로 멈추지 않도록 하는 가드(실패 시 잠금)"
+      }
+    ]
+  }
+}
