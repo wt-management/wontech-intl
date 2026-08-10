@@ -941,8 +941,11 @@ function renderByCountry(){
   const yr=+document.getElementById('ct-year').value, f=+document.getElementById('ct-from').value, t=+document.getElementById('ct-to').value;
   const cur=yr===2026?INTL:INTL.data2025, pre=yr===2026?INTL.data2025:null;
   const cq=_intlCtryQty(cur,f,t), cqP=pre?_intlCtryQty(pre,f,t):{};
-  const arr=Object.entries(cur.countries||{}).map(([n,c])=>({n,v:ytd(c.m,f,t),pv:pre?ytd(pre.countries[n]?.m||{},f,t):0,c})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
-  const tot=arr.reduce((s,x)=>s+x.v,0)||1;
+  const _ctAll=Object.entries(cur.countries||{}).map(([n,c])=>({n,v:ytd(c.m,f,t),pv:pre?ytd(pre.countries[n]?.m||{},f,t):0,c})).sort((a,b)=>b.v-a.v);
+  // 음수(반품·매출충당) 국가를 목록에서 빼면 합계가 회계 총액보다 커짐
+  // → 목록은 양수만 보여주되 비중 분모(tot)는 음수 포함 총액을 사용해 회계와 일치시킴
+  const arr=_ctAll.filter(x=>x.v>0);
+  const tot=(_ctAll.reduce((s,x)=>s+x.v,0))||1;
 
   document.getElementById('ct-rank').innerHTML=_rankTable(arr.map(function(x){return {name:x.n,v:x.v,prev:x.pv,q:cq[x.n]||0,prevQ:cqP[x.n]||0,meta:((x.c&&x.c.clients)||0)+'개사',click:"selectCountry('"+String(x.n).replace(/'/g,"\\'")+"')"};}),{color:'#0891b2',metaHead:'거래처',qty:true,scroll:'fill'});
 
@@ -1296,7 +1299,9 @@ async function _afterLogin(user) {
   await _loadIntlCrm();
   _loadQuotes();
   if(typeof _loadFx==="function")_loadFx(function(){});
-  _setDefaultRanges();
+  try{ _setDefaultRanges(); }catch(e){}                                   // 정의가 뒤 블록이면 여기서 실패 → 아래 재시도로 보정
+  setTimeout(function(){ try{ _setDefaultRanges(); }catch(e){} },0);
+  setTimeout(function(){ try{ _setDefaultRanges(); }catch(e){} },600);
   try{ var _mp=_myPartIntl(), _all=_seeAllIntl(), _lead=_isLeaderIntl();
     // 섹션 단위 표시: 종합(팀장/관리자만) · 팀장·관리(팀장/관리자만)
     var _secOv=document.getElementById('sec-overview'); if(_secOv)_secOv.style.display=_all?'':'none';
@@ -2488,9 +2493,17 @@ function renderQuotes(){
 <script>
 // ═══ 종합 v3: 월 상세 드릴다운 + 예정분 출고/선적예정일(일보 공유) ═══
 var ILBO_DOC=null;
+var _rangesApplied=false;
+// 분석 메뉴 조회기간 기본값 = 데이터가 있는 마지막 월
+// 호출부(블록 1239~)와 정의부(블록 2488~)가 서로 다른 <script>라 첫 호출이 실패할 수 있음
+// → 멱등 가드 + 호출부 지연 재시도로 보완. 데이터 로드 전이면 적용하지 않고 다음 시도로 넘김.
 function _setDefaultRanges(){
   try{
+    if(_rangesApplied) return;
+    if(!(typeof INTL!=='undefined'&&INTL&&INTL.monthly)) return;
     var last=1; for(var m=1;m<=12;m++){ if(INTL&&INTL.monthly&&Number(INTL.monthly[m])>0) last=m; }
+    if(last<=1) return;
+    _rangesApplied=true;
     var cm=Math.min(12,new Date().getMonth()+1);
     ['ct-to','pd-to','cs-to','rp-to'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=String(last); });
     var ov=document.getElementById('ov-to'); if(ov) ov.value=String(Math.max(last,cm));
@@ -3320,10 +3333,17 @@ function renderByRep(){
     var pipe=(INTL_PIPE||[]).filter(function(d){return d.sales===n&&d.stage!=='선적/납품';});
     var pipeK=pipe.reduce(function(s,d){return s+_dealKrw(d)*(Number(d.prob||0)/100);},0);
     return {n:n,r:r,v:ytd(r.m||{},f,t),pv:pv,pipeN:pipe.length,pipeK:pipeK};
-  }).filter(function(x){return x.v>0||x.pipeN>0;}).sort(function(a,b){return b.v-a.v;});
-  var tot=arr.reduce(function(s,x){return s+x.v;},0)||1, mx=arr.length?Math.max.apply(null,arr.map(function(x){return x.v;})):1;
+  }).sort(function(a,b){return b.v-a.v;});
+  // 음수(반품·매출충당) 담당자를 목록에서 빼면 합계가 회계 총액보다 커짐 → 총액은 음수 포함으로 계산하고
+  // 목록에는 양수만 노출하되 제외분을 명시 (종합·한국 사이트와 같은 기준으로 맞추기 위함)
+  var _negRep=arr.filter(function(x){return x.v<0;});
+  var _negSum=_negRep.reduce(function(s,x){return s+x.v;},0);
+  var totAll=arr.reduce(function(s,x){return s+x.v;},0);
+  arr=arr.filter(function(x){return x.v>0||x.pipeN>0;});
+  var tot=totAll||1, mx=arr.length?Math.max.apply(null,arr.map(function(x){return x.v;})):1;
   var mo=Math.max(1,t-f+1);
   var kpis=[['담당자',arr.length+'명','#0891b2'],['기간 합계',fmtW(tot),'#0f172a'],['1인 평균',fmtW(tot/(arr.length||1)),'#7c3aed'],['CRM 가중예상',fmtW(arr.reduce(function(s,x){return s+x.pipeK;},0)),'#0d9488']];
+  if(_negSum<0) kpis[1][0]='기간 합계 (반품·충당 '+fmtW(_negSum)+' 포함)';
   var kpiH='<div class="row g-2 mb-2">'+kpis.map(function(c){return '<div class="col-6 col-md-3"><div class="kpi-card" style="padding:9px 12px"><div class="kpi-label">'+c[0]+'</div><div class="kpi-value" style="font-size:1rem;color:'+c[2]+'">'+c[1]+'</div></div></div>';}).join('')+'</div>';
   var medals=['🥇','🥈','🥉'];
   var rows=arr.map(function(x,i){
