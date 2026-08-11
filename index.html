@@ -829,6 +829,8 @@ function _intlProdAgg(src,f,t){ var out={}; if(!src||!src.countries) return out;
 function _intlIsCons(p,src){ var pd=(src&&src.prods_dev)||{}; if(pd[p])return false; var pc=(src&&src.prods_cons)||{}; if(pc[p])return true; return /tip|팁|cartridge|카트리지|소모품|의료기기|goggle|spray|oil|오일|patch|패드|누디|nudi|handpiece|핸드피스|카트|cart\b/i.test(String(p)); }
 // 제품별 기간매출(prodMo 기반·전년 정합) — txns가 없는 data2025도 정확
 function _intlProdVal(src,f,t){ var out={}, pm=(src&&src.prodMo)||{}; Object.keys(pm).forEach(function(p){ var s=0,mm=pm[p]||{}; Object.keys(mm).forEach(function(m){ var mi=parseInt(m,10); if(mi>=f&&mi<=t)s+=Number(mm[m])||0; }); if(s)out[p]=s; }); return out; }
+// 수량 단위: 소모품=개, 장비=대
+function _unitOf(p){ try{ return _intlIsCons(p,(typeof INTL!=='undefined')?INTL:null)?'개':'대'; }catch(e){ return '대'; } }
 // 국가별 수량(기간필터)
 function _intlCtryQty(src,f,t){ var out={}; if(!src||!src.countries) return out;
   Object.keys(src.countries).forEach(function(c){ var cd=src.countries[c].clientData||{}; var q=0;
@@ -857,14 +859,14 @@ function _rankTable(rows, opts){
       '<td style="padding:5px 8px;color:#cbd5e1;font-weight:700;text-align:right">'+(i+1)+'</td>'+
       '<td style="max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>'+_esc(r.name)+'</b></td>'+
       '<td style="text-align:right;font-weight:700;color:'+col+';white-space:nowrap">'+fmtW(r.v)+'</td>'+
-      (opts.qty?'<td style="text-align:right;color:#475569;font-size:11px;white-space:nowrap">'+(Number(r.q)||0).toLocaleString()+'대'+((Number(r.prevQ)||0)>0?' <span style="color:#cbd5e1;font-size:9px">('+(Number(r.prevQ)||0).toLocaleString()+')</span>':'')+'</td>':'')+
+      (opts.qty?'<td style="text-align:right;color:#475569;font-size:11px;white-space:nowrap">'+(Number(r.q)||0).toLocaleString()+(opts.qtyUnit||_unitOf(r.name))+((Number(r.prevQ)||0)>0?' <span style="color:#cbd5e1;font-size:9px">('+(Number(r.prevQ)||0).toLocaleString()+')</span>':'')+'</td>':'')+
       '<td style="padding-right:6px"><div style="display:flex;align-items:center;gap:5px;width:74px"><div style="flex:1;height:6px;background:#eef2f7;border-radius:3px;overflow:hidden"><div style="width:'+Math.round(r.v/mx*100)+'%;height:100%;background:'+col+'"></div></div><span style="width:26px;text-align:right;font-size:10px;color:#94a3b8">'+sh+'%</span></div></td>'+
       '<td style="text-align:right;color:#94a3b8;font-size:11px;white-space:nowrap">'+fmtW(pv)+'</td>'+
       '<td style="text-align:right;font-size:11px;white-space:nowrap;padding-right:8px">'+yH+'</td>'+
       (opts.metaHead?'<td style="text-align:right;color:#64748b;padding-right:8px;white-space:nowrap">'+(r.meta!=null?r.meta:'')+'</td>':'')+'</tr>';
   });
   var cspan=6+(opts.metaHead?1:0)+(opts.qty?1:0);
-  var thead='<thead style="background:#f8fafc;position:sticky;top:0;z-index:1"><tr><th style="text-align:right;padding:5px 8px">#</th><th>이름</th><th style="text-align:right">매출</th>'+(opts.qty?'<th style="text-align:right">대수</th>':'')+'<th style="padding-right:6px">비중</th><th style="text-align:right">전년</th><th style="text-align:right;padding-right:8px">YoY</th>'+(opts.metaHead?'<th style="text-align:right;padding-right:8px">'+opts.metaHead+'</th>':'')+'</tr></thead>';
+  var thead='<thead style="background:#f8fafc;position:sticky;top:0;z-index:1"><tr><th style="text-align:right;padding:5px 8px">#</th><th>이름</th><th style="text-align:right">매출</th>'+(opts.qty?'<th style="text-align:right">수량</th>':'')+'<th style="padding-right:6px">비중</th><th style="text-align:right">전년</th><th style="text-align:right;padding-right:8px">YoY</th>'+(opts.metaHead?'<th style="text-align:right;padding-right:8px">'+opts.metaHead+'</th>':'')+'</tr></thead>';
   // 2단 모드: 좌우로 절반씩 나눠 가로 공간 활용
   if(opts.cols===2 && rowArr.length>4){
     var half=Math.ceil(rowArr.length/2);
@@ -2039,17 +2041,17 @@ function openProdModal(prodName, cat){
   // Country breakdown — 행 클릭 시 거래내역(일자·거래처·수량·단가·금액) 인라인 전개
   const maxV = ctArr[0]?.v||1;
   document.getElementById('prod-modal-countries').innerHTML =
-    (ctArr.length?'<div style="font-size:11px;color:#94a3b8;margin-bottom:6px">국가 클릭 → 거래 상세내역 · 총 '+ctArr.length+'개국 · '+ctArr.reduce((s,x)=>s+x.q,0).toLocaleString()+'대</div>':'')+
+    (ctArr.length?'<div style="font-size:11px;color:#94a3b8;margin-bottom:6px">국가 클릭 → 거래 상세내역 · 총 '+ctArr.length+'개국 · '+ctArr.reduce((s,x)=>s+x.q,0).toLocaleString()+_unitOf(prodName)+'</div>':'')+
     ctArr.slice(0,30).map((x,i)=>{
     const col=C7[i%C7.length];
     const det=x.tx.slice().sort((a,b)=>String(a[0]).localeCompare(String(b[0]))).map(r=>{ const q=r[2],amt=r[3],u=q>0?amt/q:0;
-      return '<tr style="border-top:1px solid #f4f6f9"><td style="padding:4px 8px;color:#64748b;white-space:nowrap">'+_esc(r[0])+'</td><td style="padding:4px 8px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_esc(r[1])+'</td><td style="text-align:right;padding:4px 6px;white-space:nowrap">'+q.toLocaleString()+'대</td><td style="text-align:right;padding:4px 6px;color:#94a3b8;white-space:nowrap">'+(q>0?fmtW(u):'—')+'</td><td style="text-align:right;padding:4px 8px;font-weight:700;white-space:nowrap">'+fmtW(amt)+'</td></tr>'; }).join('');
+      return '<tr style="border-top:1px solid #f4f6f9"><td style="padding:4px 8px;color:#64748b;white-space:nowrap">'+_esc(r[0])+'</td><td style="padding:4px 8px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_esc(r[1])+'</td><td style="text-align:right;padding:4px 6px;white-space:nowrap">'+q.toLocaleString()+_unitOf(prodName)+'</td><td style="text-align:right;padding:4px 6px;color:#94a3b8;white-space:nowrap">'+(q>0?fmtW(u):'—')+'</td><td style="text-align:right;padding:4px 8px;font-weight:700;white-space:nowrap">'+fmtW(amt)+'</td></tr>'; }).join('');
     return `<div style="border-bottom:1px solid #f3f4f6">
       <div onclick="var d=document.getElementById('pmct-${i}');var op=d.style.display==='none';d.style.display=op?'block':'none';this.querySelector('.pmct-cv').style.transform=op?'rotate(90deg)':''" style="display:flex;flex-direction:row;align-items:center;gap:8px;padding:6px 2px;cursor:pointer" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background=''">
         <i class="bi bi-chevron-right pmct-cv" style="font-size:9px;color:#cbd5e1;transition:transform .15s"></i>
         <span style="font-size:11px;color:#9ca3af;width:16px;text-align:right">${i+1}</span>
         <span style="flex:1;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(x.n)}</span>
-        <span style="font-size:11px;color:#475569;width:56px;text-align:right">${x.q.toLocaleString()}대</span>
+        <span style="font-size:11px;color:#475569;width:56px;text-align:right">${x.q.toLocaleString()}${_unitOf(prodName)}</span>
         <span style="font-size:12px;font-weight:700;color:${col};width:82px;text-align:right">${fmtW(x.v)}</span>
         <span style="display:inline-block;width:56px;height:5px;background:#f3f4f6;border-radius:3px;overflow:hidden"><span style="display:block;width:${(x.v/maxV*100).toFixed(1)}%;height:100%;background:${col}"></span></span>
       </div>
@@ -4453,12 +4455,12 @@ function _renderPartView(part, rootId){
   // ── 제품 테이블 ──
   var prodShareTot=pArr.reduce(function(s,p){return s+p[1];},0)||1;
   var prodTable='<div class="card p-0 mb-2" style="overflow:hidden"><div class="fw-bold" style="font-size:13px;padding:12px 16px 8px"><i class="bi bi-box-seam me-1" style="color:#7c3aed"></i>제품별 <span style="font-size:11px;font-weight:400;color:#94a3b8">'+pArr.length+'개 · 행 클릭 → 상세'+(lead?' · 단가=금액÷대수':'')+'</span></div>'+
-    '<div style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12.5px"><thead style="background:#f8fafc"><tr><th style="padding:7px 16px;width:32px">#</th><th>제품</th><th style="text-align:right">매출</th><th style="text-align:right">대수</th>'+(lead?'<th style="text-align:right">단가</th>':'')+'<th style="padding-right:16px;width:260px">비중</th></tr></thead><tbody>'+
+    '<div style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12.5px"><thead style="background:#f8fafc"><tr><th style="padding:7px 16px;width:32px">#</th><th>제품</th><th style="text-align:right">매출</th><th style="text-align:right">수량</th>'+(lead?'<th style="text-align:right">단가</th>':'')+'<th style="padding-right:16px;width:260px">비중</th></tr></thead><tbody>'+
     (pArr.map(function(p,i){ var q=pQty[p[0]]||0; var up=(lead&&q>0)?p[1]/q:null; var w=Math.round(p[1]/pmax*100); var share=Math.round(p[1]/prodShareTot*100); return '<tr style="cursor:pointer;border-top:1px solid #f4f6f9" onclick="openPartProduct(this.dataset.p,this.dataset.pt)" data-p="'+_esc(p[0])+'" data-pt="'+_esc(part)+'" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'">'+
       '<td style="padding:7px 16px;color:#cbd5e1;font-weight:700">'+(i+1)+'</td>'+
       '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>'+_esc(p[0])+'</b></td>'+
       '<td style="text-align:right;font-weight:700">'+fmtW(p[1])+'</td>'+
-      '<td style="text-align:right;color:#64748b">'+(q>0?q+'대':'–')+'</td>'+
+      '<td style="text-align:right;color:#64748b">'+(q>0?q+_unitOf(p[0]):'–')+'</td>'+
       (lead?'<td style="text-align:right;font-weight:700;color:#dc2626">'+(up?Math.round(up/1e4).toLocaleString()+'만':'–')+'</td>':'')+
       '<td style="padding-right:16px"><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:8px;background:#eef2f7;border-radius:4px;overflow:hidden"><div style="width:'+w+'%;height:100%;background:#7c3aed"></div></div><span style="width:32px;text-align:right;font-size:11px;color:#94a3b8">'+share+'%</span></div></td></tr>'; }).join('')||'<tr><td colspan="'+(lead?6:5)+'" style="padding:16px;text-align:center;color:#cbd5e1">데이터 없음</td></tr>')+
     '</tbody></table></div></div>';
@@ -4543,7 +4545,7 @@ function openPartProduct(pn,part){
   byC.sort(function(a,b){return b.amt-a.amt;}); byCl.sort(function(a,b){return b.amt-a.amt;});
   var tAmt=byC.reduce(function(s,x){return s+x.amt;},0), tQty=byC.reduce(function(s,x){return s+x.qty;},0);
   var head='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">'+
-    [['매출',fmtW(tAmt),'#0f172a'],['판매',tQty>0?tQty+'대':'–','#0891b2'],['평균 단가',tQty>0?Math.round(tAmt/tQty/1e4).toLocaleString()+'만':'–','#dc2626'],['거래국',byC.length+'개국','#7c3aed']].map(function(k){return '<div style="flex:1;min-width:100px;border:1px solid #eef2f7;border-radius:10px;padding:8px 12px"><div style="font-size:10px;color:#94a3b8">'+k[0]+'</div><div style="font-size:14px;font-weight:800;color:'+k[2]+'">'+k[1]+'</div></div>';}).join('')+'</div>';
+    [['매출',fmtW(tAmt),'#0f172a'],['판매',tQty>0?tQty+_unitOf(pn):'–','#0891b2'],['평균 단가',tQty>0?Math.round(tAmt/tQty/1e4).toLocaleString()+'만':'–','#dc2626'],['거래국',byC.length+'개국','#7c3aed']].map(function(k){return '<div style="flex:1;min-width:100px;border:1px solid #eef2f7;border-radius:10px;padding:8px 12px"><div style="font-size:10px;color:#94a3b8">'+k[0]+'</div><div style="font-size:14px;font-weight:800;color:'+k[2]+'">'+k[1]+'</div></div>';}).join('')+'</div>';
   var cRows=byC.map(function(x){var up=x.qty>0?x.amt/x.qty:null; return '<tr style="border-top:1px solid #f4f6f9"><td style="padding:4px 10px"><b>'+_esc(x.c)+'</b></td><td style="text-align:right;font-weight:600">'+fmtW(x.amt)+'</td><td style="text-align:right;color:#64748b">'+(x.qty||'–')+'</td>'+(lead?'<td style="text-align:right;font-weight:700;padding-right:10px">'+(up?Math.round(up/1e4).toLocaleString()+'만':'–')+'</td>':'')+'</tr>';}).join('');
   var clRows=byCl.slice(0,15).map(function(x){var up=x.qty>0?x.amt/x.qty:null; return '<tr style="cursor:pointer;border-top:1px solid #f4f6f9" onclick="_pvOpenDealer(this.dataset.n)" data-n="'+_esc(x.cl)+'" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'"><td style="padding:4px 10px"><b>'+_esc(x.cl)+'</b></td><td style="color:#64748b">'+_esc(x.c)+'</td><td style="text-align:right;font-weight:600">'+fmtW(x.amt)+'</td><td style="text-align:right;color:#64748b">'+(x.qty||'–')+'</td>'+(lead?'<td style="text-align:right;padding-right:10px">'+(up?Math.round(up/1e4).toLocaleString()+'만':'–')+'</td>':'')+'</tr>';}).join('');
   var html=head+'<div class="row g-2"><div class="col-md-5"><div style="font-size:12px;font-weight:800;color:#334155;margin-bottom:4px">국가별</div><div style="border:1px solid #eef2f7;border-radius:10px;overflow:hidden"><table style="width:100%;font-size:12px;border-collapse:collapse"><thead style="background:#f8fafc"><tr><th style="text-align:left;padding:5px 10px">국가</th><th style="text-align:right">매출</th><th style="text-align:right">대수</th>'+(lead?'<th style="text-align:right;padding-right:10px">단가</th>':'')+'</tr></thead><tbody>'+(cRows||'<tr><td colspan="4" style="padding:10px;text-align:center;color:#cbd5e1">–</td></tr>')+'</tbody></table></div></div>'+
