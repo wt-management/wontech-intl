@@ -3328,6 +3328,9 @@ function renderDealers(){
 function renderByRep(){
   var el=document.getElementById('rp-rank'); if(!el)return;
   if(!_isLeaderIntl()){ el.innerHTML='<div class="text-center py-5" style="color:#94a3b8"><i class="bi bi-lock" style="font-size:28px"></i><div style="font-size:13px;margin-top:8px">팀장 전용 화면입니다</div></div>'; return; }
+  // 3개 파트(미주·아시아/중화/유럽·중아) 소속 팀원 명부를 먼저 로드 → 그 인원만 표시
+  if(_INTL_REP_SET===null && !_IROSTER_TRIED){ _IROSTER_TRIED=true; el.innerHTML='<div class="card p-4 text-center text-muted" style="font-size:12px">담당자 명부 로딩...</div>'; _loadIntlRoster(function(){ renderByRep(); }); return; }
+  var _hasRoster=_INTL_REP_SET && Object.keys(_INTL_REP_SET).length>0;
   var yr=+document.getElementById('rp-year').value, f=+document.getElementById('rp-from').value, t=+document.getElementById('rp-to').value;
   var cur=yr===2026?INTL:(INTL.data2025||{}), pre=yr===2026?(INTL.data2025||{}):null;
   var arr=Object.entries(cur.reps||{}).map(function(e){ var n=e[0],r=e[1];
@@ -3335,7 +3338,9 @@ function renderByRep(){
     var pipe=(INTL_PIPE||[]).filter(function(d){return d.sales===n&&!_wonI(d);});
     var pipeK=pipe.reduce(function(s,d){return s+_dealKrw(d)*(Number(d.prob||0)/100);},0);
     return {n:n,r:r,v:ytd(r.m||{},f,t),pv:pv,pipeN:pipe.length,pipeK:pipeK};
-  }).filter(function(x){return x.v>0||x.pipeN>0;}).sort(function(a,b){return b.v-a.v;});
+  }).filter(function(x){return x.v>0||x.pipeN>0;})
+    .filter(function(x){ return _hasRoster ? !!_INTL_REP_SET[_repNorm(x.n)] : true; })   // 3개 파트 소속만
+    .sort(function(a,b){return b.v-a.v;});
   var tot=arr.reduce(function(s,x){return s+x.v;},0)||1, mx=arr.length?Math.max.apply(null,arr.map(function(x){return x.v;})):1;
   var mo=Math.max(1,t-f+1);
   var kpis=[['담당자',arr.length+'명','#0891b2'],['기간 합계',fmtW(tot),'#0f172a'],['1인 평균',fmtW(tot/(arr.length||1)),'#7c3aed'],['CRM 가중예상',fmtW(arr.reduce(function(s,x){return s+x.pipeK;},0)),'#0d9488']];
@@ -3357,7 +3362,7 @@ function renderByRep(){
   el.innerHTML=kpiH+
     '<div class="card p-0" style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12px;min-width:860px"><thead style="background:#f8fafc"><tr><th></th><th style="padding:8px 12px">담당자</th><th>실적 ('+f+'~'+t+'월)</th><th style="text-align:right">전년동기</th><th style="text-align:center">YoY</th><th style="text-align:center">비중</th><th style="text-align:right">월평균</th><th style="text-align:center">CRM 진행딜</th></tr></thead><tbody>'+
     (rows||'<tr><td colspan="8" class="text-center text-muted py-4">기간 내 실적이 없습니다</td></tr>')+'</tbody></table></div>'+
-    '<div style="font-size:10px;color:#94a3b8;margin-top:6px"><i class="bi bi-info-circle me-1"></i>행 클릭 = 담당자 상세(제품·월별) · CRM 진행딜 = 수주관리 파이프라인 가중예상(원화)</div>';
+    '<div style="font-size:10px;color:#94a3b8;margin-top:6px"><i class="bi bi-info-circle me-1"></i>'+(_hasRoster?'미주·아시아 / 중화 / 유럽·중아 파트 소속 담당자만 표시 · ':'')+'행 클릭 = 담당자 상세(제품·월별) · CRM 진행딜 = 수주관리 파이프라인 가중예상(원화)</div>';
 }
 </script>
 <script>
@@ -4876,6 +4881,16 @@ async function _intlUserApi(body){
   var d; try{ d=await res.json(); }catch(e){ d={}; }
   if(!res.ok) throw new Error(d.error||('요청 실패('+res.status+')'));
   return d;
+}
+// ── 담당자별 분석용: 3개 파트 소속 팀원 명부(정규화 이름 집합) ──
+var _INTL_REP_SET=null, _IROSTER_TRIED=false;
+function _repNorm(s){ return String(s||'').replace(/^\s*\d+\s*[.\-]\s*/,'').replace(/\s+/g,'').toLowerCase(); }
+function _loadIntlRoster(cb){
+  if(_INTL_REP_SET){ cb&&cb(); return; }
+  _intlUserApi({action:'list'}).then(function(d){
+    var set={}; (d.users||[]).forEach(function(u){ if(_IU_PARTS.indexOf(u.dept)>=0){ var k=_repNorm(u.display_name); if(k)set[k]=1; } });
+    _INTL_REP_SET=set; cb&&cb();
+  }).catch(function(e){ _INTL_REP_SET=null; cb&&cb(e); });   // 실패 시 필터 미적용(전체 표시)
 }
 function renderIntlUsers(){
   var el=document.getElementById('iu-body'); if(!el)return;
