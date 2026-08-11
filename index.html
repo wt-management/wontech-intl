@@ -4590,16 +4590,18 @@ function _renderPartView(part, rootId){
     })()+
     '</div>';
   // ── 거래처 TOP ──
-  var topCl=clientsArr.slice(0,12);
-  var clTable='<div class="card p-0 mt-2" style="overflow:hidden"><div class="fw-bold" style="font-size:13px;padding:12px 14px 8px"><i class="bi bi-buildings me-1" style="color:#0d9488"></i>주요 거래처 <span style="font-size:10px;font-weight:400;color:#cbd5e1">'+nClients+'개사 · 행 클릭 → 딜러 상세</span></div>'+
-    '<div style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12px"><thead style="background:#f8fafc"><tr><th style="padding:7px 14px">거래처</th><th>국가</th><th style="text-align:right">매출</th><th>주력제품</th><th style="padding-right:14px">최근거래</th></tr></thead><tbody>'+
-    (topCl.map(function(c){ var tp=Object.entries(c.prods||{}).sort(function(a,b){return b[1]-a[1];})[0]; return '<tr style="cursor:pointer;border-top:1px solid #f4f6f9" onclick="_pvOpenDealer(this.dataset.n)" data-n="'+_esc(c.name)+'" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'">'+
-      '<td style="padding:6px 14px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>'+_esc(c.name)+'</b></td>'+
-      '<td style="color:#64748b">'+_esc(c.country)+'</td>'+
-      '<td style="text-align:right;font-weight:700">'+fmtW(c.total)+'</td>'+
-      '<td style="color:#475569;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_esc(tp?tp[0]:'')+'</td>'+
-      '<td style="padding-right:14px;color:#94a3b8;font-size:11px">'+_esc(c.last||'')+'</td></tr>'; }).join('')||'<tr><td colspan="5" style="padding:16px;text-align:center;color:#cbd5e1">데이터 없음</td></tr>')+
-    '</tbody></table></div></div>';
+  var topCl=clientsArr.slice(0,16);
+  var _clHead='<thead style="background:#f8fafc"><tr><th style="padding:7px 12px">거래처</th><th>국가</th><th style="text-align:right">매출</th><th>주력제품</th><th style="padding-right:12px">최근</th></tr></thead>';
+  var _clRows=topCl.map(function(c){ var tp=Object.entries(c.prods||{}).sort(function(a,b){return b[1]-a[1];})[0]; return '<tr style="cursor:pointer;border-top:1px solid #f4f6f9" onclick="_pvOpenDealer(this.dataset.n)" data-n="'+_esc(c.name)+'" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'">'+
+    '<td style="padding:6px 12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>'+_esc(c.name)+'</b></td>'+
+    '<td style="color:#64748b;white-space:nowrap">'+_esc(c.country)+'</td>'+
+    '<td style="text-align:right;font-weight:700;white-space:nowrap">'+fmtW(c.total)+'</td>'+
+    '<td style="color:#475569;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_esc(tp?tp[0]:'')+'</td>'+
+    '<td style="padding-right:12px;color:#94a3b8;font-size:11px;white-space:nowrap">'+_esc((c.last||'').slice(5))+'</td></tr>'; });
+  var _clMk=function(rws){ return '<div style="flex:1;min-width:300px;overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12px;width:100%">'+_clHead+'<tbody>'+(rws.join('')||'<tr><td colspan="5" style="padding:14px;text-align:center;color:#cbd5e1">–</td></tr>')+'</tbody></table></div>'; };
+  var _clHalf=Math.ceil(_clRows.length/2);
+  var clBody=_clRows.length>4?('<div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;padding:0 8px 8px">'+_clMk(_clRows.slice(0,_clHalf))+_clMk(_clRows.slice(_clHalf))+'</div>'):('<div style="padding:0 4px 6px">'+_clMk(_clRows)+'</div>');
+  var clTable='<div class="card p-0 mt-2" style="overflow:hidden"><div class="fw-bold" style="font-size:13px;padding:12px 14px 8px"><i class="bi bi-buildings me-1" style="color:#0d9488"></i>주요 거래처 <span style="font-size:10px;font-weight:400;color:#cbd5e1">'+nClients+'개사 · 행 클릭 → 딜러 상세</span></div>'+clBody+'</div>';
   // ── 회계 미반영분(이 파트) — 출고/선적예정 입력·반영처리, 회계미반영분 메뉴와 동일 데이터 연동 ──
   var _ilboR=(typeof _ilboBodyHTML==='function')?_ilboBodyHTML(part):{html:'',count:0,total:0,done:0};
   var pendTable=(_ilboR.count||_ilboR.done)?('<div class="card p-0 mb-2" id="pv-pend-'+_pvKey(part)+'" style="overflow:hidden"><div class="fw-bold" style="font-size:13px;padding:12px 16px 8px"><i class="bi bi-hourglass-split me-1" style="color:#f59e0b"></i>회계 미반영분 <span style="font-size:11px;font-weight:400;color:#94a3b8">'+_ilboR.count+'건 · '+fmtW(_ilboR.total)+' · 출고/선적예정 입력·반영처리 시 회계미반영분 메뉴와 즉시 연동</span></div><div style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12px;min-width:680px"><thead style="background:#f8fafc"><tr><th style="padding:7px 16px">거래처</th><th>제품</th><th style="text-align:center">수량</th><th style="text-align:right">금액</th><th style="text-align:center">예정일</th><th style="text-align:center">출고예정</th><th style="text-align:center">선적예정</th><th style="text-align:center">관리</th></tr></thead><tbody>'+_ilboR.html+'</tbody></table></div></div>'):'';
