@@ -2697,21 +2697,38 @@ function _renderRegionTable(yr,f,t){
 function _regOvr(c,nm){ if(nm&&typeof _isCorp==='function'&&_isCorp(nm)){ if(c==='미국'||c==='미국법인')return '미국법인'; if(c==='태국'||c==='태국법인')return '태국법인'; if(c==='일본'||c==='일본법인')return '일본법인'; } return _regOf(c,nm); }
 function openRegionDetail(rg,yr,f,t){
   var cur=yr===2026?INTL:(INTL.data2025||{});
-  var rows=[];  // [거래처(국가), 금액] — 음수(반품·조정) 포함
+  var pre=yr===2026?(INTL.data2025||{}):null;
+  var isCorp=/법인/.test(rg), isEtc=/기타|미분류/.test(rg);
+  var rows=[];  // {name, v(올해), pv(전년), c}
+  var _pcd=function(c,nm){ var pc=(pre&&pre.countries&&pre.countries[c])||null; if(!pc)return 0; if(nm){ var x=(pc.clientData||{})[nm]; return x?ytd(x.m||{},f,t):0; } return ytd(pc.m||{},f,t); };
   Object.entries(cur.countries||{}).forEach(function(e){ var c=e[0],obj=e[1]; var cd=obj.clientData||{}; var names=Object.keys(cd);
-    if(names.length){ names.forEach(function(nm){ if(_regOvr(c,nm)===rg){ var v=ytd((cd[nm]&&cd[nm].m)||{},f,t); if(v)rows.push([nm+' ('+c+')',v]); } }); }
-    else if(_regOvr(c,null)===rg){ var v=ytd(obj.m||{},f,t); if(v)rows.push([c+' (전체)',v]); } });
-  rows.sort(function(a,b){return Math.abs(b[1])-Math.abs(a[1]);});
-  var mx=rows.reduce(function(m,r){return Math.max(m,Math.abs(r[1]));},1), sum=rows.reduce(function(s,r){return s+r[1];},0);
-  var pos=rows.filter(function(r){return r[1]>0;}).reduce(function(s,r){return s+r[1];},0);
-  var neg=rows.filter(function(r){return r[1]<0;}).reduce(function(s,r){return s+r[1];},0);
-  var isEtc=/기타|미분류/.test(rg);
+    if(names.length){ names.forEach(function(nm){ if(_regOvr(c,nm)===rg){ var v=ytd((cd[nm]&&cd[nm].m)||{},f,t); var pv=_pcd(c,nm); if(v||pv)rows.push({name:nm+' ('+c+')',v:v,pv:pv,c:c}); } }); }
+    else if(_regOvr(c,null)===rg){ var v=ytd(obj.m||{},f,t); if(v||_pcd(c,null))rows.push({name:c+' (전체)',v:v,pv:_pcd(c,null),c:c}); } });
+  // 법인(일본/미국/태국): 클리닉 개별 → 국가(법인) 단위 하나로 묶기
+  if(isCorp){ var byC={}; rows.forEach(function(r){ if(!byC[r.c])byC[r.c]={name:r.c+' (법인 통합)',v:0,pv:0,c:r.c}; byC[r.c].v+=r.v; byC[r.c].pv+=r.pv; }); rows=Object.values(byC); }
+  rows.sort(function(a,b){return Math.abs(b.v)-Math.abs(a.v);});
+  var mx=rows.reduce(function(m,r){return Math.max(m,Math.abs(r.v));},1);
+  var sum=rows.reduce(function(s,r){return s+r.v;},0), psum=rows.reduce(function(s,r){return s+r.pv;},0);
+  var pos=rows.filter(function(r){return r.v>0;}).reduce(function(s,r){return s+r.v;},0);
+  var neg=rows.filter(function(r){return r.v<0;}).reduce(function(s,r){return s+r.v;},0);
   document.getElementById('ovm-title').textContent=rg+' 상세 ('+f+'~'+t+'월)';
-  var note=isEtc?'<div style="font-size:11px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;margin-bottom:10px;line-height:1.5">특정 해외 지역으로 귀속하기 어려운 <b>조정·반품충당·국내처리 매출</b>입니다. 아래 음수 항목은 반품/충당(매출 차감)이라 합계가 마이너스가 될 수 있습니다.</div>':'';
-  var head='<div style="font-size:12px;color:#64748b;margin-bottom:10px">순합계 <b style="color:'+(sum>=0?'#0f172a':'#dc2626')+'">'+fmtW(sum)+'</b> · '+rows.length+'개 항목'+
-    (neg<0?' <span style="color:#94a3b8">(판매 '+fmtW(pos)+' − 반품·조정 '+fmtW(Math.abs(neg))+')</span>':'')+'</div>';
-  var bars=rows.slice(0,20).map(function(r){ var v=r[1],neg2=v<0; return '<div style="display:flex;flex-direction:row;align-items:center;gap:8px;margin-bottom:5px;font-size:12px"><span style="width:180px;color:#475569;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_esc(r[0])+'</span><div style="flex:1;height:8px;background:#eef2f7;border-radius:4px;overflow:hidden"><div style="width:'+Math.round(Math.abs(v)/mx*100)+'%;height:100%;background:'+(neg2?'#dc2626':'#0d9488')+'"></div></div><span style="width:80px;text-align:right;font-weight:600;color:'+(neg2?'#dc2626':'#0f172a')+'">'+fmtW(v)+'</span></div>'; }).join('')||'<div style="font-size:12px;color:#9ca3af">데이터 없음</div>';
-  document.getElementById('ovm-body').innerHTML=note+head+bars;
+  var note=isEtc?'<div style="font-size:11px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;margin-bottom:10px;line-height:1.5">특정 해외 지역으로 귀속하기 어려운 <b>조정·반품충당·국내처리 매출</b>입니다. 음수 항목은 반품/충당(매출 차감)입니다.</div>':'';
+  var head='<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:baseline;margin-bottom:10px;font-size:12px;color:#64748b">'+
+    '<span>올해(1~'+t+'월) <b style="color:'+(sum>=0?'#0f172a':'#dc2626')+';font-size:14px">'+fmtW(sum)+'</b></span>'+
+    '<span>전년동기 <b style="color:#94a3b8">'+fmtW(psum)+'</b></span>'+
+    '<span>'+bdg(pct(sum,psum))+'</span>'+
+    '<span style="color:#cbd5e1">·</span><span>'+rows.length+'개 거래처</span>'+
+    (neg<0?'<span style="color:#94a3b8">(판매 '+fmtW(pos)+' − 반품·조정 '+fmtW(Math.abs(neg))+')</span>':'')+'</div>';
+  var tbl='<div style="border:1px solid #eef2f7;border-radius:10px;overflow:hidden"><table style="width:100%;font-size:12px;border-collapse:collapse"><thead style="background:#f8fafc;color:#64748b"><tr>'+
+    '<th style="text-align:left;padding:7px 10px">거래처</th><th style="text-align:right">올해</th><th style="text-align:right">전년</th><th style="text-align:center">YoY</th><th style="width:80px;padding-right:10px">비중</th></tr></thead><tbody>'+
+    (rows.slice(0,40).map(function(r){ var neg2=r.v<0; var y=pct(r.v,r.pv);
+      return '<tr style="border-top:1px solid #f4f6f9"><td style="padding:6px 10px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_esc(r.name)+'</td>'+
+        '<td style="text-align:right;font-weight:700;color:'+(neg2?'#dc2626':'#0f172a')+';white-space:nowrap">'+fmtW(r.v)+'</td>'+
+        '<td style="text-align:right;color:#94a3b8;white-space:nowrap">'+fmtW(r.pv)+'</td>'+
+        '<td style="text-align:center;white-space:nowrap">'+(y===null?'<span style="color:#c4b5fd;font-size:10px">신규</span>':bdg(y))+'</td>'+
+        '<td style="padding-right:10px"><div style="height:6px;background:#eef2f7;border-radius:3px;overflow:hidden"><div style="width:'+Math.round(Math.abs(r.v)/mx*100)+'%;height:100%;background:'+(neg2?'#dc2626':_regColor(rg))+'"></div></div></td></tr>'; }).join('')||'<tr><td colspan="5" style="padding:14px;text-align:center;color:#cbd5e1">데이터 없음</td></tr>')+
+    '</tbody></table></div>';
+  document.getElementById('ovm-body').innerHTML=note+head+tbl;
   document.getElementById('ovm-modal').style.display='flex';
 }
 
@@ -3708,12 +3725,14 @@ function renderDealers(){
     var regKrw=list.reduce(function(s,o){return s+o._krw;},0);
     var sharePct=Math.round(regKrw/grandTotal*100);
     var closed=!!_dlClosed[rg];
-    var hdr='<div data-dlreg="'+_esc(rg)+'" onclick="_dlToggle(\''+rg.replace(/'/g,"\\'")+'\')" style="cursor:pointer;user-select:none;display:flex;align-items:center;gap:12px;margin:16px 2px 9px;background:linear-gradient(90deg,#f0fdfa,#fff);border:1px solid #ccfbf1;border-radius:11px;padding:10px 15px">'+
-      '<i class="bi bi-chevron-'+(closed?'right':'down')+'" style="font-size:11px;color:#0d9488"></i>'+
-      '<span style="font-size:14px;font-weight:800;color:#0f766e">'+_esc(rg)+'</span>'+
+    var rc=_regColor(rg);
+    var hdr='<div data-dlreg="'+_esc(rg)+'" onclick="_dlToggle(\''+rg.replace(/'/g,"\\'")+'\')" style="cursor:pointer;user-select:none;display:flex;align-items:center;gap:12px;margin:16px 2px 9px;background:#fff;border:1px solid #eef2f7;border-left:4px solid '+rc+';border-radius:11px;padding:10px 15px">'+
+      '<i class="bi bi-chevron-'+(closed?'right':'down')+'" style="font-size:11px;color:'+rc+'"></i>'+
+      '<span style="display:inline-flex;width:8px;height:8px;border-radius:50%;background:'+rc+'"></span>'+
+      '<span style="font-size:14px;font-weight:800;color:'+rc+'">'+_esc(rg)+'</span>'+
       '<span style="font-size:11px;color:#64748b">'+list.length+'개사</span>'+
-      '<div style="flex:1;max-width:200px;height:7px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:'+sharePct+'%;height:100%;background:#0d9488"></div></div>'+
-      '<span style="font-size:12px;font-weight:800;color:#0f766e">'+fmtW(regKrw)+' <span style="font-weight:500;color:#94a3b8">'+sharePct+'%</span></span>'+
+      '<div style="flex:1;max-width:200px;height:7px;background:#eef2f7;border-radius:4px;overflow:hidden"><div style="width:'+sharePct+'%;height:100%;background:'+rc+'"></div></div>'+
+      '<span style="font-size:12px;font-weight:800;color:'+rc+'">'+fmtW(regKrw)+' <span style="font-weight:500;color:#94a3b8">'+sharePct+'%</span></span>'+
     '</div>';
     if(closed) return hdr;
     var cards='<div class="row g-2">'+list.map(function(o){
@@ -3914,19 +3933,26 @@ function _dealerAggAll(){
   }
   if(jp.cnt){ if(!ag['일본법인'])ag['일본법인']={name:'일본법인',country:'일본',open:0,openAmt:0,won:0,acts:0,lastAct:'',sales:''}; ag['일본법인']._jp=jp.cnt; }
   if(cn.cnt){ if(!ag['SBT-WON'])ag['SBT-WON']={name:'SBT-WON',country:'중국',open:0,openAmt:0,won:0,acts:0,lastAct:'',sales:''}; ag['SBT-WON']._cn=cn.cnt; }
+  seen[_dnorm('일본법인')]='일본법인'; seen[_dnorm('SBT-WON')]='SBT-WON';   // 병합계정 표시 → 스텁 중복 차단
   // 딜/활동/견적에만 존재하는 딜러 자동 등재(스텁) — 매출거래처·CRM딜러에 없던 신규 거래처 표시
   try{ [(typeof INTL_PIPE!=='undefined'?INTL_PIPE:[]),(typeof INTL_ACT!=='undefined'?INTL_ACT:[]),(typeof INTL_QUOTES!=='undefined'?INTL_QUOTES:[])].forEach(function(src){
-    (src||[]).forEach(function(r){ var nm=(r.dealer||'').trim(); if(!nm)return; var key=_dnorm(nm); if(!key||seen[key])return; seen[key]=nm;
+    (src||[]).forEach(function(r){ var nm=(r.dealer||'').trim(); if(!nm)return; var rc=(r.country||'').trim();
+      if(rc==='일본'||rc==='중국')return;   // 일본→일본법인, 중국→SBT-WON 단일계정 통합(개별 스텁 생성 안 함)
+      var key=_dnorm(nm); if(!key||seen[key])return; seen[key]=nm;
       ag[nm]={name:nm,country:r.country||'',open:0,openAmt:0,won:0,acts:0,lastAct:'',sales:r.sales||'',_stub:1}; });
   }); }catch(e){}
   // 파트 스코프: 파트원(또는 팀장 파트집중) 시 해당 파트 딜러만 — CRM 레지스트리(INTL_DEALERS) 누출 차단
   try{ var _sc=(typeof _partScope==='function')?_partScope():''; if(_sc){ Object.keys(ag).forEach(function(n){ if(_partOf(ag[n].country||'',n)!==_sc) delete ag[n]; }); } }catch(e){}
   return ag;
 }
+var REGION_COLORS={'법인':'#7c3aed','중화':'#dc2626','미주':'#0891b2','유럽':'#6366f1','동남아':'#0d9488','중동':'#d97706','오세아니아':'#16a34a','아프리카':'#ea580c','아시아':'#2563eb','기타·미분류':'#94a3b8'};
+function _regColor(r){ return REGION_COLORS[r]||'#0d9488'; }
 function _dlReg2(o){
   if(o._jp||o.name==='일본법인')return '법인';
   if(_isCorp(o.name))return '법인';
-  return _geoReg(o.country,o.name);
+  var g=_geoReg(o.country,o.name);
+  if(g==='일본법인'||g==='미국법인'||g==='태국법인'||g==='중국법인')return '법인';   // 법인 지역 국가는 모두 법인 그룹으로(별도 0원 그룹 방지)
+  return g;
 }
 // 목록 렌더 (스파크 제거)
 function renderDealers(){
@@ -3961,12 +3987,14 @@ function renderDealers(){
     var regKrw=list.reduce(function(s,o){return s+o._krw;},0);
     var sharePct=Math.round(regKrw/grandTotal*100);
     var closed=!!_dlClosed[rg];
-    var hdr='<div data-dlreg="'+_esc(rg)+'" onclick="_dlToggle(\''+rg.replace(/'/g,"\\'")+'\')" style="cursor:pointer;user-select:none;display:flex;align-items:center;gap:12px;margin:16px 2px 9px;background:linear-gradient(90deg,#f0fdfa,#fff);border:1px solid #ccfbf1;border-radius:11px;padding:10px 15px">'+
-      '<i class="bi bi-chevron-'+(closed?'right':'down')+'" style="font-size:11px;color:#0d9488"></i>'+
-      '<span style="font-size:14px;font-weight:800;color:#0f766e">'+_esc(rg)+'</span>'+
+    var rc=_regColor(rg);
+    var hdr='<div data-dlreg="'+_esc(rg)+'" onclick="_dlToggle(\''+rg.replace(/'/g,"\\'")+'\')" style="cursor:pointer;user-select:none;display:flex;align-items:center;gap:12px;margin:16px 2px 9px;background:#fff;border:1px solid #eef2f7;border-left:4px solid '+rc+';border-radius:11px;padding:10px 15px">'+
+      '<i class="bi bi-chevron-'+(closed?'right':'down')+'" style="font-size:11px;color:'+rc+'"></i>'+
+      '<span style="display:inline-flex;width:8px;height:8px;border-radius:50%;background:'+rc+'"></span>'+
+      '<span style="font-size:14px;font-weight:800;color:'+rc+'">'+_esc(rg)+'</span>'+
       '<span style="font-size:11px;color:#64748b">'+list.length+'개사</span>'+
-      '<div style="flex:1;max-width:200px;height:7px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:'+sharePct+'%;height:100%;background:#0d9488"></div></div>'+
-      '<span style="font-size:12px;font-weight:800;color:#0f766e">'+fmtW(regKrw)+' <span style="font-weight:500;color:#94a3b8">'+sharePct+'%</span></span>'+
+      '<div style="flex:1;max-width:200px;height:7px;background:#eef2f7;border-radius:4px;overflow:hidden"><div style="width:'+sharePct+'%;height:100%;background:'+rc+'"></div></div>'+
+      '<span style="font-size:12px;font-weight:800;color:'+rc+'">'+fmtW(regKrw)+' <span style="font-weight:500;color:#94a3b8">'+sharePct+'%</span></span>'+
     '</div>';
     if(closed) return hdr;
     var cards='<div class="row g-2">'+list.map(function(o){
@@ -4057,12 +4085,14 @@ function renderDealers(){
     var regKrw=list.reduce(function(s,o){return s+o._krw;},0);
     var sharePct=Math.round(regKrw/grandTotal*100);
     var closed=!!_dlClosed[rg];
-    var hdr='<div data-dlreg="'+_esc(rg)+'" onclick="_dlToggle(\''+rg.replace(/'/g,"\\'")+'\')" style="cursor:pointer;user-select:none;display:flex;align-items:center;gap:12px;margin:16px 2px 9px;background:linear-gradient(90deg,#f0fdfa,#fff);border:1px solid #ccfbf1;border-radius:11px;padding:10px 15px">'+
-      '<i class="bi bi-chevron-'+(closed?'right':'down')+'" style="font-size:11px;color:#0d9488"></i>'+
-      '<span style="font-size:14px;font-weight:800;color:#0f766e">'+_esc(rg)+'</span>'+
+    var rc=_regColor(rg);
+    var hdr='<div data-dlreg="'+_esc(rg)+'" onclick="_dlToggle(\''+rg.replace(/'/g,"\\'")+'\')" style="cursor:pointer;user-select:none;display:flex;align-items:center;gap:12px;margin:16px 2px 9px;background:#fff;border:1px solid #eef2f7;border-left:4px solid '+rc+';border-radius:11px;padding:10px 15px">'+
+      '<i class="bi bi-chevron-'+(closed?'right':'down')+'" style="font-size:11px;color:'+rc+'"></i>'+
+      '<span style="display:inline-flex;width:8px;height:8px;border-radius:50%;background:'+rc+'"></span>'+
+      '<span style="font-size:14px;font-weight:800;color:'+rc+'">'+_esc(rg)+'</span>'+
       '<span style="font-size:11px;color:#64748b">'+list.length+'개사</span>'+
-      '<div style="flex:1;max-width:200px;height:7px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:'+sharePct+'%;height:100%;background:#0d9488"></div></div>'+
-      '<span style="font-size:12px;font-weight:800;color:#0f766e">'+fmtW(regKrw)+' <span style="font-weight:500;color:#94a3b8">'+sharePct+'%</span></span>'+
+      '<div style="flex:1;max-width:200px;height:7px;background:#eef2f7;border-radius:4px;overflow:hidden"><div style="width:'+sharePct+'%;height:100%;background:'+rc+'"></div></div>'+
+      '<span style="font-size:12px;font-weight:800;color:'+rc+'">'+fmtW(regKrw)+' <span style="font-weight:500;color:#94a3b8">'+sharePct+'%</span></span>'+
     '</div>';
     if(closed) return hdr;
     var cards='<div class="row g-2">'+list.map(function(o){
