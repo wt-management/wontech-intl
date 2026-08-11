@@ -4482,19 +4482,22 @@ function _renderPartView(part, rootId){
   var lastM=1; for(var mm=1;mm<=12;mm++){ if(Number((cur.monthly||{})[mm])>0) lastM=mm; }
   var mine=Object.entries(cur.countries||{}).filter(function(e){ return _partOf(e[0],null)===part; });
   var pcur={}, pprev={}, prods={}, pQty={}, tot=0, prev=0, clientsArr=[];
-  mine.forEach(function(e){ var c=e[0],o=e[1];
-    for(var m=1;m<=lastM;m++){ var v=Number((o.m||{})[m])||0; pcur[m]=(pcur[m]||0)+v; tot+=v; }
-    var po=(pre.countries||{})[c];
-    if(po){ for(var m2=1;m2<=lastM;m2++){ var pv=Number((po.m||{})[m2])||0; pprev[m2]=(pprev[m2]||0)+pv; prev+=pv; } }
-    Object.entries(o.clientData||{}).forEach(function(ce){ var nm=ce[0],cd=ce[1];
-      Object.entries(cd.prods||{}).forEach(function(pe){ prods[pe[0]]=(prods[pe[0]]||0)+(Number(pe[1])||0); });
-      (cd.txns||[]).forEach(function(t){ var p=t[1]; if(p)pQty[p]=(pQty[p]||0)+(Number(t[2])||0); });
-      clientsArr.push({name:nm,country:c,total:Number(cd.total)||0,prods:cd.prods||{},last:cd.last||''});
+  // 파트별 현황 제외 규칙: 일본법인(전체 일본) 완전 제외 + 미국·태국 등 법인(WONTECH 종속법인)만 제외(그 외 현지 거래처는 유지) → 거래처 단위 재집계
+  mine.forEach(function(e){ var c=e[0],o=e[1]; if(c==='일본')return;
+    var cd=o.clientData||{}, pcd=((pre.countries||{})[c]||{}).clientData||{};
+    Object.keys(cd).forEach(function(nm){ if(_isCorp(nm))return; var cli=cd[nm]||{};
+      for(var m=1;m<=lastM;m++){ var v=Number((cli.m||{})[m])||0; pcur[m]=(pcur[m]||0)+v; tot+=v; }
+      var pcli=pcd[nm]; if(pcli){ for(var m2=1;m2<=lastM;m2++){ var pv=Number((pcli.m||{})[m2])||0; pprev[m2]=(pprev[m2]||0)+pv; prev+=pv; } }
+      Object.entries(cli.prods||{}).forEach(function(pe){ prods[pe[0]]=(prods[pe[0]]||0)+(Number(pe[1])||0); });
+      (cli.txns||[]).forEach(function(t){ var p=t[1]; if(p)pQty[p]=(pQty[p]||0)+(Number(t[2])||0); });
+      clientsArr.push({name:nm,country:c,total:Number(cli.total)||0,prods:cli.prods||{},last:cli.last||''});
     });
   });
   var yoy=pct(tot,prev);
   var nClients=clientsArr.length;
-  var cArr=mine.map(function(e){ var c=e[0],o=e[1]; var v=0,pv=0; for(var m=1;m<=lastM;m++)v+=Number((o.m||{})[m])||0; var po=(pre.countries||{})[c]; if(po)for(var m2=1;m2<=lastM;m2++)pv+=Number((po.m||{})[m2])||0; var tp=Object.entries(o.prods||{}).sort(function(a,b){return b[1]-a[1];})[0]; return {n:c,v:v,pv:pv,cl:Object.keys(o.clientData||{}).length,tp:tp?tp[0]:''}; }).filter(function(x){return x.v>0;}).sort(function(a,b){return b.v-a.v;});
+  var cArr=mine.filter(function(e){return e[0]!=='일본';}).map(function(e){ var c=e[0],o=e[1]; var cd=o.clientData||{}, pcd=((pre.countries||{})[c]||{}).clientData||{}; var v=0,pv=0,cl=0,cp={};
+    Object.keys(cd).forEach(function(nm){ if(_isCorp(nm))return; cl++; var cli=cd[nm]||{}; for(var m=1;m<=lastM;m++)v+=Number((cli.m||{})[m])||0; var pcli=pcd[nm]; if(pcli)for(var m2=1;m2<=lastM;m2++)pv+=Number((pcli.m||{})[m2])||0; Object.entries(cli.prods||{}).forEach(function(pe){cp[pe[0]]=(cp[pe[0]]||0)+(Number(pe[1])||0);}); });
+    var tp=Object.entries(cp).sort(function(a,b){return b[1]-a[1];})[0]; return {n:c,v:v,pv:pv,cl:cl,tp:tp?tp[0]:''}; }).filter(function(x){return x.v>0;}).sort(function(a,b){return b.v-a.v;});
   var cmax=cArr.length?cArr[0].v:1;
   var pArr=Object.entries(prods).sort(function(a,b){return b[1]-a[1];}).slice(0,12);
   var pmax=pArr.length?pArr[0][1]:1;
