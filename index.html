@@ -242,7 +242,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
   <div class="nav-section" id="sec-overview">
     <div class="nav-label">종합 현황</div>
     <ul class="nav flex-column gap-0">
-      <li class="nav-analysis"><a class="nav-link active" onclick="showPage('overview',this)"><i class="bi bi-bar-chart-line"></i>종합 현황</a></li>
+      <li class="nav-overview"><a class="nav-link active" onclick="showPage('overview',this)"><i class="bi bi-bar-chart-line"></i>종합 현황</a></li>
       <li class="nav-analysis"><a class="nav-link" onclick="showPage('by-country',this)"><i class="bi bi-globe"></i>국가별 분석</a></li>
       <li class="nav-analysis"><a class="nav-link" onclick="showPage('by-product',this)"><i class="bi bi-box-seam"></i>제품별 분석</a></li>
       <li class="nav-analysis"><a class="nav-link" onclick="showPage('by-cons',this)"><i class="bi bi-capsule"></i>소모품 분석</a></li>
@@ -876,7 +876,7 @@ function _rankTable(rows, opts){
   return ins+'<div style="'+wrapS+'"><table class="table table-sm mb-0" style="font-size:12px">'+thead+'<tbody>'+rowArr.join('')+more+'</tbody></table></div>';
 }
 function renderOverview(){
-  if(!_seeAllIntl()){ _partLock(document.getElementById('ov-kpi')); return; }
+  // 종합현황은 팀원 포함 전원에게 공개 (파트 잠금 없음)
   const yr=+document.getElementById('ov-year').value, f=+document.getElementById('ov-from').value, t=+document.getElementById('ov-to').value;
   const cur=yr===2026?INTL:INTL.data2025, pre=yr===2026?INTL.data2025:null;
   const tot=ytd(cur.monthly,f,t), totU=ytd(cur.monthly_usd,f,t);
@@ -1299,7 +1299,7 @@ async function _afterLogin(user) {
   _setDefaultRanges();
   try{ var _mp=_myPartIntl(), _all=_seeAllIntl(), _lead=_isLeaderIntl();
     // 섹션 단위 표시: 종합(팀장/관리자만) · 팀장·관리(팀장/관리자만)
-    var _secOv=document.getElementById('sec-overview'); if(_secOv)_secOv.style.display=_all?'':'none';
+    var _secOv=document.getElementById('sec-overview'); if(_secOv)_secOv.style.display='';  // 종합현황 항목은 팀원도 노출(분석3종은 nav-analysis로 계속 제한)
     var _secLd=document.getElementById('sec-lead'); if(_secLd)_secLd.style.display=_lead?'':'none';
     var _lblP=document.getElementById('lbl-parts'); if(_lblP)_lblP.textContent=_all?'파트별 현황':'우리 파트';
     document.querySelectorAll('.nav-analysis').forEach(function(li){ li.style.display=_all?'':'none'; });
@@ -1595,7 +1595,7 @@ function _wtPageOk(n){
   if(!n||!document.getElementById('page-'+n)) return false;
   if(n==='by-rep'||n==='unitprice'){ try{ return _isLeaderIntl(); }catch(e){ return false; } }   // 팀장 전용 게이트
   if(n==='intl-users'){ try{ return _canTeamMgmtIntl(); }catch(e){ return false; } }   // 팀장(해외영업팀)/관리자 전용
-  try{ if(n==='overview'||n==='by-country'||n==='by-product'||n==='by-cons') return _seeAllIntl(); if(n==='pv-am'||n==='pv-cn'||n==='pv-eu') return _seeAllIntl()||_myPartIntl()===_pvPart(n); }catch(e){ return false; }
+  try{ if(n==='by-country'||n==='by-product'||n==='by-cons') return _seeAllIntl(); if(n==='pv-am'||n==='pv-cn'||n==='pv-eu') return _seeAllIntl()||_myPartIntl()===_pvPart(n); }catch(e){ return false; }  // 종합현황(overview)은 팀원 포함 전원 노출
   return true;
 }
 function _wtOpenOverlay(){
