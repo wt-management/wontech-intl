@@ -1233,9 +1233,9 @@ function handleUpload(file){
 </div>
 
 <!-- 로딩 화면 -->
-<div id="app-loading" style="display:flex;flex-direction:row;position:fixed;inset:0;background:#0f172a;z-index:9997;align-items:center;justify-content:center;flex-direction:column;gap:12px">
+<div id="app-loading" style="display:flex;flex-direction:row;position:fixed;inset:0;background:#0f172a;z-index:10001;align-items:center;justify-content:center;flex-direction:column;gap:14px;transition:opacity .4s ease">
   <div style="width:40px;height:40px;border:3px solid #1e293b;border-top-color:#0d9488;border-radius:50%;animation:spin 0.8s linear infinite"></div>
-  <div id="loading-msg" style="color:#64748b;font-size:13px">로딩 중...</div>
+  <div id="loading-msg" style="color:#94a3b8;font-size:13px">해외영업 대시보드를 불러오는 중입니다…</div>
 </div>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
@@ -1329,8 +1329,14 @@ async function _afterLogin(user) {
   showPage(_saved, _wtNavEl(_saved), true);
   try{ history.replaceState({p:_saved},'','#'+_saved); }catch(_e){}                                 // 첫 렌더는 replaceState로 seed(여분 엔트리 금지)
   try{ _wtRenderSwitcher(); }catch(_e){}
-  var veil = document.getElementById('__page_veil');
-  if(veil) veil.style.display = 'none';
+  // 렌더 완료 후 한 프레임 뒤에 로딩·베일을 부드럽게 페이드아웃(콘텐츠 반짝임 방지)
+  requestAnimationFrame(_hideBoot);
+}
+function _hideBoot(){
+  var al=document.getElementById('app-loading'), veil=document.getElementById('__page_veil');
+  if(veil){ veil.style.transition='opacity .4s ease'; veil.style.opacity='0'; }
+  if(al){ al.style.opacity='0'; }
+  setTimeout(function(){ if(al)al.style.display='none'; if(veil)veil.style.display='none'; },430);
 }
 
 /* ===== 권한 기반 사이트 이동 (site_registry 공통) — WT_SWITCHER ===== */
@@ -1583,11 +1589,12 @@ async function _markPend(id,status){
     }
   }
   const {data:{session}} = await _sb.auth.getSession();
-  document.getElementById('app-loading').style.display='none';
   if(session){
-    await _afterLogin(session.user);
+    // 로딩 스피너를 데이터 로드 내내 유지 → _afterLogin 끝에서 페이드아웃(자연스러운 진입)
+    try{ await _afterLogin(session.user); }
+    catch(e){ console.error('afterLogin 실패', e); _hideBoot(); }
   } else {
-    _wtToCentral(true);   // 세션 없음 → 중앙 로그인(로그인 후 여기로 복귀). replace로 히스토리 오염 방지
+    _wtToCentral(true);   // 세션 없음 → 중앙 로그인(로그인 후 여기로 복귀). 리다이렉트 동안 로딩화면 유지
   }
 })();
 
