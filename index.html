@@ -832,6 +832,13 @@ function _intlIsCons(p,src){ var pd=(src&&src.prods_dev)||{}; if(pd[p])return fa
 function _intlProdVal(src,f,t){ var out={}, pm=(src&&src.prodMo)||{}; Object.keys(pm).forEach(function(p){ var s=0,mm=pm[p]||{}; Object.keys(mm).forEach(function(m){ var mi=parseInt(m,10); if(mi>=f&&mi<=t)s+=Number(mm[m])||0; }); if(s)out[p]=s; }); return out; }
 // 수량 단위: 소모품=개, 장비=대
 function _unitOf(p){ try{ return _intlIsCons(p,(typeof INTL!=='undefined')?INTL:null)?'개':'대'; }catch(e){ return '대'; } }
+// 회계 기간매출 장비/소모품 분해(prodMo 기반)
+function _intlDevConsVal(src,f,t){ var pv=_intlProdVal(src,f,t); var dev=0,cons=0; Object.keys(pv).forEach(function(p){ if(_intlIsCons(p,src))cons+=pv[p]; else dev+=pv[p]; }); return {dev:dev,cons:cons}; }
+// 미반영(pending) 기간 장비/소모품 분해 (2026, INTL_PEND active + ILBO_PEND)
+function _intlPendBreak(f,t){ var dev=0,cons=0;
+  (typeof INTL_PEND!=='undefined'?INTL_PEND:[]||[]).forEach(function(p){ if(p.status==='취소'||p.status==='반영됨')return; var d=p.expected_date?new Date(p.expected_date+'T00:00:00'):null; if(!(d&&!isNaN(d)&&d.getFullYear()===2026))return; var mo=d.getMonth()+1; if(mo<f||mo>t)return; var amt=Number(p.amount)||0; if(_intlIsCons(p.product||'',INTL))cons+=amt; else dev+=amt; });
+  (typeof ILBO_PEND!=='undefined'?ILBO_PEND:[]||[]).forEach(function(p){ var ds=p.expectedDate||p.expected_date||''; var d=ds?new Date(ds+'T00:00:00'):null; if(!(d&&!isNaN(d)&&d.getFullYear()===2026))return; var mo=d.getMonth()+1; if(mo<f||mo>t)return; var amt=Number(p.amount)||0; if(_intlIsCons(p.product||'',INTL))cons+=amt; else dev+=amt; });
+  return {dev:dev,cons:cons}; }
 // 국가별 수량(기간필터)
 function _intlCtryQty(src,f,t){ var out={}; if(!src||!src.countries) return out;
   Object.keys(src.countries).forEach(function(c){ var cd=src.countries[c].clientData||{}; var q=0;
@@ -886,38 +893,40 @@ function renderOverview(){
   const ptot=pre?ytd(pre.monthly,f,t):0, yoy=pct(tot,ptot);
   const pAgg=(yr===2026)?_pendCombined(2026):{monthly:{},total:0}; const pendYtd=(yr===2026)?ytd(pAgg.monthly,f,t):0;  // 조회기간(f~t) 필터 — 종합사이트와 정합(기간밖 예정분 제외)
   const nct=Object.values(cur.countries||{}).filter(c=>Object.keys(c.m||{}).some(m=>+m>=f&&+m<=t&&c.m[m]>0)).length;
-  document.getElementById('upd-label').textContent='기준일 '+(INTL.updatedAt||'');
+  document.getElementById('upd-label').textContent='실적 = 회계 + 미반영 · 기준일 '+(INTL.updatedAt||'');
   const pl=f===t?f+'월':f+'~'+t+'월';
 
-  // KPI: USD 환산 → 전년 대비 증감액
-  const diffAmt = tot - ptot;
-  const diffStr = diffAmt>=0 ? '+'+fmtW(diffAmt) : '-'+fmtW(Math.abs(diffAmt));
-  const _dualHead='<div class="col-12 col-md-6"><div class="kpi-card"><div class="kpi-label"><i class="bi bi-currency-won me-1" style="color:#111827"></i>해외 합계 ('+pl+')</div>'
-    +'<div style="display:flex;flex-direction:row;align-items:flex-end;justify-content:space-between;gap:10px">'
-    +'<div><div style="font-size:10px;color:#7c3aed;margin-bottom:1px;font-weight:700">미반영 포함 <span style="color:#cbd5e1;font-weight:500">· 보고기준</span></div><div class="kpi-value" style="color:#111827;font-size:1.4rem;line-height:1.1">'+fmtW(tot+pendYtd)+'</div><div class="kpi-sub" style="margin-top:3px">전년 '+fmtW(ptot)+' '+bdg(yoy)+'</div></div>'
-    +'<div style="text-align:right;border-left:1px solid #eef2f7;padding-left:11px"><div style="font-size:10px;color:#9ca3af;margin-bottom:1px;font-weight:600">회계반영</div><div style="font-size:1.32rem;font-weight:800;color:#374151;line-height:1.1">'+fmtW(tot)+'</div><div style="font-size:10px;color:#9ca3af;margin-top:3px">+ '+fmtW(pendYtd)+'</div></div>'
-    +'</div></div></div>';
+  // KPI 4카드: 당월·전월·당월누계·전월누계 (회계+미반영, 장비/소모품 분해) — 한국영업 스타일
   var _dm=0; if(cur&&cur.monthly){ for(var _k=1;_k<=12;_k++){ if(Number(cur.monthly[_k])>0) _dm=_k; } } if(!_dm) _dm=12;
-  const _cm=(yr===2026)?Math.min(_dm,new Date().getMonth()+1):12;   // 기준월=min(달력월,데이터마지막월) — 월초 빈달 0원/▼100% 방지·자동 롤오버
-  const _pmM=_cm>1?_cm-1:1;
-  const _mCard=function(mo){
-    var acc=(cur.monthly&&cur.monthly[mo])||0;
-    var pd=(yr===2026)?((pAgg.monthly&&pAgg.monthly[mo])||0):0;
-    var cum=ytd(cur.monthly,1,mo)+((yr===2026)?ytd(pAgg.monthly,1,mo):0);
-    var ly=(pre&&pre.monthly&&pre.monthly[mo])||0;
-    var lycum=pre?ytd(pre.monthly,1,mo):0;
-    return {mo:mo,cur:acc+pd,cum:cum,ly:ly,lycum:lycum};
-  };
-  const _others=[_mCard(_cm),_mCard(_pmM)].map(function(c,idx){
-    var lbl=(idx===0?'이번달':'전월')+' ('+c.mo+'월)';
-    var col=idx===0?'#0891b2':'#64748b';
-    return '<div class="col-6 col-md-3"><div class="kpi-card" style="cursor:pointer" title="클릭 시 월 상세" onclick="openMonthDetail('+c.mo+')">'+
-      '<div class="kpi-label"><i class="bi bi-calendar3 me-1" style="color:'+col+'"></i>'+lbl+' <span style="font-weight:400;color:#cbd5e1">보고기준</span></div>'+
-      '<div style="display:flex;flex-direction:row;align-items:baseline;gap:7px"><span class="kpi-value" style="color:'+col+';font-size:1.28rem">'+fmtW(c.cur)+'</span>'+bdg(pct(c.cur,c.ly))+'</div>'+
-      '<div class="kpi-sub" style="margin-top:4px">누계(1~'+c.mo+'월) <b style="color:#374151">'+fmtW(c.cum)+'</b> '+bdg(pct(c.cum,c.lycum))+'</div>'+
+  var _cm=(yr===2026)?Math.min(_dm,new Date().getMonth()+1):12;   // 기준월=min(달력월,데이터마지막월)
+  var _pm=_cm>1?_cm-1:1;
+  var _pendM=(yr===2026)?pAgg.monthly:{};
+  function _kper(a,b){
+    var acc=ytd(cur.monthly,a,b);
+    var pend=(yr===2026)?ytd(_pendM,a,b):0;
+    var accB=_intlDevConsVal(cur,a,b), pendB=(yr===2026)?_intlPendBreak(a,b):{dev:0,cons:0};
+    var cons=accB.cons+pendB.cons; var val=acc+pend; var dev=val-cons; if(dev<0)dev=0;
+    var ly=pre?ytd(pre.monthly,a,b):0;
+    return {val:val,dev:dev,cons:cons,pend:pend,ly:ly};
+  }
+  function _kcard(label,icon,color,mo,a,b,clickable){
+    var p=_kper(a,b);
+    var click=clickable?(' style="cursor:pointer" title="클릭 → 월 상세" onclick="openMonthDetail('+mo+')"'):'';
+    return '<div class="col-6 col-md-3"><div class="kpi-card"'+click+'>'+
+      '<div class="kpi-label"><i class="bi '+icon+' me-1" style="color:'+color+'"></i>'+label+(clickable?' <i class="bi bi-chevron-right" style="font-size:8px;color:#cbd5e1"></i>':'')+'</div>'+
+      '<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8px">'+
+        '<div style="min-width:0"><div class="kpi-value" style="color:'+color+';font-size:1.3rem;line-height:1.1">'+fmtW(p.val)+'</div>'+
+          '<div class="kpi-sub" style="margin-top:3px">전년 '+fmtW(p.ly)+' '+bdg(pct(p.val,p.ly))+'</div></div>'+
+        '<div style="text-align:right;flex-shrink:0;font-size:10.5px;line-height:1.55;color:#94a3b8"><div>장비 <b style="color:#475569">'+fmtW(p.dev)+'</b></div><div>소모품 <b style="color:#475569">'+fmtW(p.cons)+'</b></div></div>'+
+      '</div>'+
+      (p.pend>0?'<div style="font-size:9.5px;color:#7c3aed;margin-top:5px;border-top:1px solid #f1f5f9;padding-top:4px">미반영 '+fmtW(p.pend)+' 포함</div>':'<div style="font-size:9.5px;color:#cbd5e1;margin-top:5px;border-top:1px solid #f1f5f9;padding-top:4px">회계 확정</div>')+
     '</div></div>';
-  }).join('');
-  document.getElementById('ov-kpi').innerHTML=_dualHead+_others;
+  }
+  document.getElementById('ov-kpi').innerHTML=
+    _kcard('당월 ('+_cm+'월)','bi-calendar-check','#0891b2',_cm,_cm,_cm,true)+
+    _kcard('전월 ('+_pm+'월)','bi-calendar','#64748b',_pm,_pm,_pm,true)+
+    _kcard('당월 누계 (1~'+_cm+'월)','bi-graph-up','#111827',_cm,1,_cm,false)+
+    _kcard('전월 누계 (1~'+_pm+'월)','bi-clock-history','#7c3aed',_pm,1,_pm,false);
 
   const m12=Array.from({length:12},(_,i)=>i+1);
   dch('ov');
