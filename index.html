@@ -2854,11 +2854,12 @@ function _fxBadge(){ var n=function(v){ v=Number(v); return isFinite(v)?v.toLoca
 
 // ── 수주관리 v6: 다통화 카드/리스트/KPI(KRW 환산) ──
 function _dealCard(d){
-  var days=_stageDays(d); var rot=days!=null&&days>=30;
+  var won=_wonI(d); var days=_stageDays(d); var rot=days!=null&&days>=30&&!won;
   var today=new Date().toISOString().slice(0,10);
   var overdue=d.expectedShip&&d.expectedShip<today&&d.shipStatus!=='납품완료';
-  return '<div class="is-card" draggable="true" ondragstart="_dragId=\''+d.id+'\'" onclick="openDeal(\''+d.id+'\')" style="background:'+(rot?'#fef2f2':'#fff')+';border:1px solid '+(rot?'#fecaca':'#f1f5f9')+';border-radius:8px;padding:9px 11px;margin-bottom:7px;cursor:pointer;box-shadow:0 1px 2px rgba(2,6,23,.05)">'+
+  return '<div class="is-card" draggable="true" ondragstart="_dragId=\''+d.id+'\'" onclick="openDeal(\''+d.id+'\')" style="background:'+(won?'#f0fdf4':(rot?'#fef2f2':'#fff'))+';border:1px solid '+(won?'#bbf7d0':(rot?'#fecaca':'#f1f5f9'))+';border-radius:8px;padding:9px 11px;margin-bottom:7px;cursor:pointer;box-shadow:0 1px 2px rgba(2,6,23,.05)">'+
     '<div style="display:flex;justify-content:space-between;align-items:start;gap:6px"><div style="font-size:12px;font-weight:700">'+_esc(d.dealer||'-')+' <span style="font-size:10px;color:#94a3b8">'+_esc(d.country||'')+'</span></div>'+(days!=null?'<span style="font-size:9px;color:'+(rot?'#dc2626':'#94a3b8')+';white-space:nowrap;font-weight:'+(rot?'700':'400')+'" title="단계 체류일">'+days+'일'+(rot?' 🔥':'')+'</span>':'')+'</div>'+
+    (won?'<div style="margin-top:5px"><span style="display:inline-flex;align-items:center;gap:3px;background:#16a34a;color:#fff;font-size:9px;font-weight:700;padding:2px 9px;border-radius:10px"><i class="bi bi-check-circle-fill"></i>계약완료</span></div>':'')+
     (d.product?'<div style="font-size:11px;color:#475569">'+_esc(d.product)+'</div>':'')+
     '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:3px"><span><span style="font-size:12px;font-weight:700;color:#0d9488">'+_fmtCur(d)+'</span> <span style="font-size:9px;color:#94a3b8">≈'+fmtW(_dealKrw(d))+'</span></span><span style="font-size:10px;color:#64748b">'+_esc(d.sales||'')+(d.prob?' · '+d.prob+'%':'')+'</span></div>'+
     '<div style="height:3px;background:#f1f5f9;border-radius:2px;margin-top:5px;overflow:hidden"><div style="width:'+(Number(d.prob)||0)+'%;height:100%;background:'+(SC_INTL[d.stage]||'#94a3b8')+'"></div></div>'+
