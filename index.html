@@ -1279,7 +1279,7 @@ async function doLogin() {
 }
 
 async function _afterLogin(user) {
-  const {data:profile} = await _sb.from('crm_profiles').select('display_name,access,role,position,dept').eq('id',user.id).maybeSingle();
+  const {data:profile} = await _sb.from('crm_profiles').select('display_name,access,role,position,dept,temp_pw').eq('id',user.id).maybeSingle();
   const access = profile?.access||'';
   const allowed = access.includes('intl')||profile?.role==='admin'||user.email==='pmw0406@gmail.com';
   if(!allowed){
@@ -1340,6 +1340,8 @@ async function _afterLogin(user) {
   try{ _wtRenderSwitcher(); }catch(_e){}
   // 렌더 완료 후 한 프레임 뒤에 로딩·베일을 부드럽게 페이드아웃(콘텐츠 반짝임 방지)
   requestAnimationFrame(_hideBoot);
+  // 임시 비밀번호 사용 중이면 변경 강제(닫기 불가) — 로컬에서 이미 변경했으면 생략
+  try{ if(profile&&profile.temp_pw&&!localStorage.getItem('wt_pwok_'+user.id)){ setTimeout(function(){ showPwModal(true); },600); } }catch(_e){}
 }
 function _hideBoot(){
   var al=document.getElementById('app-loading'), veil=document.getElementById('__page_veil');
@@ -1624,7 +1626,8 @@ function _wtOpenOverlay(){
 window.addEventListener('popstate', function(e){
   var _cur=sessionStorage.getItem('intl_page')||'overview';
   var ov=_wtOpenOverlay();
-  if(ov){ ov.style.display='none'; try{ history.pushState({p:_cur},'','#'+_cur); }catch(_e){} return; }   // 뒤로가기=모달 닫기(소모 엔트리 복구)
+  if(ov){ if(ov.id==='pw-modal'&&typeof _pwForce!=='undefined'&&_pwForce){ try{ history.pushState({p:_cur},'','#'+_cur); }catch(_e){} return; }   // 임시비번 강제변경 중엔 뒤로가기로 닫기 불가
+    ov.style.display='none'; try{ history.pushState({p:_cur},'','#'+_cur); }catch(_e){} return; }   // 뒤로가기=모달 닫기(소모 엔트리 복구)
   var sb=document.querySelector('.sidebar');
   if(window.innerWidth<=820 && sb && sb.classList.contains('open')){ toggleNav(false); try{ history.pushState({p:_cur},'','#'+_cur); }catch(_e){} return; }   // 뒤로가기=모바일 드로어 닫기
   var st=e.state;
@@ -1995,10 +1998,15 @@ function updateSidebarUser(name, email, position, dept) {
 }
 
 // ── 비밀번호 변경 ────────────────────────────────────────────────
-function showPwModal(){
+var _pwForce=false;
+function showPwModal(force){
+  _pwForce=!!force;
   document.getElementById('pw-new').value='';
   document.getElementById('pw-confirm').value='';
   document.getElementById('pw-error').style.display='none';
+  var fm=document.getElementById('pw-force-msg'); if(fm)fm.style.display=_pwForce?'block':'none';
+  var cl=document.getElementById('pw-close'); if(cl)cl.style.display=_pwForce?'none':'';
+  var tt=document.getElementById('pw-title'); if(tt)tt.textContent=_pwForce?'비밀번호 변경 필요':'비밀번호 변경';
   document.getElementById('pw-modal').style.display='flex';
 }
 async function doChangePw(){
@@ -2010,9 +2018,14 @@ async function doChangePw(){
   if(pw !== cf){err.textContent='비밀번호가 일치하지 않습니다.';err.style.display='block';return;}
   btn.disabled=true; btn.textContent='변경 중...'; err.style.display='none';
   const {error} = await _sb.auth.updateUser({password: pw});
+  if(error){ btn.disabled=false; btn.textContent='변경하기'; err.textContent='오류: '+error.message; err.style.display='block'; return; }
+  // 임시비번 플래그 제거(서버 crm_profiles.temp_pw + 로컬 폴백) → 다음 로그인부터 강제 안 뜸
+  try{ if(_meId) await _sb.from('crm_profiles').update({temp_pw:null}).eq('id',_meId); }catch(e){}
+  try{ if(_meId) localStorage.setItem('wt_pwok_'+_meId,'1'); }catch(e){}
   btn.disabled=false; btn.textContent='변경하기';
-  if(error){err.textContent='오류: '+error.message;err.style.display='block';}
-  else{document.getElementById('pw-modal').style.display='none'; alert('비밀번호가 변경되었습니다.');}
+  _pwForce=false;
+  document.getElementById('pw-modal').style.display='none';
+  alert('비밀번호가 변경되었습니다.');
 }
 
 // ── 제품 팝업 ─────────────────────────────────────────────────────
@@ -2081,7 +2094,7 @@ function openProdModal(prodName, cat){
   document.getElementById('prod-modal').style.display='flex';
 }
 function closeProdModal(){ document.getElementById('prod-modal').style.display='none'; }
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeProdModal();document.getElementById('pw-modal').style.display='none';}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeProdModal();if(!_pwForce)document.getElementById('pw-modal').style.display='none';}});
 
 // ── 소모품 렌더링 ─────────────────────────────────────────────────
 function _csPC(){ renderByCons(); }
@@ -2183,10 +2196,11 @@ function renderByCons(){
 <!-- 비밀번호 변경 모달 -->
 <div id="pw-modal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.5);align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:16px;width:360px;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
-    <div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <div style="font-size:15px;font-weight:800;color:#1e293b">비밀번호 변경</div>
-      <button onclick="document.getElementById('pw-modal').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer;color:#9ca3af">×</button>
+    <div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div id="pw-title" style="font-size:15px;font-weight:800;color:#1e293b">비밀번호 변경</div>
+      <button id="pw-close" onclick="document.getElementById('pw-modal').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer;color:#9ca3af">×</button>
     </div>
+    <div id="pw-force-msg" style="display:none;font-size:12px;line-height:1.5;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:9px;padding:10px 12px;margin-bottom:16px"><i class="bi bi-shield-exclamation me-1"></i>보안을 위해 <b>임시 비밀번호</b>를 사용 중입니다. 새 비밀번호로 변경해야 계속 이용할 수 있습니다.</div>
     <div style="margin-bottom:12px">
       <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">새 비밀번호</label>
       <input id="pw-new" type="password" class="form-control" placeholder="새 비밀번호 (8자 이상)">
