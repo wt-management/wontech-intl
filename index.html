@@ -772,7 +772,7 @@ const bdg  = v => v===null?'':'<span style="font-size:10px;font-weight:700;color
 const C7   = ['#0d9488','#2563eb','#7c3aed','#ea580c','#dc2626','#16a34a','#0891b2','#f59e0b','#64748b','#84cc16'];
 let _ch={}, _rch=null;
 const dch = id => { if(_ch[id]){_ch[id].destroy();delete _ch[id];} };
-const ytd = (mo, f, t) => { let s=0; for(let m=f;m<=t;m++) s+=(mo[m]||0); return s; };
+const ytd = (mo, f, t) => { if(!mo) return 0; let s=0; for(let m=f;m<=t;m++) s+=(mo[m]||0); return s; };
 
 function toggleNav(force){
   var sb=document.querySelector('.sidebar'), bd=document.getElementById('m-backdrop');
@@ -3988,12 +3988,12 @@ function _isCorp(name){ return /WONTECH|종속법인/i.test(name||''); }
 /* ══ 종합현황 법인 포함/제외 이원화 ══
    '법인 제외(직수출)' 모드: 회계는 법인 클라이언트를 뺀 파생 데이터로, 미반영은 customer '법인' 제외로 재계산해 페이지 전체(KPI·차트·Top제품·지역표·월상세)를 다시 그린다. */
 let _dashScope='all'; try{ _dashScope=sessionStorage.getItem('intl_dash_scope')||'all'; }catch(e){}
-function setDashScope(v){ if(_dashScope===v) return; _dashScope=v; try{ sessionStorage.setItem('intl_dash_scope',v); }catch(e){} try{ renderOverview(); }catch(e){} }
+function setDashScope(v){ if(_dashScope===v) return; _dashScope=v; try{ sessionStorage.setItem('intl_dash_scope',v); }catch(e){} try{ renderOverview(); }catch(e){ console.error('scope render 실패:',e); alert('화면 갱신 오류: '+(e&&e.message)); } }
 function _corpPendRow(p){ return String((p&&(p.customer||p.client))||'').indexOf('법인')>=0; }
 function _exclCorpView(src){
   try{
     if(!src||!src.countries||src.__exCorp) return src;
-    var out={__exCorp:true, updatedAt:src.updatedAt, monthly:{}, prodMo:{}, prodMoQty:{}, countries:{}, prods_cons:src.prods_cons||{}, prods_dev:src.prods_dev||{}, total:0};
+    var out={__exCorp:true, updatedAt:src.updatedAt, monthly:{}, prodMo:{}, prodMoQty:{}, countries:{}, prods_cons:src.prods_cons||{}, prods_dev:src.prods_dev||{}, monthly_usd:src.monthly_usd||{}, monthly_qty:src.monthly_qty||{}, total:0};
     var anyTx=false;
     Object.keys(src.countries).forEach(function(cc){
       var obj=src.countries[cc]||{}, cd=obj.clientData||{}, names=Object.keys(cd);
