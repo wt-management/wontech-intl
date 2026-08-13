@@ -864,7 +864,7 @@ function _rankTable(rows, opts){
   var rowArr=shown.map(function(r,i){ var sh=Math.round(r.v/tot*100); var pv=Number(r.prev)||0; var y=pv>0?((r.v/pv-1)*100):null;
     var yH=y===null?'<span style="color:#c4b5fd;font-size:10px">신규</span>':'<span style="color:'+(y>=0?'#16a34a':'#dc2626')+';font-weight:700">'+(y>=0?'▲':'▼')+Math.abs(y).toFixed(0)+'%</span>';
     return '<tr style="cursor:pointer;border-top:1px solid #f4f6f9" onclick="'+(r.click||'')+'" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'">'+
-      '<td style="padding:5px 8px;color:#cbd5e1;font-weight:700;text-align:right">'+(i+1)+'</td>'+
+      '<td style="padding:5px 6px;color:#cbd5e1;font-weight:700;text-align:right;white-space:nowrap">'+(i+1)+'</td>'+
       '<td style="max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>'+_esc(r.name)+'</b></td>'+
       '<td style="text-align:right;font-weight:700;color:'+col+';white-space:nowrap">'+fmtW(r.v)+'</td>'+
       (opts.qty?'<td style="text-align:right;color:#475569;font-size:11px;white-space:nowrap">'+(Number(r.q)||0).toLocaleString()+(opts.qtyUnit||_unitOf(r.name))+((Number(r.prevQ)||0)>0?' <span style="color:#cbd5e1;font-size:9px">('+(Number(r.prevQ)||0).toLocaleString()+')</span>':'')+'</td>':'')+
@@ -874,11 +874,11 @@ function _rankTable(rows, opts){
       (opts.metaHead?'<td style="text-align:right;color:#64748b;padding-right:8px;white-space:nowrap">'+(r.meta!=null?r.meta:'')+'</td>':'')+'</tr>';
   });
   var cspan=6+(opts.metaHead?1:0)+(opts.qty?1:0);
-  var thead='<thead style="background:#f8fafc;position:sticky;top:0;z-index:1"><tr><th style="text-align:right;padding:5px 8px">#</th><th>이름</th><th style="text-align:right">매출</th>'+(opts.qty?'<th style="text-align:right">수량</th>':'')+'<th style="padding-right:6px">비중</th><th style="text-align:right">전년</th><th style="text-align:right;padding-right:8px">YoY</th>'+(opts.metaHead?'<th style="text-align:right;padding-right:8px">'+opts.metaHead+'</th>':'')+'</tr></thead>';
+  var thead='<thead style="background:#f8fafc;position:sticky;top:0;z-index:1"><tr><th style="text-align:right;padding:5px 6px;white-space:nowrap">#</th><th>이름</th><th style="text-align:right">매출</th>'+(opts.qty?'<th style="text-align:right">수량</th>':'')+'<th style="padding-right:6px">비중</th><th style="text-align:right">전년</th><th style="text-align:right;padding-right:8px">YoY</th>'+(opts.metaHead?'<th style="text-align:right;padding-right:8px">'+opts.metaHead+'</th>':'')+'</tr></thead>';
   // 2단 모드: 좌우로 절반씩 나눠 가로 공간 활용 (열너비 고정 → 좌우 정렬 일치 + 가로스크롤 제거)
   if(opts.cols===2 && rowArr.length>4){
     var half=Math.ceil(rowArr.length/2);
-    var cg='<colgroup><col style="width:22px"><col>'+(opts.qty?'<col style="width:52px"><col style="width:56px">':'<col style="width:56px">')+'<col style="width:78px"><col style="width:50px"><col style="width:46px">'+(opts.metaHead?'<col style="width:50px">':'')+'</colgroup>';
+    var cg='<colgroup><col style="width:30px"><col>'+(opts.qty?'<col style="width:52px"><col style="width:56px">':'<col style="width:56px">')+'<col style="width:78px"><col style="width:50px"><col style="width:46px">'+(opts.metaHead?'<col style="width:50px">':'')+'</colgroup>';
     var mk=function(part){ return '<table class="table table-sm mb-0" style="font-size:12px;width:100%;table-layout:fixed">'+cg+thead+'<tbody>'+part.join('')+'</tbody></table>'; };
     return ins+'<div style="display:flex;gap:14px;align-items:flex-start"><div style="flex:1;min-width:0">'+mk(rowArr.slice(0,half))+'</div><div style="flex:1;min-width:0">'+mk(rowArr.slice(half))+'</div></div>';
   }
