@@ -2729,6 +2729,9 @@ function _renderRegionTable(yr,f,t){
     if(names.length){ names.forEach(function(nm){ add(_regOvr(c,nm),k,ytd((cd[nm]&&cd[nm].m)||{},f,t)); }); }
     else add(_regOvr(c,null),k,ytd(obj.m||{},f,t)); }); }
   acc(cur,'cur'); if(pre)acc(pre,'prev');
+  if(_dashScope==='excl'){ // 직수출 모드 — 법인 클라는 이미 제거됐고, 지역맵이 국가째 '○○법인'으로 묶은 잔여(현지 병원 직수출)는 라벨을 바로잡아 지역 그룹으로
+    ['일본법인','태국법인','미국법인'].forEach(function(k){ if(!sums[k])return; var nk=k.replace('법인','')+'(직수출)'; sums[nk]=sums[nk]||{cur:0,prev:0}; sums[nk].cur+=sums[k].cur; sums[nk].prev+=sums[k].prev; delete sums[k]; });
+  }
   var CORP=['태국법인','미국법인','일본법인'];
   var regs=Object.keys(sums).filter(function(r){return CORP.indexOf(r)<0;}).sort(function(a,b){return (sums[b].cur)-(sums[a].cur);});
   var corp=CORP.filter(function(r){return sums[r];});
@@ -2757,12 +2760,15 @@ function _regOvr(c,nm){ if(nm&&typeof _isCorp==='function'&&_isCorp(nm)){ if(c==
 function openRegionDetail(rg,yr,f,t){
   var cur=yr===2026?INTL:(INTL.data2025||{});
   var pre=yr===2026?(INTL.data2025||{}):null;
-  var isCorp=/법인/.test(rg), isEtc=/기타|미분류/.test(rg);
+  var _exlR=(_dashScope==='excl');
+  if(_exlR){ cur=_exclCorpView(cur); if(pre) pre=_exclCorpView(pre); }   // 종합현황 스코프 따라감
+  var rgKey=_exlR?rg.replace(/\(직수출\)$/,'법인'):rg;                    // '일본(직수출)' 행 클릭 → 매핑상 '일본법인' 잔여와 매칭
+  var isCorp=/법인/.test(rgKey)&&!_exlR, isEtc=/기타|미분류/.test(rg);
   var rows=[];  // {name, v(올해), pv(전년), c}
   var _pcd=function(c,nm){ var pc=(pre&&pre.countries&&pre.countries[c])||null; if(!pc)return 0; if(nm){ var x=(pc.clientData||{})[nm]; return x?ytd(x.m||{},f,t):0; } return ytd(pc.m||{},f,t); };
   Object.entries(cur.countries||{}).forEach(function(e){ var c=e[0],obj=e[1]; var cd=obj.clientData||{}; var names=Object.keys(cd);
-    if(names.length){ names.forEach(function(nm){ if(_regOvr(c,nm)===rg){ var v=ytd((cd[nm]&&cd[nm].m)||{},f,t); var pv=_pcd(c,nm); if(v||pv)rows.push({name:nm+' ('+c+')',v:v,pv:pv,c:c}); } }); }
-    else if(_regOvr(c,null)===rg){ var v=ytd(obj.m||{},f,t); if(v||_pcd(c,null))rows.push({name:c+' (전체)',v:v,pv:_pcd(c,null),c:c}); } });
+    if(names.length){ names.forEach(function(nm){ if(_regOvr(c,nm)===rgKey){ var v=ytd((cd[nm]&&cd[nm].m)||{},f,t); var pv=_pcd(c,nm); if(v||pv)rows.push({name:nm+' ('+c+')',v:v,pv:pv,c:c}); } }); }
+    else if(_regOvr(c,null)===rgKey){ var v=ytd(obj.m||{},f,t); if(v||_pcd(c,null))rows.push({name:c+' (전체)',v:v,pv:_pcd(c,null),c:c}); } });
   // 법인(일본/미국/태국): 클리닉 개별 → 국가(법인) 단위 하나로 묶기
   if(isCorp){ var byC={}; rows.forEach(function(r){ if(!byC[r.c])byC[r.c]={name:r.c+' (법인 통합)',v:0,pv:0,c:r.c}; byC[r.c].v+=r.v; byC[r.c].pv+=r.pv; }); rows=Object.values(byC); }
   rows.sort(function(a,b){return Math.abs(b.v)-Math.abs(a.v);});
