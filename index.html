@@ -835,9 +835,9 @@ function _unitOf(p){ try{ return _intlIsCons(p,(typeof INTL!=='undefined')?INTL:
 // 회계 기간매출 장비/소모품 분해(prodMo 기반)
 function _intlDevConsVal(src,f,t){ var pv=_intlProdVal(src,f,t); var dev=0,cons=0; Object.keys(pv).forEach(function(p){ if(_intlIsCons(p,src))cons+=pv[p]; else dev+=pv[p]; }); return {dev:dev,cons:cons}; }
 // 미반영(pending) 기간 장비/소모품 분해 (2026, INTL_PEND active + ILBO_PEND)
-function _intlPendBreak(f,t){ var dev=0,cons=0;
-  (typeof INTL_PEND!=='undefined'?INTL_PEND:[]||[]).forEach(function(p){ if(p.status==='취소'||p.status==='반영됨')return; var d=p.expected_date?new Date(p.expected_date+'T00:00:00'):null; if(!(d&&!isNaN(d)&&d.getFullYear()===2026))return; var mo=d.getMonth()+1; if(mo<f||mo>t)return; var amt=Number(p.amount)||0; if(_intlIsCons(p.product||'',INTL))cons+=amt; else dev+=amt; });
-  (typeof ILBO_PEND!=='undefined'?ILBO_PEND:[]||[]).forEach(function(p){ var ds=p.expectedDate||p.expected_date||''; var d=ds?new Date(ds+'T00:00:00'):null; if(!(d&&!isNaN(d)&&d.getFullYear()===2026))return; var mo=d.getMonth()+1; if(mo<f||mo>t)return; var amt=Number(p.amount)||0; if(_intlIsCons(p.product||'',INTL))cons+=amt; else dev+=amt; });
+function _intlPendBreak(f,t,exclCorp){ var dev=0,cons=0;
+  (typeof INTL_PEND!=='undefined'?INTL_PEND:[]||[]).forEach(function(p){ if(p.status==='취소'||p.status==='반영됨')return; if(exclCorp&&_corpPendRow(p))return; var d=p.expected_date?new Date(p.expected_date+'T00:00:00'):null; if(!(d&&!isNaN(d)&&d.getFullYear()===2026))return; var mo=d.getMonth()+1; if(mo<f||mo>t)return; var amt=Number(p.amount)||0; if(_intlIsCons(p.product||'',INTL))cons+=amt; else dev+=amt; });
+  (typeof ILBO_PEND!=='undefined'?ILBO_PEND:[]||[]).forEach(function(p){ if(exclCorp&&_corpPendRow(p))return; var ds=p.expectedDate||p.expected_date||''; var d=ds?new Date(ds+'T00:00:00'):null; if(!(d&&!isNaN(d)&&d.getFullYear()===2026))return; var mo=d.getMonth()+1; if(mo<f||mo>t)return; var amt=Number(p.amount)||0; if(_intlIsCons(p.product||'',INTL))cons+=amt; else dev+=amt; });
   return {dev:dev,cons:cons}; }
 // 국가별 수량(기간필터)
 function _intlCtryQty(src,f,t){ var out={}; if(!src||!src.countries) return out;
@@ -890,12 +890,14 @@ function _rankTable(rows, opts){
 function renderOverview(){
   // 종합현황은 팀원 포함 전원에게 공개 (파트 잠금 없음)
   const yr=+document.getElementById('ov-year').value, f=+document.getElementById('ov-from').value, t=+document.getElementById('ov-to').value;
-  const cur=yr===2026?INTL:INTL.data2025, pre=yr===2026?INTL.data2025:null;
+  let cur=yr===2026?INTL:INTL.data2025, pre=yr===2026?INTL.data2025:null;
+  const _exl=(_dashScope==='excl');
+  if(_exl){ cur=_exclCorpView(cur); if(pre) pre=_exclCorpView(pre); }   // 법인 제외(직수출) 모드 — 전년도 같은 기준으로 비교
   const tot=ytd(cur.monthly,f,t), totU=ytd(cur.monthly_usd,f,t);
   const ptot=pre?ytd(pre.monthly,f,t):0, yoy=pct(tot,ptot);
-  const pAgg=(yr===2026)?_pendCombined(2026):{monthly:{},total:0}; const pendYtd=(yr===2026)?ytd(pAgg.monthly,f,t):0;  // 조회기간(f~t) 필터 — 종합사이트와 정합(기간밖 예정분 제외)
+  const pAgg=(yr===2026)?_pendCombined(2026,_exl):{monthly:{},total:0}; const pendYtd=(yr===2026)?ytd(pAgg.monthly,f,t):0;  // 조회기간(f~t) 필터 — 종합사이트와 정합(기간밖 예정분 제외)
   const nct=Object.values(cur.countries||{}).filter(c=>Object.keys(c.m||{}).some(m=>+m>=f&&+m<=t&&c.m[m]>0)).length;
-  document.getElementById('upd-label').textContent='실적 = 회계 + 미반영 · 기준일 '+(INTL.updatedAt||'');
+  document.getElementById('upd-label').textContent='실적 = 회계 + 미반영'+(_exl?' · 법인 제외(직수출)':'')+' · 기준일 '+(INTL.updatedAt||'');
   const pl=f===t?f+'월':f+'~'+t+'월';
 
   // KPI 4카드: 당월·전월·당월누계·전월누계 (회계+미반영, 장비/소모품 분해) — 한국영업 스타일
@@ -909,10 +911,10 @@ function renderOverview(){
   function _kper(a,b){
     var acc=ytd(cur.monthly,a,b);
     var pend=(yr===2026)?ytd(_pendM,a,b):0;
-    var accB=_intlDevConsVal(cur,a,b), pendB=(yr===2026)?_intlPendBreak(a,b):{dev:0,cons:0};
+    var accB=_intlDevConsVal(cur,a,b), pendB=(yr===2026)?_intlPendBreak(a,b,_exl):{dev:0,cons:0};
     var cons=accB.cons+pendB.cons; var val=acc+pend; var dev=val-cons; if(dev<0)dev=0;
     var ly=pre?ytd(pre.monthly,a,b):0;
-    var corp=ytd(_corpAccMo,a,b)+((yr===2026)?ytd(_corpPendMo,a,b):0); if(corp<0)corp=0; if(corp>val)corp=val;
+    var corp=_exl?0:(ytd(_corpAccMo,a,b)+((yr===2026)?ytd(_corpPendMo,a,b):0)); if(corp<0)corp=0; if(corp>val)corp=val;
     return {val:val,dev:dev,cons:cons,pend:pend,ly:ly,corp:corp};
   }
   // 한국영업 스타일 컴팩트 밴드 — 카드 4개 대신 한 줄 스트립(내용 동일: 전년·장비/소모품·법인 제외/법인·미반영)
@@ -926,14 +928,18 @@ function renderOverview(){
           '<div style="font-size:10.5px;color:#9ca3af;margin-top:2px;white-space:nowrap">전년 '+fmtW(p.ly)+' '+bdg(pct(p.val,p.ly))+'</div></div>'+
         '<div style="text-align:right;flex-shrink:0;font-size:10.5px;line-height:1.5;color:#94a3b8">장비 <b style="color:#475569">'+fmtW(p.dev)+'</b><br>소모품 <b style="color:#475569">'+fmtW(p.cons)+'</b></div>'+
       '</div>'+
-      '<div style="font-size:10px;color:#64748b;margin-top:4px;white-space:nowrap">법인 제외 <b style="color:#0f172a">'+fmtW(p.val-p.corp)+'</b> · 법인 '+fmtW(p.corp)+
-        (p.pend>0?' <span style="color:#7c3aed">· 미반영 '+fmtW(p.pend)+'</span>':' <span style="color:#cbd5e1">· 회계확정</span>')+'</div>'+
+      (_exl
+        ?'<div style="font-size:10px;color:#0d9488;font-weight:700;margin-top:4px;white-space:nowrap">직수출 기준(법인 매출 제외)'+(p.pend>0?' <span style="color:#7c3aed;font-weight:400">· 미반영 '+fmtW(p.pend)+'</span>':'')+'</div>'
+        :'<div style="font-size:10px;color:#64748b;margin-top:4px;white-space:nowrap">법인 제외 <b style="color:#0f172a">'+fmtW(p.val-p.corp)+'</b> · 법인 '+fmtW(p.corp)+
+          (p.pend>0?' <span style="color:#7c3aed">· 미반영 '+fmtW(p.pend)+'</span>':' <span style="color:#cbd5e1">· 회계확정</span>')+'</div>')+
     '</div>';
   }
   document.getElementById('ov-kpi').innerHTML=
     '<div class="col-12"><div class="kpi-card" style="padding:12px 16px 11px">'+
     '<style>#ov-kpi .kstrip{display:grid;grid-template-columns:repeat(4,1fr)}#ov-kpi .kcell{padding:1px 16px 0;border-left:1px solid #eef2f7;min-width:0;overflow:hidden}#ov-kpi .kcell:first-child{border-left:0;padding-left:2px}@media(max-width:900px){#ov-kpi .kstrip{grid-template-columns:1fr 1fr;row-gap:12px}#ov-kpi .kcell:nth-child(3){border-left:0;padding-left:2px}}</style>'+
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap"><div style="font-size:12px;font-weight:800;color:#0f172a"><i class="bi bi-lightning-charge-fill" style="color:#0d9488"></i> 해외영업 종합 · 당월·전월·누계</div><div style="font-size:10.5px;color:#94a3b8">법인 = 태국·미국·일본 등 종속법인 · 제외 = 직수출</div></div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap"><div style="font-size:12px;font-weight:800;color:#0f172a"><i class="bi bi-lightning-charge-fill" style="color:#0d9488"></i> 해외영업 종합 · 당월·전월·누계'+(_exl?' <span style="color:#0d9488">· 직수출(법인 제외)</span>':'')+'</div>'+
+    '<div style="display:flex;gap:4px;align-items:center"><span style="font-size:10px;color:#94a3b8;margin-right:3px">법인=태국·미국·일본 등 종속법인</span>'+
+    ['all','법인 포함','excl','법인 제외(직수출)'].reduce(function(h,x,i,arr){ if(i%2)return h; var on=_dashScope===x; return h+'<button onclick="setDashScope(\''+x+'\')" style="font-family:inherit;border:1px solid '+(on?'#0d9488':'#e2e8f0')+';background:'+(on?'#0d9488':'#fff')+';color:'+(on?'#fff':'#64748b')+';border-radius:7px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer">'+arr[i+1]+'</button>'; },'')+'</div></div>'+
     '<div class="kstrip">'+
     _kcell('당월 · '+_cm+'월','bi-calendar-check','#0891b2',_cm,_cm,_cm,true)+
     _kcell('전월 · '+_pm+'월','bi-calendar','#64748b',_pm,_pm,_pm,true)+
@@ -1453,10 +1459,11 @@ async function _loadIntlPending(){
     if(!error&&data) INTL_PEND=data.filter(r=>r.channel==='intl');
   }catch(e){ console.warn('intl pending load', e); INTL_PEND=[]; }
 }
-function _pendAggIntl(yr){
+function _pendAggIntl(yr,exclCorp){
   const agg={monthly:{},regions:{},total:0,count:0};
   (INTL_PEND||[]).forEach(p=>{
-    if(p.status==='취소'||p.status==='반영됨') return;        // 회계 잡힘/취소 → 합산 제외
+    if(p.status==='취소'||p.status==='반영됨') return;
+    if(exclCorp&&_corpPendRow(p)) return;   // 직수출 모드 — 법인 미반영 제외        // 회계 잡힘/취소 → 합산 제외
     const d=p.expected_date?new Date(p.expected_date+'T00:00:00'):null;
     if(!(d&&!isNaN(d)&&d.getFullYear()===yr)) return;
     const mo=d.getMonth()+1,amt=Number(p.amount||0),rg=p.region||'기타';
@@ -1465,9 +1472,10 @@ function _pendAggIntl(yr){
   });
   return agg;
 }
-function _ilboAgg(yr){
+function _ilboAgg(yr,exclCorp){
   const agg={monthly:{},regions:{},total:0,count:0};
   (ILBO_PEND||[]).forEach(function(p){
+    if(exclCorp&&_corpPendRow(p)) return;   // 직수출 모드 — 법인 미반영 제외
     var ds=p.expectedDate||p.expected_date||''; var d=ds?new Date(ds+'T00:00:00'):null;
     if(!(d&&!isNaN(d)&&d.getFullYear()===yr)) return;
     var mo=d.getMonth()+1, amt=Number(p.amount||0);
@@ -1482,8 +1490,8 @@ function _ilboAgg(yr){
   });
   return agg;
 }
-function _pendCombined(yr){
-  var a=_pendAggIntl(yr), b=_ilboAgg(yr);
+function _pendCombined(yr,exclCorp){
+  var a=_pendAggIntl(yr,exclCorp), b=_ilboAgg(yr,exclCorp);
   var monthly=Object.assign({},a.monthly);
   for(var m in b.monthly) monthly[m]=(monthly[m]||0)+b.monthly[m];
   return {monthly:monthly, regions:a.regions, total:a.total+b.total, count:a.count+b.count, manualCount:a.count, ilboCount:b.count, manualTotal:a.total, ilboTotal:b.total};
@@ -2666,8 +2674,10 @@ function _ovmBar(label,v,max,col){ return '<div style="display:flex;flex-directi
 function openMonthDetail(mo){
   var yr=+(document.getElementById('ov-year')&&document.getElementById('ov-year').value)||2026;
   var cur=yr===2026?INTL:(INTL.data2025||{}), pre=yr===2026?(INTL.data2025||{}):null;
+  var _exlM=(_dashScope==='excl');
+  if(_exlM){ cur=_exclCorpView(cur); if(pre) pre=_exclCorpView(pre); }   // 종합현황 스코프 따라감
   var acc=(cur.monthly&&cur.monthly[mo])||0;
-  var pAgg=(yr===2026)?_pendCombined(2026):{monthly:{}};
+  var pAgg=(yr===2026)?_pendCombined(2026,_exlM):{monthly:{}};
   var pend=(pAgg.monthly&&pAgg.monthly[mo])||0;
   var prevV=(pre&&pre.monthly&&pre.monthly[mo])||0;
   var yy=pct(acc+pend,prevV);
@@ -2679,7 +2689,7 @@ function openMonthDetail(mo){
   var mm='2026-'+String(mo).padStart(2,'0');
   var pendRows=[];
   if(yr===2026){
-    (ILBO_PEND||[]).forEach(function(p){ if(String(p.expectedDate||'').slice(0,7)===mm)pendRows.push({who:p.customer||'',what:p.product||'',amt:Number(p.amount)||0,ship:p.shipDate||''}); });
+    (ILBO_PEND||[]).forEach(function(p){ if(_exlM&&_corpPendRow(p))return; if(String(p.expectedDate||'').slice(0,7)===mm)pendRows.push({who:p.customer||'',what:p.product||'',amt:Number(p.amount)||0,ship:p.shipDate||''}); });
     (INTL_PEND||[]).forEach(function(p){ if(String(p.expected_date||'').slice(0,7)===mm&&p.status!=='취소'&&p.status!=='반영됨')pendRows.push({who:p.client||p.region||'',what:p.product||'',amt:Number(p.amount)||0,ship:''}); });
   }
   var kpis=[['회계반영',fmtW(acc),'#374151'],['미반영',(pend?'+':'')+fmtW(pend),'#7c3aed'],['합계(보고기준)',fmtW(acc+pend),'#111827'],['전년동월',fmtW(prevV)+' '+(yy===null?'':(parseFloat(yy)>=0?'▲':'▼')+Math.abs(parseFloat(yy))+'%'),parseFloat(yy)>=0?'#16a34a':'#dc2626']];
@@ -2712,6 +2722,7 @@ function _renderRegionTable(yr,f,t){
   var body=document.getElementById('ov-region-body'); if(!body)return;
   if(!_REGMAP){ body.innerHTML='<div style="font-size:12px;color:#9ca3af">지역 매핑 로딩...</div>'; _loadRegmap(function(){_renderRegionTable(yr,f,t);}); return; }
   var cur=yr===2026?INTL:(INTL.data2025||{}), pre=yr===2026?(INTL.data2025||{}):null;
+  if(_dashScope==='excl'){ cur=_exclCorpView(cur); if(pre) pre=_exclCorpView(pre); }   // 직수출 모드 — 법인 행 자연 제거
   var sums={};
   function add(rg,k,v){ if(!sums[rg])sums[rg]={cur:0,prev:0}; sums[rg][k]+=v; }
   function acc(src,k){ Object.entries((src&&src.countries)||{}).forEach(function(e){ var c=e[0],obj=e[1]; var cd=obj.clientData||{}; var names=Object.keys(cd);
@@ -3974,6 +3985,36 @@ var _DEALER_EXCLUDE={'에스준의원':1};                 // 국내 오분류 �
 var _DEALER_COUNTRY_OVERRIDE={'주식회사 더마케이':'러시아'};  // 국내법인→러시아 수출
 var GEO_REMAP={'미국법인':'미주','태국법인':'동남아','중국법인':'중화'};
 function _isCorp(name){ return /WONTECH|종속법인/i.test(name||''); }
+/* ══ 종합현황 법인 포함/제외 이원화 ══
+   '법인 제외(직수출)' 모드: 회계는 법인 클라이언트를 뺀 파생 데이터로, 미반영은 customer '법인' 제외로 재계산해 페이지 전체(KPI·차트·Top제품·지역표·월상세)를 다시 그린다. */
+let _dashScope='all'; try{ _dashScope=sessionStorage.getItem('intl_dash_scope')||'all'; }catch(e){}
+function setDashScope(v){ if(_dashScope===v) return; _dashScope=v; try{ sessionStorage.setItem('intl_dash_scope',v); }catch(e){} try{ renderOverview(); }catch(e){} }
+function _corpPendRow(p){ return String((p&&(p.customer||p.client))||'').indexOf('법인')>=0; }
+function _exclCorpView(src){
+  try{
+    if(!src||!src.countries||src.__exCorp) return src;
+    var out={__exCorp:true, updatedAt:src.updatedAt, monthly:{}, prodMo:{}, prodMoQty:{}, countries:{}, prods_cons:src.prods_cons||{}, prods_dev:src.prods_dev||{}, total:0};
+    var anyTx=false;
+    Object.keys(src.countries).forEach(function(cc){
+      var obj=src.countries[cc]||{}, cd=obj.clientData||{}, names=Object.keys(cd);
+      if(!names.length){ // 클라이언트 분해가 없는 국가(구 데이터) — 법인 분리 불가라 통째 유지
+        var m0=obj.m||{}, t0=0; Object.keys(m0).forEach(function(mo){ var v=Number(m0[mo])||0; out.monthly[mo]=(out.monthly[mo]||0)+v; t0+=v; });
+        out.countries[cc]={m:m0, clients:obj.clients||0, clientData:{}}; out.total+=t0; return;
+      }
+      var cm={}, ncd={}, ncli=0, ctot=0;
+      names.forEach(function(nm){ if(_isCorp(nm)) return; var cli=cd[nm]||{}; ncd[nm]=cli; ncli++;
+        Object.keys(cli.m||{}).forEach(function(mo){ var v=Number(cli.m[mo])||0; cm[mo]=(cm[mo]||0)+v; out.monthly[mo]=(out.monthly[mo]||0)+v; ctot+=v; });
+        (cli.txns||[]).forEach(function(t){ anyTx=true; var mo=parseInt(String(t[0]).slice(5,7),10); if(!mo)return; var p=t[1]||'기타';
+          (out.prodMo[p]=out.prodMo[p]||{})[mo]=(out.prodMo[p][mo]||0)+(Number(t[3])||0);
+          (out.prodMoQty[p]=out.prodMoQty[p]||{})[mo]=(out.prodMoQty[p][mo]||0)+(Number(t[2])||0);
+        });
+      });
+      if(ncli||ctot){ out.countries[cc]={m:cm, clients:ncli, clientData:ncd}; out.total+=ctot; }
+    });
+    if(!anyTx){ out.prodMo=src.prodMo||{}; out.prodMoQty=src.prodMoQty||{}; }   // txn 없으면 제품분해는 포함 기준 유지(참고치)
+    return out;
+  }catch(e){ return src; }
+}
 function _geoReg(c,nm){ var r=_regOf(c,nm)||'기타·미분류'; return GEO_REMAP[r]||r; }
 
 // 회계매칭 캐시 재정의 (일본=__jp, 중국=__cn 통합집계)
