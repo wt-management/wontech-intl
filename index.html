@@ -915,25 +915,31 @@ function renderOverview(){
     var corp=ytd(_corpAccMo,a,b)+((yr===2026)?ytd(_corpPendMo,a,b):0); if(corp<0)corp=0; if(corp>val)corp=val;
     return {val:val,dev:dev,cons:cons,pend:pend,ly:ly,corp:corp};
   }
-  function _kcard(label,icon,color,mo,a,b,clickable){
+  // 한국영업 스타일 컴팩트 밴드 — 카드 4개 대신 한 줄 스트립(내용 동일: 전년·장비/소모품·법인 제외/법인·미반영)
+  function _kcell(label,icon,color,mo,a,b,clickable){
     var p=_kper(a,b);
     var click=clickable?(' style="cursor:pointer" title="클릭 → 월 상세" onclick="openMonthDetail('+mo+')"'):'';
-    return '<div class="col-6 col-md-3"><div class="kpi-card"'+click+'>'+
-      '<div class="kpi-label"><i class="bi '+icon+' me-1" style="color:'+color+'"></i>'+label+(clickable?' <i class="bi bi-chevron-right" style="font-size:8px;color:#cbd5e1"></i>':'')+'</div>'+
-      '<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8px">'+
-        '<div style="min-width:0"><div class="kpi-value" style="color:'+color+';font-size:1.3rem;line-height:1.1">'+fmtW(p.val)+'</div>'+
-          '<div class="kpi-sub" style="margin-top:3px">전년 '+fmtW(p.ly)+' '+bdg(pct(p.val,p.ly))+'</div></div>'+
-        '<div style="text-align:right;flex-shrink:0;font-size:10.5px;line-height:1.55;color:#94a3b8"><div>장비 <b style="color:#475569">'+fmtW(p.dev)+'</b></div><div>소모품 <b style="color:#475569">'+fmtW(p.cons)+'</b></div></div>'+
+    return '<div class="kcell"'+click+'>'+
+      '<div style="font-size:11px;color:#6b7280;font-weight:700;white-space:nowrap"><i class="bi '+icon+'" style="color:'+color+'"></i> '+label+(clickable?' <i class="bi bi-chevron-right" style="font-size:9px;color:#cbd5e1"></i>':'')+'</div>'+
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-top:2px">'+
+        '<div style="min-width:0"><div style="font-size:1.5rem;font-weight:800;color:'+color+';line-height:1.1;white-space:nowrap">'+fmtW(p.val)+'</div>'+
+          '<div style="font-size:10.5px;color:#9ca3af;margin-top:2px;white-space:nowrap">전년 '+fmtW(p.ly)+' '+bdg(pct(p.val,p.ly))+'</div></div>'+
+        '<div style="text-align:right;flex-shrink:0;font-size:10.5px;line-height:1.5;color:#94a3b8">장비 <b style="color:#475569">'+fmtW(p.dev)+'</b><br>소모품 <b style="color:#475569">'+fmtW(p.cons)+'</b></div>'+
       '</div>'+
-      '<div style="font-size:9.5px;color:#64748b;margin-top:5px;border-top:1px solid #f1f5f9;padding-top:4px">법인 제외 <b style="color:#0f172a">'+fmtW(p.val-p.corp)+'</b> · 법인 '+fmtW(p.corp)+'</div>'+
-      (p.pend>0?'<div style="font-size:9.5px;color:#7c3aed;margin-top:3px">미반영 '+fmtW(p.pend)+' 포함</div>':'<div style="font-size:9.5px;color:#cbd5e1;margin-top:3px">회계 확정</div>')+
-    '</div></div>';
+      '<div style="font-size:10px;color:#64748b;margin-top:4px;white-space:nowrap">법인 제외 <b style="color:#0f172a">'+fmtW(p.val-p.corp)+'</b> · 법인 '+fmtW(p.corp)+
+        (p.pend>0?' <span style="color:#7c3aed">· 미반영 '+fmtW(p.pend)+'</span>':' <span style="color:#cbd5e1">· 회계확정</span>')+'</div>'+
+    '</div>';
   }
   document.getElementById('ov-kpi').innerHTML=
-    _kcard('당월 ('+_cm+'월)','bi-calendar-check','#0891b2',_cm,_cm,_cm,true)+
-    _kcard('전월 ('+_pm+'월)','bi-calendar','#64748b',_pm,_pm,_pm,true)+
-    _kcard('당월 누계 (1~'+_cm+'월)','bi-graph-up','#111827',_cm,1,_cm,false)+
-    _kcard('전월 누계 (1~'+_pm+'월)','bi-clock-history','#7c3aed',_pm,1,_pm,false);
+    '<div class="col-12"><div class="kpi-card" style="padding:12px 16px 11px">'+
+    '<style>#ov-kpi .kstrip{display:grid;grid-template-columns:repeat(4,1fr)}#ov-kpi .kcell{padding:1px 16px 0;border-left:1px solid #eef2f7;min-width:0;overflow:hidden}#ov-kpi .kcell:first-child{border-left:0;padding-left:2px}@media(max-width:900px){#ov-kpi .kstrip{grid-template-columns:1fr 1fr;row-gap:12px}#ov-kpi .kcell:nth-child(3){border-left:0;padding-left:2px}}</style>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap"><div style="font-size:12px;font-weight:800;color:#0f172a"><i class="bi bi-lightning-charge-fill" style="color:#0d9488"></i> 해외영업 종합 · 당월·전월·누계</div><div style="font-size:10.5px;color:#94a3b8">법인 = 태국·미국·일본 등 종속법인 · 제외 = 직수출</div></div>'+
+    '<div class="kstrip">'+
+    _kcell('당월 · '+_cm+'월','bi-calendar-check','#0891b2',_cm,_cm,_cm,true)+
+    _kcell('전월 · '+_pm+'월','bi-calendar','#64748b',_pm,_pm,_pm,true)+
+    _kcell('당월 누계 · 1~'+_cm+'월','bi-graph-up','#111827',_cm,1,_cm,false)+
+    _kcell('전월 누계 · 1~'+_pm+'월','bi-clock-history','#7c3aed',_pm,1,_pm,false)+
+    '</div></div></div>';
 
   const m12=Array.from({length:12},(_,i)=>i+1);
   dch('ov');
