@@ -3422,6 +3422,20 @@ function renderDealers(){
 }
 
 // ── 담당자별 분석 v8 — 관리자 비교 테이블(CRM 연동) ──
+function _repQty(src,f,t){
+  var out={}; if(!src||!src.reps) return out;
+  var pv={},pq={};
+  Object.keys(src.prodMo||{}).forEach(function(p){ pv[p]=ytd(src.prodMo[p],f,t); });
+  Object.keys(src.prodMoQty||{}).forEach(function(p){ pq[p]=ytd(src.prodMoQty[p],f,t); });
+  Object.keys(src.reps).forEach(function(n){ var r=src.reps[n];
+    if(r&&r.mq&&Object.keys(r.mq).length){ out[n]=(out[n]||0)+ytd(r.mq,f,t); return; }
+    var yv=ytd((r&&r.m)||{},1,12), sv=ytd((r&&r.m)||{},f,t); if(!yv) return;
+    var sc=sv/yv, q=0;
+    Object.keys((r&&r.prods)||{}).forEach(function(p){ if(!pv[p]||!pq[p]) return; q+=((r.prods[p]||0)*sc)/pv[p]*pq[p]; });
+    out[n]=(out[n]||0)+Math.round(q);
+  });
+  return out;
+}
 function renderByRep(){
   var el=document.getElementById('rp-rank'); if(!el)return;
   if(!_isLeaderIntl()){ el.innerHTML='<div class="text-center py-5" style="color:#94a3b8"><i class="bi bi-lock" style="font-size:28px"></i><div style="font-size:13px;margin-top:8px">팀장 전용 화면입니다</div></div>'; return; }
@@ -3430,17 +3444,28 @@ function renderByRep(){
   var _hasRoster=_INTL_REP_SET && Object.keys(_INTL_REP_SET).length>0;
   var yr=+document.getElementById('rp-year').value, f=+document.getElementById('rp-from').value, t=+document.getElementById('rp-to').value;
   var cur=yr===2026?INTL:(INTL.data2025||{}), pre=yr===2026?(INTL.data2025||{}):null;
+  var _QN=_repQty(cur,f,t), _QP=pre?_repQty(pre,f,t):{};
+  // 2026 담당자 키에는 사번이 붙고(244.김한결) 2025 키에는 없다(김한결).
+  // 그대로 비교하면 전년이 전부 0원·'신규'로 나오므로 사번을 뗀 이름으로 맞춘다.
+  var _preM={}, _preQ={};
+  if(pre&&pre.reps) Object.keys(pre.reps).forEach(function(k){ var nk=_repNorm(k), mm=(pre.reps[k]&&pre.reps[k].m)||{};
+    if(!_preM[nk]) _preM[nk]={};
+    Object.keys(mm).forEach(function(mo2){ _preM[nk][mo2]=(_preM[nk][mo2]||0)+(Number(mm[mo2])||0); }); });
+  Object.keys(_QP).forEach(function(k){ var nk=_repNorm(k); _preQ[nk]=(_preQ[nk]||0)+_QP[k]; });
   var arr=Object.entries(cur.reps||{}).map(function(e){ var n=e[0],r=e[1];
-    var pv=pre&&pre.reps&&pre.reps[n]?ytd(pre.reps[n].m||{},f,t):0;
+    var pv=_preM[_repNorm(n)]?ytd(_preM[_repNorm(n)],f,t):0;
     var pipe=(INTL_PIPE||[]).filter(function(d){return d.sales===n&&!_wonI(d);});
     var pipeK=pipe.reduce(function(s,d){return s+_dealKrw(d)*(Number(d.prob||0)/100);},0);
-    return {n:n,r:r,v:ytd(r.m||{},f,t),pv:pv,pipeN:pipe.length,pipeK:pipeK};
-  }).filter(function(x){return x.v>0||x.pipeN>0;})
-    .filter(function(x){ return _hasRoster ? !!_INTL_REP_SET[_repNorm(x.n)] : true; })   // 3개 파트 소속만
+    return {n:n,r:r,v:ytd(r.m||{},f,t),pv:pv,pipeN:pipe.length,pipeK:pipeK,q:(_QN[n]||0),pq:(_preQ[_repNorm(n)]||0)};
+  }).filter(function(x){ return _hasRoster ? !!_INTL_REP_SET[_repNorm(x.n)] : true; })   // 3개 파트 소속만
     .sort(function(a,b){return b.v-a.v;});
-  var tot=arr.reduce(function(s,x){return s+x.v;},0)||1, mx=arr.length?Math.max.apply(null,arr.map(function(x){return x.v;})):1;
+  // 반품·충당(음수) 담당자를 빼고 더하면 합계가 24.4억 부풀려진다 → 합계는 음수 포함으로 먼저 계산
+  var totAll=arr.reduce(function(s,x){return s+x.v;},0);
+  var _negRep=arr.filter(function(x){return x.v<0;}).reduce(function(s,x){return s+x.v;},0);
+  arr=arr.filter(function(x){return x.v>0||x.pipeN>0;});
+  var tot=totAll||1, mx=arr.length?Math.max.apply(null,arr.map(function(x){return x.v;})):1;
   var mo=Math.max(1,t-f+1);
-  var kpis=[['담당자',arr.length+'명','#0891b2'],['기간 합계',fmtW(tot),'#0f172a'],['1인 평균',fmtW(tot/(arr.length||1)),'#7c3aed'],['CRM 가중예상',fmtW(arr.reduce(function(s,x){return s+x.pipeK;},0)),'#0d9488']];
+  var kpis=[['담당자',arr.length+'명','#0891b2'],['기간 합계'+(_negRep<0?' (반품·충당 '+fmtW(_negRep)+' 포함)':''),fmtW(tot),'#0f172a'],['1인 평균',fmtW(tot/(arr.length||1)),'#7c3aed'],['CRM 가중예상',fmtW(arr.reduce(function(s,x){return s+x.pipeK;},0)),'#0d9488']];
   var kpiH='<div class="row g-2 mb-2">'+kpis.map(function(c){return '<div class="col-6 col-md-3"><div class="kpi-card" style="padding:9px 12px"><div class="kpi-label">'+c[0]+'</div><div class="kpi-value" style="font-size:1rem;color:'+c[2]+'">'+c[1]+'</div></div></div>';}).join('')+'</div>';
   var medals=['🥇','🥈','🥉'];
   var rows=arr.map(function(x,i){
@@ -3449,15 +3474,17 @@ function renderByRep(){
       '<td style="padding:9px 12px;text-align:center;width:44px">'+(medals[i]||('<span style="color:#94a3b8;font-size:11px">'+(i+1)+'</span>'))+'</td>'+
       '<td style="font-weight:700">'+_esc(x.n)+'<div style="font-size:10px;color:#94a3b8;font-weight:400">'+(x.r.countries||0)+'개국 · '+(x.r.clients||0)+'개사 · '+(x.r.orders||0)+'건</div></td>'+
       '<td style="min-width:170px"><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:14px;background:#f1f5f9;border-radius:7px;overflow:hidden"><div style="width:'+Math.round(x.v/mx*100)+'%;height:100%;background:#0d9488;border-radius:7px"></div></div><b style="min-width:64px;text-align:right">'+fmtW(x.v)+'</b></div></td>'+
+      '<td style="text-align:right">'+(x.q?'<b>'+Math.round(x.q).toLocaleString()+'</b>':'<span style="color:#cbd5e1">–</span>')+
+        '<span style="color:#94a3b8;font-size:10px"> / '+(x.pq?Math.round(x.pq).toLocaleString():'0')+'</span></td>'+
       '<td style="text-align:right;color:#94a3b8">'+fmtW(x.pv)+'</td>'+
-      '<td style="text-align:center">'+(y===null?'<span style="color:#94a3b8">신규</span>':'<b style="color:'+(parseFloat(y)>=0?'#16a34a':'#dc2626')+'">'+(parseFloat(y)>=0?'▲':'▼')+Math.abs(parseFloat(y))+'%</b>')+'</td>'+
+      '<td style="text-align:center">'+(y===null?'<span style="color:#cbd5e1">신규</span>':'<b style="color:'+(parseFloat(y)>=0?'#16a34a':'#dc2626')+'">'+(parseFloat(y)>=0?'▲':'▼')+Math.abs(parseFloat(y))+'%</b>')+'</td>'+
       '<td style="text-align:center;color:#64748b">'+share.toFixed(1)+'%</td>'+
       '<td style="text-align:right;color:#64748b">'+fmtW(x.v/mo)+'</td>'+
-      '<td style="text-align:center">'+(x.pipeN?('<b style="color:#0891b2">'+x.pipeN+'건</b><div style="font-size:10px;color:#94a3b8">'+fmtW(x.pipeK)+'</div>'):'<span style="color:#94a3b8">-</span>')+'</td>'+
+      '<td style="text-align:center">'+(x.pipeN?('<b style="color:#0891b2">'+x.pipeN+'건</b><div style="font-size:10px;color:#94a3b8">'+fmtW(x.pipeK)+'</div>'):'<span style="color:#cbd5e1">-</span>')+'</td>'+
     '</tr>';
   }).join('');
   el.innerHTML=kpiH+
-    '<div class="card p-0" style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12px;min-width:860px"><thead style="background:#f8fafc"><tr><th></th><th style="padding:8px 12px">담당자</th><th>실적 ('+f+'~'+t+'월)</th><th style="text-align:right">전년동기</th><th style="text-align:center">YoY</th><th style="text-align:center">비중</th><th style="text-align:right">월평균</th><th style="text-align:center">CRM 진행딜</th></tr></thead><tbody>'+
+    '<div class="card p-0" style="overflow-x:auto"><table class="table table-sm mb-0" style="font-size:12px;min-width:860px"><thead style="background:#f8fafc"><tr><th></th><th style="padding:8px 12px">담당자</th><th>실적 ('+f+'~'+t+'월)</th><th style="text-align:right">대수<span style="font-weight:400;color:#94a3b8">·전년</span></th><th style="text-align:right">전년동기</th><th style="text-align:center">YoY</th><th style="text-align:center">비중</th><th style="text-align:right">월평균</th><th style="text-align:center">CRM 진행딜</th></tr></thead><tbody>'+
     (rows||'<tr><td colspan="8" class="text-center text-muted py-4">기간 내 실적이 없습니다</td></tr>')+'</tbody></table></div>'+
     '<div style="font-size:10px;color:#94a3b8;margin-top:6px"><i class="bi bi-info-circle me-1"></i>'+(_hasRoster?'미주·아시아 / 중화 / 유럽·중아 파트 소속 담당자만 표시 · ':'')+'행 클릭 = 담당자 상세(제품·월별) · CRM 진행딜 = 수주관리 파이프라인 가중예상(원화)</div>';
 }
