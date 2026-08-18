@@ -914,33 +914,33 @@ function renderOverview(){
     var p=_kper(a,b);
     var tot=p.dev+p.cons, dp=tot>0?Math.round(p.dev/tot*100):0, cp=100-dp;
     var onc=clickable?(' title="클릭 → 월 상세" onclick="openMonthDetail('+mo+')" onmouseover="this.style.boxShadow=\'0 6px 18px rgba(2,6,23,.10)\';this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.boxShadow=\'0 1px 3px rgba(2,6,23,.05)\';this.style.transform=\'\'"'):'';
-    return '<div style="flex:1;min-width:215px;background:#fff;border:1px solid #eef2f7;border-radius:13px;padding:0 0 12px;overflow:hidden;box-shadow:0 1px 3px rgba(2,6,23,.05);transition:transform .15s,box-shadow .15s'+(clickable?';cursor:pointer':'')+'"'+onc+'>'+
-      '<div style="height:3px;background:linear-gradient(90deg,'+color+','+color+'55)"></div>'+
-      '<div style="padding:11px 15px 0">'+
-        '<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px">'+
-          '<span style="width:24px;height:24px;border-radius:8px;background:'+color+'15;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0"><i class="bi '+icon+'" style="color:'+color+';font-size:12px"></i></span>'+
-          '<span style="font-size:12.5px;color:#475569;font-weight:700">'+label+'</span>'+
-          (clickable?'<i class="bi bi-chevron-right" style="font-size:9px;color:#94a3b8;margin-left:auto"></i>':'')+
-        '</div>'+
-        '<div style="font-size:1.62rem;font-weight:800;color:'+color+';line-height:1.05;letter-spacing:-0.5px">'+fmtW(p.val)+'</div>'+
-        '<div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;color:#94a3b8">전년 <b style="color:#64748b">'+fmtW(p.ly)+'</b> '+bdg(pct(p.val,p.ly))+'</div>'+
-        '<div style="display:flex;height:6px;border-radius:4px;overflow:hidden;margin-top:11px;background:#f1f5f9">'+
-          (dp>0?'<div style="width:'+dp+'%;background:'+color+';opacity:.85" title="장비 '+dp+'%"></div>':'')+
-          (cp>0?'<div style="width:'+cp+'%;background:'+color+';opacity:.32" title="소모품 '+cp+'%"></div>':'')+
-        '</div>'+
-        '<div style="display:flex;justify-content:space-between;gap:8px;margin-top:6px;font-size:12px">'+
-          '<span style="color:#94a3b8">장비 <b style="color:#334155">'+fmtW(p.dev)+'</b></span>'+
-          '<span style="color:#94a3b8">소모품 <b style="color:#334155">'+fmtW(p.cons)+'</b></span>'+
-        '</div>'+
-        '<div style="margin-top:10px;padding-top:9px;border-top:1px dashed #eef2f7;font-size:11px">'+
-          (p.pend>0?'<span style="color:#7c3aed;background:#faf5ff;border-radius:6px;padding:2px 8px;font-weight:600">미반영 '+fmtW(p.pend)+' 포함</span>':'<span style="color:#94a3b8;background:#f8fafc;border-radius:6px;padding:2px 8px">회계 확정</span>')+
-        '</div>'+
+    return '<div style="flex:1;min-width:245px;background:#fff;border:1px solid #eef2f7;border-left:3px solid '+color+';border-radius:11px;padding:9px 13px 8px;box-shadow:0 1px 3px rgba(2,6,23,.05);transition:transform .15s,box-shadow .15s'+(clickable?';cursor:pointer':'')+'"'+onc+'>'+
+      // 1행: 아이콘칩 + 라벨 + (우측) 미반영/확정 배지
+      '<div style="display:flex;align-items:center;gap:7px">'+
+        '<span style="width:21px;height:21px;border-radius:7px;background:'+color+'15;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0"><i class="bi '+icon+'" style="color:'+color+';font-size:11px"></i></span>'+
+        '<span style="font-size:12.5px;color:#475569;font-weight:700;white-space:nowrap">'+label+'</span>'+
+        '<span style="margin-left:auto;font-size:10.5px;white-space:nowrap">'+(p.pend>0?'<span style="color:#7c3aed;background:#faf5ff;border-radius:6px;padding:1px 7px;font-weight:600">미반영 '+fmtW(p.pend)+'</span>':'<span style="color:#94a3b8">회계 확정</span>')+'</span>'+
+        (clickable?'<i class="bi bi-chevron-right" style="font-size:9px;color:#94a3b8"></i>':'')+
+      '</div>'+
+      // 2행: 큰 금액 + (우측) 전년·YoY — 가로 여백 활용
+      '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:3px">'+
+        '<span style="font-size:1.62rem;font-weight:800;color:'+color+';line-height:1.08;letter-spacing:-0.5px">'+fmtW(p.val)+'</span>'+
+        '<span style="font-size:12px;color:#94a3b8;white-space:nowrap">전년 <b style="color:#64748b">'+fmtW(p.ly)+'</b> '+bdg(pct(p.val,p.ly))+'</span>'+
+      '</div>'+
+      // 3행: 장비 · 비율바 · 소모품 한 줄
+      '<div style="display:flex;align-items:center;gap:8px;margin-top:5px;font-size:12px;white-space:nowrap">'+
+        '<span style="color:#94a3b8">장비 <b style="color:#334155">'+fmtW(p.dev)+'</b></span>'+
+        '<span style="flex:1;display:flex;height:5px;border-radius:3px;overflow:hidden;background:#f1f5f9;min-width:30px">'+
+          (dp>0?'<span style="width:'+dp+'%;background:'+color+';opacity:.85" title="장비 '+dp+'%"></span>':'')+
+          (cp>0?'<span style="width:'+cp+'%;background:'+color+';opacity:.3" title="소모품 '+cp+'%"></span>':'')+
+        '</span>'+
+        '<span style="color:#94a3b8">소모품 <b style="color:#334155">'+fmtW(p.cons)+'</b></span>'+
       '</div>'+
     '</div>';
   }
   document.getElementById('ov-kpi').innerHTML=
-    '<div class="col-12"><div class="card" style="border:1px solid #e5e7eb;background:linear-gradient(135deg,#f5f7ff 0%,#f0f9ff 55%,#ffffff 100%);border-radius:16px;padding:15px 18px 16px">'+
-      '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px">'+
+    '<div class="col-12"><div class="card" style="border:1px solid #e5e7eb;background:linear-gradient(135deg,#f5f7ff 0%,#f0f9ff 55%,#ffffff 100%);border-radius:14px;padding:10px 14px 12px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:9px">'+
         '<div style="display:flex;align-items:center;gap:8px"><span style="width:4px;height:17px;border-radius:3px;background:linear-gradient(180deg,#0891b2,#7c3aed)"></span><span style="font-size:14.5px;font-weight:800;color:#1e293b">해외영업 종합</span><span style="font-size:12px;font-weight:500;color:#94a3b8">당월 · 전월 · 누계</span></div>'+
         '<div style="font-size:11.5px;color:#94a3b8">실적 = 회계 + 미반영 · 기준일 '+(INTL.updatedAt||'')+'</div>'+
       '</div>'+
