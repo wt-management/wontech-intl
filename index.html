@@ -366,8 +366,8 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
     <div style="position:relative;height:220px"><canvas id="ov-chart"></canvas></div>
   </div>
   <div class="row g-3">
-    <div class="col-md-7"><div class="card p-3"><div class="fw-bold mb-2" style="font-size:13px;color:#7c3aed"><i class="bi bi-box-seam me-1"></i>장비 Top 제품 <span style="font-size:10px;font-weight:400;color:#9ca3af">클릭하면 상세</span></div><div id="ov-dev"></div></div></div>
-    <div class="col-md-5"><div class="card p-3"><div class="fw-bold mb-2" style="font-size:13px;color:#0891b2"><i class="bi bi-capsule me-1"></i>소모품 Top 제품 <span style="font-size:10px;font-weight:400;color:#9ca3af">클릭하면 상세</span></div><div id="ov-cons"></div></div></div>
+    <div class="col-md-7"><div class="card p-3 h-100"><div class="fw-bold mb-2" style="font-size:13px;color:#7c3aed"><i class="bi bi-box-seam me-1"></i>장비 제품 <span style="font-size:10px;font-weight:400;color:#9ca3af">전 제품 · 클릭하면 상세</span></div><div id="ov-dev"></div></div></div>
+    <div class="col-md-5"><div class="card p-3 h-100"><div class="fw-bold mb-2" style="font-size:13px;color:#0891b2"><i class="bi bi-capsule me-1"></i>소모품 제품 <span style="font-size:10px;font-weight:400;color:#9ca3af">전 제품 · 클릭하면 상세</span></div><div id="ov-cons"></div></div></div>
   </div>
 </div>
 
@@ -880,7 +880,10 @@ function _rankTable(rows, opts){
     var half=Math.ceil(rowArr.length/2);
     var cg='<colgroup><col style="width:30px"><col>'+(opts.qty?'<col style="width:52px"><col style="width:56px">':'<col style="width:56px">')+'<col style="width:78px"><col style="width:50px"><col style="width:46px">'+(opts.metaHead?'<col style="width:50px">':'')+'</colgroup>';
     var mk=function(part){ return '<table class="table table-sm mb-0" style="font-size:12px;width:100%;table-layout:fixed">'+cg+thead+'<tbody>'+part.join('')+'</tbody></table>'; };
-    return ins+'<div style="display:flex;gap:14px;align-items:flex-start"><div style="flex:1;min-width:0">'+mk(rowArr.slice(0,half))+'</div><div style="flex:1;min-width:0">'+mk(rowArr.slice(half))+'</div></div>';
+    var inner='<div style="display:flex;gap:14px;align-items:flex-start"><div style="flex:1;min-width:0">'+mk(rowArr.slice(0,half))+'</div><div style="flex:1;min-width:0">'+mk(rowArr.slice(half))+'</div></div>';
+    if(opts.scroll==='fill') return ins+'<div style="flex:1;min-height:0;overflow:auto">'+inner+'</div>';           // 부모 높이 채우고 한 덩어리로 스크롤
+    if(opts.scroll) return ins+'<div style="overflow:auto;max-height:'+(typeof opts.scroll==='string'?opts.scroll:'56vh')+'">'+inner+'</div>';
+    return ins+inner;
   }
   var more=(rows.length>lim)?('<tr><td colspan="'+cspan+'" style="text-align:center;color:#94a3b8;font-size:11px;padding:5px">외 '+(rows.length-lim)+'개 · 상세에서 전체</td></tr>'):'';
   var wrapS=(opts.scroll==='fill')?'flex:1;min-height:0;overflow:auto':(opts.scroll?('overflow:auto;max-height:'+(typeof opts.scroll==='string'?opts.scroll:'56vh')):'overflow-x:auto');
@@ -971,8 +974,8 @@ function renderOverview(){
   // 장비 왼쪽, 소모품 오른쪽 + 클릭 시 팝업 — 값·전년=prodMo(정합), 대수=txn
   var _ovVal=_intlProdVal(cur,f,t), _ovValP=pre?_intlProdVal(pre,f,t):{}, _ovQ=_intlProdAgg(cur,f,t), _ovQP=pre?_intlProdAgg(pre,f,t):{};
   var _ovPR=function(cat){ return Object.keys(_ovVal).filter(function(p){return cat==='dev'?!_intlIsCons(p,cur):_intlIsCons(p,cur);}).map(function(n){return {name:n,v:_ovVal[n]||0,q:(_ovQ[n]||{}).q||0,prev:_ovValP[n]||0,prevQ:(_ovQP[n]||{}).q||0,click:"openProdModal('"+String(n).replace(/'/g,"\\'")+"','"+cat+"')"};}).filter(function(x){return x.v>0;}).sort(function(a,b){return b.v-a.v;}); };
-  document.getElementById('ov-dev').innerHTML=_rankTable(_ovPR('dev'),{color:'#7c3aed',limit:10,qty:true,cols:2});
-  document.getElementById('ov-cons').innerHTML=_rankTable(_ovPR('cons'),{color:'#0891b2',limit:10,qty:true});
+  document.getElementById('ov-dev').innerHTML=_rankTable(_ovPR('dev'),{color:'#7c3aed',qty:true,cols:2,scroll:'212px'});     // 전 제품 · 카드 높이 고정(내부 스크롤)
+  document.getElementById('ov-cons').innerHTML=_rankTable(_ovPR('cons'),{color:'#0891b2',qty:true,scroll:'212px'});
   if(typeof _renderRegionTable==='function')_renderRegionTable(yr,f,t);
 }
 
