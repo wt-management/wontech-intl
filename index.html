@@ -350,7 +350,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
   <div class="period-bar">
     <span style="font-size:12px;font-weight:600;color:#374151">📅 조회 기간</span>
     <select id="ov-year" class="form-select form-select-sm" style="width:100px" onchange="renderOverview()">
-      <option value="2026" selected>2026년</option><option value="2025">2025년</option>
+      <option value="2026" selected>2026년</option><option value="2025">2025년</option><!-- 글자는 _fillYearSel() 이 실제 연도로 바꾼다 -->
     </select>
     <select id="ov-from" class="form-select form-select-sm" style="width:70px" onchange="_ovPC()">
       <option value="1" selected>1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option><option value="5">5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option><option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
@@ -374,7 +374,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 <div id="page-by-country" class="page">
   <div class="page-header"><h5><i class="bi bi-globe" style="color:#0891b2"></i>국가별 분석</h5></div>
   <div class="period-bar">
-    <select id="ct-year" class="form-select form-select-sm" style="width:100px" onchange="renderByCountry()"><option value="2026" selected>2026년</option><option value="2025">2025년</option></select>
+    <select id="ct-year" class="form-select form-select-sm" style="width:100px" onchange="renderByCountry()"><option value="2026" selected>2026년</option><option value="2025">2025년</option><!-- 글자는 _fillYearSel() 이 실제 연도로 바꾼다 --></select>
     <select id="ct-from" class="form-select form-select-sm" style="width:70px" onchange="_ctPC()"><option value="1" selected>1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option><option value="5">5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option><option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option></select>
     <span style="color:#9ca3af">~</span>
     <select id="ct-to" class="form-select form-select-sm" style="width:70px" onchange="_ctPC()"><option value="1">1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option><option value="5" selected>5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option><option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option></select>
@@ -418,7 +418,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 <div id="page-by-product" class="page">
   <div class="page-header"><h5><i class="bi bi-box-seam" style="color:#7c3aed"></i>제품별 분석</h5></div>
   <div class="period-bar">
-    <select id="pd-year" class="form-select form-select-sm" style="width:100px" onchange="renderByProduct()"><option value="2026" selected>2026년</option><option value="2025">2025년</option></select>
+    <select id="pd-year" class="form-select form-select-sm" style="width:100px" onchange="renderByProduct()"><option value="2026" selected>2026년</option><option value="2025">2025년</option><!-- 글자는 _fillYearSel() 이 실제 연도로 바꾼다 --></select>
     <select id="pd-from" class="form-select form-select-sm" style="width:70px" onchange="_pdPC()"><option value="1" selected>1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option><option value="5">5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option><option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option></select>
     <span style="color:#9ca3af">~</span>
     <select id="pd-to" class="form-select form-select-sm" style="width:70px" onchange="_pdPC()"><option value="1">1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option><option value="5" selected>5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option><option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option></select>
@@ -439,7 +439,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 <div id="page-by-cons" class="page">
   <div class="page-header"><h5><i class="bi bi-capsule" style="color:#0d9488"></i>소모품 분석</h5></div>
   <div class="period-bar">
-    <select id="cs-year" class="form-select form-select-sm" style="width:100px" onchange="renderByCons()"><option value="2026" selected>2026년</option><option value="2025">2025년</option></select>
+    <select id="cs-year" class="form-select form-select-sm" style="width:100px" onchange="renderByCons()"><option value="2026" selected>2026년</option><option value="2025">2025년</option><!-- 글자는 _fillYearSel() 이 실제 연도로 바꾼다 --></select>
     <select id="cs-from" class="form-select form-select-sm" style="width:70px" onchange="_csPC()"><option value="1" selected>1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option><option value="5">5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option><option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option></select>
     <span style="color:#9ca3af">~</span>
     <select id="cs-to" class="form-select form-select-sm" style="width:70px" onchange="_csPC()"><option value="1">1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option><option value="5" selected>5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option><option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option></select>
@@ -469,7 +469,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 <div id="page-by-rep" class="page">
   <div class="page-header"><h5><i class="bi bi-person-badge" style="color:#16a34a"></i>담당자별 분석</h5></div>
   <div class="period-bar">
-    <select id="rp-year" class="form-select form-select-sm" style="width:100px" onchange="renderByRep()"><option value="2026" selected>2026년</option><option value="2025">2025년</option></select>
+    <select id="rp-year" class="form-select form-select-sm" style="width:100px" onchange="renderByRep()"><option value="2026" selected>2026년</option><option value="2025">2025년</option><!-- 글자는 _fillYearSel() 이 실제 연도로 바꾼다 --></select>
     <select id="rp-from" class="form-select form-select-sm" style="width:70px" onchange="_rpPC()"><option value="1" selected>1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option><option value="5">5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option><option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option></select>
     <span style="color:#9ca3af">~</span>
     <select id="rp-to" class="form-select form-select-sm" style="width:70px" onchange="_rpPC()"><option value="1">1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option><option value="5" selected>5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option><option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option></select>
@@ -769,6 +769,11 @@ const fmtW = v => { v=Number(v)||0; var s=v<0?'-':'', a=Math.abs(v); return s+(a
 const fmtU = v => '$'+(v/1e6).toFixed(2)+'M';
 // 달력 현재월 — 월이 바뀌면 조회기간 종료월이 즉시 그 달로 늘어난다.
 // 데이터 마지막월로 묶어두면 9월 1일에도 화면이 1~8월에 머물러 아무도 눈치채지 못한다(종합·한국과 동일 규칙).
+// ── 연도 표기 ───────────────────────────────────────────────────────────────
+// 데이터는 '올해'를 INTL2026, '전년'을 INTL2025 라는 칸에 담는다(이름은 옛 연도, 내용은 현재).
+// 연도 셀렉터 값(yr)도 그 칸 이름이다. 사람에게 보여줄 때와 진짜 날짜와 견줄 때만 실제 연도로 옮긴다.
+function _dataYear(){ var y=Number((typeof INTL_DATA!=='undefined'&&INTL_DATA&&INTL_DATA.dataYear)||0); return y||2026; }
+function _YR(y){ y=Number(y); var C=_dataYear(); return y===2026?C:(y===2025?C-1:y); }
 function _intlCurMonth(){ var n=new Date(), y=n.getFullYear(); return y>2026?12:(y<2026?1:Math.min(12,n.getMonth()+1)); }
 const pct  = (a,b) => b>0?((a/b-1)*100).toFixed(1):null;
 const bdg  = v => v===null?'':'<span style="font-size:10px;font-weight:700;color:'+(parseFloat(v)>=0?'#16a34a':'#dc2626')+'">'+(parseFloat(v)>=0?'▲':'▼')+Math.abs(parseFloat(v))+'%</span>';
@@ -1133,7 +1138,7 @@ function renderCtClient(){
 function _ctProdTxns(prod){
   var yr=+document.getElementById('ct-year').value, f=+document.getElementById('ct-from').value, t=+document.getElementById('ct-to').value;
   var tx=(window._ctCurTxns||[]).filter(function(r){ return r&&r[1]===prod; })
-    .filter(function(r){ var d=String(r[0]||''); var y=+d.slice(0,4), m=+d.slice(5,7); return y===yr && m>=f && m<=t; })
+    .filter(function(r){ var d=String(r[0]||''); var y=+d.slice(0,4), m=+d.slice(5,7); return y===_YR(yr) && m>=f && m<=t; })   // 거래일은 진짜 연도
     .sort(function(a,b){ return String(a[0]).localeCompare(String(b[0])); });
   var tot=tx.reduce(function(s,r){return s+(+r[3]||0);},0), totq=tx.reduce(function(s,r){return s+(+r[2]||0);},0);
   var rows=tx.map(function(r){ var q=+r[2]||0, amt=+r[3]||0, u=q>0?amt/q:0;
@@ -1242,7 +1247,7 @@ function handleUpload(file){
       const res=agg(rows25,rows26);
       const upd=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\. /g,'.').slice(0,-1);
       Object.assign(INTL,res.r26,{data2025:res.r25,updatedAt:upd});
-      setMsg('<span style="color:#0d9488"><i class="bi bi-check-circle-fill me-1"></i>완료 · '+upd+' · 2026년 해외 '+fmtW(res.r26.total)+'</span>');
+      setMsg('<span style="color:#0d9488"><i class="bi bi-check-circle-fill me-1"></i>완료 · '+upd+' · '+_dataYear()+'년 해외 '+fmtW(res.r26.total)+'</span>');
       renderOverview();
     }catch(err){setMsg('<span style="color:red">오류: '+err.message+'</span>');}
   };
@@ -1476,7 +1481,7 @@ function _pendAggIntl(yr,exclCorp){
     if(p.status==='취소'||p.status==='반영됨') return;        // 회계 잡힘/취소 → 합산 제외
     if(exclCorp&&_corpPendRow(p)) return;   // 직수출 모드 — 법인 미반영 제외
     const d=p.expected_date?new Date(p.expected_date+'T00:00:00'):null;
-    if(!(d&&!isNaN(d)&&d.getFullYear()===yr)) return;
+    if(!(d&&!isNaN(d)&&d.getFullYear()===_YR(yr))) return;   // 예정일은 진짜 연도, yr 은 데이터 칸 연도
     const mo=d.getMonth()+1,amt=Number(p.amount||0),rg=p.region||'기타';
     agg.monthly[mo]=(agg.monthly[mo]||0)+amt; agg.regions[rg]=(agg.regions[rg]||0)+amt;
     agg.total+=amt; agg.count++;
@@ -1488,7 +1493,7 @@ function _ilboAgg(yr,exclCorp){
   (ILBO_PEND||[]).forEach(function(p){
     if(exclCorp&&_corpPendRow(p)) return;   // 직수출 모드 — 법인 미반영 제외
     var ds=p.expectedDate||p.expected_date||''; var d=ds?new Date(ds+'T00:00:00'):null;
-    if(!(d&&!isNaN(d)&&d.getFullYear()===yr)) return;
+    if(!(d&&!isNaN(d)&&d.getFullYear()===_YR(yr))) return;   // 예정일은 진짜 연도, yr 은 데이터 칸 연도
     var mo=d.getMonth()+1, amt=Number(p.amount||0);
     agg.monthly[mo]=(agg.monthly[mo]||0)+amt; agg.total+=amt; agg.count++;
   });
@@ -2583,6 +2588,9 @@ function _setDefaultRanges(){
     var cm=_intlCurMonth();
     // 거래처·제품·국가·담당자 4개 메뉴가 '데이터 마지막월'에 묶여 있어 월이 바뀌어도 1~7월 그대로였다. 현황판과 같이 달력월까지 편다.
     ['ct-to','pd-to','cs-to','rp-to','ov-to'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=String(Math.max(last,cm)); });
+    // 연도 셀렉터: 값(2026/2025)은 데이터 칸 이름 그대로, 글자만 실제 연도로
+    ['ov-year','ct-year','pd-year','cs-year','rp-year'].forEach(function(id){ var el=document.getElementById(id); if(!el) return;
+      Array.prototype.forEach.call(el.options,function(op){ op.textContent=_YR(op.value)+'년'; }); });
   }catch(e){}
 }
 // 조회기간 기본값은 INTL 로드 뒤에야 정해진다. 호출부(위쪽 script)는 정의 전이라 실패할 수 있어
