@@ -849,9 +849,11 @@ function _intlCtryQty(src,f,t){ var out={}; if(!src||!src.countries) return out;
   return out; }
 function _rankTable(rows, opts){
   opts=opts||{}; var col=opts.color||'#0d9488';
+  // 분모는 음수(반품·충당)까지 넣은 전체 합 — 양수만 더하면 비중이 과소 표시되고 회계와 어긋난다
+  var _totAll=(rows||[]).reduce(function(s,r){return s+(Number(r.v)||0);},0);
   rows=(rows||[]).filter(function(r){return (Number(r.v)||0)>0;}).sort(function(a,b){return b.v-a.v;});
   if(!rows.length) return '<div class="text-muted" style="font-size:12px;padding:8px">데이터 없음</div>';
-  var tot=rows.reduce(function(s,r){return s+(Number(r.v)||0);},0)||1, mx=rows[0].v||1;
+  var tot=(opts.total!=null?Number(opts.total):_totAll)||1, mx=rows[0].v||1;
   var conc=Math.round(rows.slice(0,3).reduce(function(s,r){return s+r.v;},0)/tot*100);
   var mv=rows.filter(function(r){return (Number(r.prev)||0)>0;}).map(function(r){return {n:r.name,y:(r.v/r.prev-1)*100};});
   var up=mv.filter(function(m){return m.y>0;}).sort(function(a,b){return b.y-a.y;})[0];
@@ -1342,7 +1344,10 @@ async function _afterLogin(user) {
   await _loadIntlCrm();
   _loadQuotes();
   if(typeof _loadFx==="function")_loadFx(function(){});
-  _setDefaultRanges();
+  try{ _setDefaultRanges(); }catch(e){}   // 정의부가 뒤 <script> 라 여기서 던지면 이후 초기화가 통째로 죽는다
+  // 정의부와 호출부가 다른 <script> 블록이라 첫 호출이 실패할 수 있다 → 지연 재시도
+  setTimeout(function(){ try{ _setDefaultRanges(); }catch(e){} },0);
+  setTimeout(function(){ try{ _setDefaultRanges(); }catch(e){} },600);
   try{ var _mp=_myPartIntl(), _all=_seeAllIntl(), _lead=_isLeaderIntl();
     // 섹션 단위 표시: 종합(팀장/관리자만) · 팀장·관리(팀장/관리자만)
     var _secOv=document.getElementById('sec-overview'); if(_secOv)_secOv.style.display='';  // 종합현황 항목은 팀원도 노출(분석3종은 nav-analysis로 계속 제한)
@@ -2568,14 +2573,23 @@ function renderQuotes(){
 <script>
 // ═══ 종합 v3: 월 상세 드릴다운 + 예정분 출고/선적예정일(일보 공유) ═══
 var ILBO_DOC=null;
+var _rangesApplied=false;
 function _setDefaultRanges(){
   try{
-    var last=1; for(var m=1;m<=12;m++){ if(INTL&&INTL.monthly&&Number(INTL.monthly[m])>0) last=m; }
+    if(_rangesApplied) return;                 // 사용자가 바꾼 기간을 덮어쓰지 않도록 한 번만
+    var last=0; for(var m=1;m<=12;m++){ if(INTL&&INTL.monthly&&Number(INTL.monthly[m])>0) last=m; }
+    if(!last) return;                          // 데이터가 아직 안 붙었으면 재시도에 맡긴다
+    _rangesApplied=true;
     var cm=_intlCurMonth();
     // 거래처·제품·국가·담당자 4개 메뉴가 '데이터 마지막월'에 묶여 있어 월이 바뀌어도 1~7월 그대로였다. 현황판과 같이 달력월까지 편다.
     ['ct-to','pd-to','cs-to','rp-to','ov-to'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=String(Math.max(last,cm)); });
   }catch(e){}
 }
+// 조회기간 기본값은 INTL 로드 뒤에야 정해진다. 호출부(위쪽 script)는 정의 전이라 실패할 수 있어
+// 정의부와 같은 블록에서 실제로 적용될 때까지(최대 12초) 되물어본다 — 안 하면 기본값에 머무른다
+(function(){ var n=0, t=setInterval(function(){ n++;
+  try{ _setDefaultRanges(); }catch(e){}
+  if(_rangesApplied||n>40) clearInterval(t); },300); })();
 function _ilboKey(p){ return encodeURIComponent([p.customer||'',p.product||'',p.amount||'',p.expectedDate||''].join('|')); }
 function _ilboBodyHTML(scope){
   var _cp=function(p){ return p.country||(typeof _ctry==='function'?_ctry(p.customer):p.customer)||'기타'; };
