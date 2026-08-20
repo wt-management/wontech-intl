@@ -772,7 +772,7 @@ const fmtU = v => '$'+(v/1e6).toFixed(2)+'M';
 // ── 연도 표기 ───────────────────────────────────────────────────────────────
 // 데이터는 '올해'를 INTL2026, '전년'을 INTL2025 라는 칸에 담는다(이름은 옛 연도, 내용은 현재).
 // 연도 셀렉터 값(yr)도 그 칸 이름이다. 사람에게 보여줄 때와 진짜 날짜와 견줄 때만 실제 연도로 옮긴다.
-function _dataYear(){ var y=Number((typeof INTL_DATA!=='undefined'&&INTL_DATA&&INTL_DATA.dataYear)||0); return y||2026; }
+function _dataYear(){ var y=Number((typeof INTL!=='undefined'&&INTL&&INTL.dataYear)||(typeof INTL_DATA!=='undefined'&&INTL_DATA&&INTL_DATA.dataYear)||0); return y||2026; }
 function _YR(y){ y=Number(y); var C=_dataYear(); return y===2026?C:(y===2025?C-1:y); }
 function _intlCurMonth(){ var n=new Date(), y=n.getFullYear(); return y>2026?12:(y<2026?1:Math.min(12,n.getMonth()+1)); }
 const pct  = (a,b) => b>0?((a/b-1)*100).toFixed(1):null;
@@ -1339,7 +1339,7 @@ async function _afterLogin(user) {
     if(_id?.data) {
       const _d=_id.data;
       if((_d.updatedAt||'')>=('')) {
-        Object.assign(INTL, {...(_d.INTL2026||{}), data2025:(_d.INTL2025||{}), updatedAt:_d.updatedAt||INTL.updatedAt});
+        Object.assign(INTL, {...(_d.INTL2026||{}), data2025:(_d.INTL2025||{}), dataYear:_d.dataYear||null, updatedAt:_d.updatedAt||INTL.updatedAt});   // dataYear = 이 데이터가 몇 년치인지(연도 표기용)
       }
     }
   } catch(_e) { console.log('해외 데이터 로드 실패 (내장 데이터 사용):', _e.message); }
